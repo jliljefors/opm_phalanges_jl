@@ -4,7 +4,6 @@ close all
 restoredefaultpath
 addpath('/home/chrpfe/Documents/MATLAB/fieldtrip-20231220/') % Fieldtrip path
 addpath('/home/chrpfe/Documents/MATLAB/fieldtrip_private') % Fieldtrip private functions
-addpath('/home/chrpfe/Documents/MATLAB/myFunctions')
 addpath('/home/chrpfe/Documents/MATLAB/21099_opm/phalanges')
 ft_defaults
 
@@ -18,13 +17,14 @@ params = [];
 params.pre = 0.1; %sec
 params.post = 0.4; %sec
 params.filter = [];
-params.filter.hp_freq = [3];
-params.filter.lp_freq = [100];
+params.filter.hp_freq = 3;
+params.filter.lp_freq = 100;
 params.filter.bp_freq = [];
 params.filter.notch = sort([50:50:150 60:60:120]);
 params.n_comp = 40;
 params.ica_threshold = 0.8; % cutoff for EOG/ECG coherence
 params.z_threshold = 20;
+params.corr_threshold = 0.7; % correlation threshold for badchannel neighbors
 params.opm_std_threshold = 5e-12;
 params.eeg_std_threshold = 5e-5;
 params.megmag_std_threshold = 5e-12;
@@ -51,7 +51,7 @@ subses = {'0005' '240208';
 mri_files = {'00000001.dcm' '/nifti/anat/sub-15931_T1w.nii.gz'  '/nifti/anat/sub-15985_T1w.nii.gz'};
 
 %% Loop over subjects
-for i_sub = 1:size(subses,1)
+for i_sub = 1:3%size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
 
@@ -65,7 +65,7 @@ for i_sub = 1:size(subses,1)
     if ~exist(fullfile(save_path,'figs'), 'dir')
        mkdir(fullfile(save_path,'figs'))
     end
-    meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_tsss.fif');
+    meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
     opm_file = fullfile(raw_path, 'osmeg', 'PhalangesOPM_raw.fif');
     aux_file = fullfile(raw_path, 'meg', 'PhalangesEEG.fif');
     hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
@@ -102,6 +102,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'EEG*';
         params.modality = 'opmeeg';
         opmeeg_ica = ica_MEG(opmeeg_cleaned, save_path, params);
+        close all
     end
     %% Average
     if exist(fullfile(save_path, [params.sub '_opmeeg_timelocked.mat']),'file') && overwrite==false
@@ -161,6 +162,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'EEG*';
         params.modality = 'megeeg';
         megeeg_ica = ica_MEG(megeeg_cleaned, save_path, params);
+        close all
     end
     %% Average
     if exist(fullfile(save_path, [params.sub '_megeeg_timelocked.mat']),'file') && overwrite==false
@@ -195,6 +197,7 @@ for i_sub = 1:size(subses,1)
     M100_meg{i_sub} = M100;
     load(fullfile(save_path, [params.sub '_megeeg_M100']));
     M100_megeeg{i_sub} = M100;
+
 end
 
 h = figure('DefaultAxesFontSize',16);

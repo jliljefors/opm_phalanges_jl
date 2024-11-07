@@ -40,13 +40,13 @@ trl_aux(:,4) = aux_raw.trial{1}(aux_trig,smpl(trig));
 
 % Check if uneven amount of trial. If so assume error in beginning.
 if size(trl_aux,1) > size(trl_opm,1)
-    trl_aux = trl_aux((end-size(trl_opm,1)-1):end,:);
+    trl_aux = trl_aux((end-size(trl_opm,1)+1):end,:);
 elseif size(trl_aux,1) < size(trl_opm,1)
-    trl_opm = trl_opm((end-size(trl_aux,1)-1):end,:);
+    trl_opm = trl_opm((end-size(trl_aux,1)+1):end,:);
 end
 if trl_aux(:,4) ~= trl_opm(:,4) % Throw error if trials don't match.
     error('events do not match')
-en4
+end
 
 %% AUX data filter & epoch
 cfg = [];
@@ -54,7 +54,6 @@ cfg.lpfilter        = 'yes';
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
 cfg.hpfreq          = params.filter.hp_freq;
-%cfg.hpfilttype      = 'firws';
 cfg.hpinstabilityfix  = 'reduce';
 cfg.padding         = 1;
 cfg.padtype         = 'data';
@@ -71,7 +70,9 @@ cfg.dftfilter    = 'yes';
 cfg.dftfreq      = params.filter.notch;
 aux_epo = ft_preprocessing(cfg,aux_epo);
 
-
+cfg = [];
+cfg.trl = trl_opm;
+opm_raw_epo = ft_redefinetrial(cfg,opm_raw);
 %% OPM data filter & epoch
 cfg = [];
 cfg.lpfilter        = 'yes';         
@@ -110,7 +111,7 @@ TRIG_channels = find(contains(aux_epo.label,'STI101'));
 include_channels = [EOG_channels; ECG_channels; EEG_channels; MISC_channels; TRIG_channels];
 
 comb = opm_epo_ds; 
-comb.elec = aux_epo.elec;
+comb.elec = aux_epo.elec;close all
 comb.time = aux_epo.time;
 comb.label = [comb.label; aux_epo.label(include_channels)];
 comb.hdr.label = comb.label;
@@ -129,9 +130,6 @@ cfg.channel = comb.label(find(~contains(comb.label,'eeg')));
 opm_cleaned = ft_selectdata(cfg, comb);
 
 % Reject bad channels
-cfg = [];
-cfg.trl = trl_opm;
-opm_raw_epo = ft_redefinetrial(cfg,opm_raw);
 cfg = [];
 cfg.z_threshold = params.z_threshold;
 [badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw_epo);

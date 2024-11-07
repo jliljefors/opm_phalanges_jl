@@ -50,6 +50,13 @@ save(fullfile(save_path, [params.sub '_' params.modality '_M100']), 'M100', '-v7
 
 %% Topoplots
 for i_phalange = 1:length(params.trigger_code)
+    h = figure;
+    plot(timelocked{i_phalange}.time*1e3,timelocked{i_phalange}.avg*1e15)
+    xlabel('t [msec]')
+    ylabel('B [fT]')
+    title(['Evoked ' params.modality ' - phalange ' params.phalange_labels{i_phalange} ' (n_trls=' num2str(length(timelocked{i_phalange}.cfg.trials)) ')'])
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']))
+
     cfg = [];
     cfg.xlim = [M100{i_phalange}.peak_latency-0.01 M100{i_phalange}.peak_latency+0.01];
     cfg.layout = params.layout; 

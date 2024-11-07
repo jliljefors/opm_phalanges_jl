@@ -70,7 +70,6 @@ cfg.dftfilter    = 'yes';
 cfg.dftfreq      = params.filter.notch;
 aux_epo = ft_preprocessing(cfg,aux_epo);
 
-
 %% OPM data filter & epoch
 cfg = [];
 cfg.lpfilter        = 'yes';         
@@ -133,6 +132,7 @@ cfg.trl = trl_opm;
 opm_raw_epo = ft_redefinetrial(cfg,opm_raw);
 cfg = [];
 cfg.z_threshold = params.z_threshold;
+cfg.corr_threshold = params.corr_threshold;
 [badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw_epo);
 cfg = [];
 cfg.channel = setdiff(opm_cleaned.label,badchs_opm);
@@ -178,8 +178,12 @@ opmeeg_cleaned = ft_selectdata(cfg, comb);
 
 % Reject bad channels
 cfg = [];
+cfg.trl = trl_aux;
+aux_raw_epo = ft_redefinetrial(cfg,aux_raw);
+cfg = [];
 cfg.z_threshold = params.z_threshold;
-[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors, badchs_opmeeg_zmax] = eeg_badchannels(cfg,opmeeg_cleaned);
+cfg.corr_threshold = params.corr_threshold;
+[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors, badchs_opmeeg_zmax] = eeg_badchannels(cfg,aux_raw_epo);
 cfg = [];
 cfg.channel = setdiff(opmeeg_cleaned.label,badchs_opmeeg);
 opmeeg_cleaned = ft_selectdata(cfg, opmeeg_cleaned);

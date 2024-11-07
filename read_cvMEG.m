@@ -1,4 +1,4 @@
-function [meg_data, trl_meg] = read_cvMEG(meg_file, save_path, params)
+function [meg_cleaned, megeeg_cleaned] = read_cvMEG(meg_file, save_path, params)
 %prprocess_cvMEG Read conventional MEG data for benchmarking
 % recordings. 
 % Requires the following arguments:
@@ -46,6 +46,8 @@ cfg = [];
 cfg.channel = meg_epo.label(find(~contains(meg_epo.label,'eeg')));
 meg_cleaned = ft_selectdata(cfg, meg_epo);
 
+% no bad channel detection since maxfilter already does that
+
 % Reject jump trials
 cfg = [];
 cfg.channel = 'meg';
@@ -79,8 +81,12 @@ megeeg_cleaned = ft_selectdata(cfg, meg_epo);
 
 % Reject bad channels
 cfg = [];
+cfg.trl = trl_meg;
+meg_raw_epo = ft_redefinetrial(cfg,meg_raw);
+cfg = [];
 cfg.z_threshold = params.z_threshold;
-[badchs_opmeeg, badchs_megeeg_flat, badchs_megeeg_neighbors, badchs_megeeg_zmax] = eeg_badchannels(cfg,megeeg_cleaned);
+cfg.corr_threshold = params.corr_threshold;
+[badchs_opmeeg, badchs_megeeg_flat, badchs_megeeg_neighbors, badchs_megeeg_zmax] = eeg_badchannels(cfg,meg_raw_epo);
 cfg = [];
 cfg.channel = setdiff(megeeg_cleaned.label,badchs_opmeeg);
 megeeg_cleaned = ft_selectdata(cfg, megeeg_cleaned);
