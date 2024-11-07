@@ -8,6 +8,9 @@ addpath('/home/chrpfe/Documents/MATLAB/myFunctions')
 addpath('/home/chrpfe/Documents/MATLAB/21099_opm/phalanges')
 ft_defaults
 
+global ft_default
+ft_default.showcallinfo = 'no';
+
 %% Params
 overwrite = false;
 
@@ -48,7 +51,7 @@ subses = {'0005' '240208';
 mri_files = {'00000001.dcm' '/nifti/anat/sub-15931_T1w.nii.gz'  '/nifti/anat/sub-15985_T1w.nii.gz'};
 
 %% Loop over subjects
-for i_sub = 9:size(subses,1)
+for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
 
@@ -67,7 +70,8 @@ for i_sub = 9:size(subses,1)
     aux_file = fullfile(raw_path, 'meg', 'PhalangesEEG.fif');
     hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
 
-    %% Preprocess osMEG
+    %% --- OPM-MEG --------------------------------------------------------
+    %% Preprocess
     % Read data, filter and reject bad channels/trials
     if exist(fullfile(save_path, [params.sub '_opm_cleaned.mat']),'file') && overwrite==false
         load(fullfile(save_path, [params.sub '_opm_cleaned.mat']));
@@ -107,90 +111,139 @@ for i_sub = 9:size(subses,1)
         params.modality = 'opm';
         params.layout = 'fieldlinebeta2bz_helmet.mat';
         params.chs = '*bz';
-        opm_timelocked = timelock_MEG(opm_cleaned, save_path, params);
+        opm_timelocked = timelock_MEG(opm_ica, save_path, params);
         close all
 
         params.modality = 'opmeeg';
         params.layout = opmeeg_layout;
         params.chs = 'EEG*';
-        opmeeg_timelocked = timelock_MEG(opmeeg_cleaned, save_path, params);
+        opmeeg_timelocked = timelock_MEG(opmeeg_ica, save_path, params);
         close all
     end
-end
-
-%% Loop over subjects
-for i_sub = 1:size(subses,1)
-    params.sub = ['sub_' num2str(i_sub)];
-
-    %% Paths
-    raw_path = fullfile('/archive/21099_opm/MEG/',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
-    save_path = fullfile('/home/chrpfe/Documents/21099_opm/Phalanges',params_sub);
-    meg_path = fullfile('/Users/christophpfeiffer/data_archive/21099_opm/MEG/',['NatMEG_' subsub{i_sub,1}], subses{i_sub,2});
-    mri_path = fullfile('/Users/christophpfeiffer/data_archive/21099_opm/MRI/',['NatMEG_' subsub{i_sub,1}]);
-    if ~exist(save_path, 'dir')
-       mkdir(save_path)
-    end
-    if ~exist(fullfile(save_path,'figs'), 'dir')
-       mkdir(fullfile(save_path,'figs'))
-    end
-    meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_tsss.fif');
-    opm_file = fullfile(raw_path, 'osmeg', 'PhalangesOPM_raw.fif');
-    aux_file = fullfile(raw_path, 'meg', 'PhalangesEEG.fif');
-    hpi_file = fullfile(meg_path, 'osmeg', 'HPIpre_raw.fif');
-
-    %% Preprocess cvMEG
-    % Read data 
-    if exist(fullfile(save_path, 'meg_data.mat'),'file') && overwrite==false
-        load(fullfile(save_path, 'meg_data.mat'));
-    else
-        [meg_data_filt, trl_meg] = read_cvMEG(meg_file, save_path, params);
-    end
-    %% Filter and reject artifacts
-    if exist(fullfile(save_path, 'meg_cleaned.mat'),'file') && overwrite==false
-        load(fullfile(save_path, 'meg_cleaned.mat'));
-    else
-        meg_cleaned = preprocess_cvMEG(meg_data_filt, save_path);
-    end
-    %% Remove eye and heart artifacts with ICA
-    if exist(fullfile(save_path, 'meg_ica.mat'),'file') && overwrite==false
-        load(fullfile(save_path, 'meg_ica.mat'));
-    else
-        meg_ica = ica_cvMEG(meg_cleaned, save_path, params);
-    end
-    %% Average
-    if exist(fullfile(save_path, 'meg_timelocked.mat'),'file') && overwrite==false
-        load(fullfile(save_path, 'meg_timelocked.mat'));
-    else
-        for i_phalange = 1:5
-            cfg = [];
-            cfg.covariance          = 'yes';
-            cfg.covariancewindow    = 'prestim';
-            cfg.trials = find(meg_ica.trialinfo==params.trigger_code(i_phalange));
-            meg_timelocked{i_phalange} = ft_timelockanalysis(cfg, meg_ica);
-        end
-        save(fullfile(save_path, 'meg_timelocked'), 'meg_timelocked', '-v7.3'); disp('done');
-    end
-    
-    close all
-end
-
-for i_sub = 1:size(subses,1)
-    %% Evoked figures
-    if ~exist(fullfile(save_path, 'figs', ['opm_evoked_multiplot_sub-' num2str(i_sub,'%02d') '.fig']),'file') || overwrite==true    
-        plot_sub_evoked(save_path, i_sub, params.phalange_labels, opm_timelocked, meg_timelocked);
-    end
-    close all
 
     %% HPI localization
     if exist(fullfile(save_path, 'opm_trans.mat'),'file') && overwrite==false
         load(fullfile(save_path, 'hpi_fit.mat'));
         load(fullfile(save_path, 'opm_trans.mat'));
     else
-        hpi_file = fullfile(meg_path, 'osmeg', 'HPI_raw.fif');
-        aux_file = fullfile(meg_path, 'meg', 'PhalangesEEG.fif');
         [hpi_fit, opm_trans, hpi_fit_tf] = fit_hpi(hpi_file, aux_file, save_path, params);
     end
 
+    %% --- SQUID-MEG ------------------------------------------------------
+    %% Preprocess
+    % Read data, filter and reject bad channels/trials
+    if exist(fullfile(save_path, [params.sub '_megeeg_cleaned.mat']),'file') && overwrite==false
+        load(fullfile(save_path, [params.sub '_meg_cleaned.mat']));
+        load(fullfile(save_path, [params.sub '_megeeg_cleaned.mat']));
+    else
+        [meg_cleaned, megeeg_cleaned] = read_cvMEG(meg_file, save_path, params); % Read data
+    end
+
+    %% Remove eye and heart artifacts with ICA
+    if exist(fullfile(save_path, [params.sub '_megeeg_ica.mat']),'file') && overwrite==false
+        load(fullfile(save_path, [params.sub '_meg_ica.mat']));
+        meg_ica = data_ica;
+        load(fullfile(save_path, [params.sub '_megeeg_ica.mat']));
+        megeeg_ica = data_ica;
+        clear data_ica
+        load(fullfile(save_path, [params.sub '_megeeg_layout.mat']));
+    else
+        params.modality = 'meg';
+        params.layout = 'fieldlinebeta2bz_helmet.mat';
+        params.chs = 'MEG*';
+        meg_ica = ica_MEG(meg_cleaned, save_path, params);
+
+        cfg = [];
+        cfg.elec = megeeg_cleaned.elec;
+        cfg.output = fullfile(save_path, [params.sub '_megeeg_layout.mat']);
+        megeeg_layout = ft_prepare_layout(cfg);
+        params.layout = megeeg_layout;
+        params.chs = 'EEG*';
+        params.modality = 'megeeg';
+        megeeg_ica = ica_MEG(megeeg_cleaned, save_path, params);
+    end
+    %% Average
+    if exist(fullfile(save_path, [params.sub '_megeeg_timelocked.mat']),'file') && overwrite==false
+        fullfile(save_path, [params.sub '_meg_timelocked.mat'])
+        fullfile(save_path, [params.sub '_megeeg_timelocked.mat'])
+    else
+        params.modality = 'meg';
+        params.layout = 'neuromag306mag.lay';
+        params.chs = 'megmag';
+        opm_timelocked = timelock_MEG(meg_ica, save_path, params);
+        close all
+
+        params.modality = 'megeeg';
+        params.layout = megeeg_layout;
+        params.chs = 'EEG*';
+        opmeeg_timelocked = timelock_MEG(megeeg_ica, save_path, params);
+        close all
+    end
+end
+
+%% --- Group sensor level -------------------------------------------------
+%% Peak amplitude ratio
+for i_sub = 1:size(subses,1)
+    params.sub = ['sub_' num2str(i_sub,'%02d')];
+    ft_hastoolbox('mne', 1);
+    save_path = fullfile('/home/chrpfe/Documents/21099_opm/Phalanges',params.sub);
+    load(fullfile(save_path, [params.sub '_opm_M100'])); 
+
+    load(fullfile(save_path, [params.sub '_opmeeg_M100'])); 
+
+    load(fullfile(save_path, [params.sub '_meg_M100'])); 
+
+    load(fullfile(save_path, [params.sub '_megeeg_M100']));  
+end
+
+h = figure('DefaultAxesFontSize',16);
+bar(1:5,mean(peak_ratio,1));
+hold on
+er = errorbar(1:5,mean(peak_ratio,1), mean(peak_ratio,1)-min(peak_ratio,[],1), mean(peak_ratio,1)-max(peak_ratio,[],1));    
+er.Color = [0 0 0];                            
+er.LineStyle = 'none';  
+er.LineWidth = 1;
+er.CapSize = 30;
+hold off
+title(['M100 peak amplitude ratio (mean = ' num2str(mean(mean(peak_ratio))) ')'])
+ylabel('SQUID/OPM')
+xlabel('Phalange')
+xticklabels(phalange_labels)
+savefig(h, fullfile('/Users/christophpfeiffer/data_local/Benchmarking_phalanges/', 'PeakAmpRatio_M100.fig'))
+
+%% Peak latency
+h = figure;
+subplot(2,1,1)
+bar(1:5,mean(t_max_meg,1));
+hold on
+er = errorbar(1:5,mean(t_max_meg,1), mean(t_max_meg,1)-min(t_max_meg,[],1), mean(t_max_meg,1)-max(t_max_meg,[],1));    
+er.Color = [0 0 0];                            
+er.LineStyle = 'none';  
+er.LineWidth = 1;
+er.CapSize = 30;
+hold off
+title(['SQUID peak latency (mean = ' num2str(mean(mean(t_max_meg))) ')'])
+ylabel('time')
+xlabel('Phalange')
+
+subplot(2,1,2)
+bar(1:5,mean(t_max_opm,1));
+hold on
+er = errorbar(1:5,mean(t_max_opm,1), mean(t_max_opm,1)-min(t_max_opm,[],1), mean(t_max_opm,1)-max(t_max_opm,[],1));    
+er.Color = [0 0 0];                            
+er.LineStyle = 'none';  
+er.LineWidth = 1;
+er.CapSize = 30;
+hold off
+title(['OPM peak latency (mean = ' num2str(mean(mean(t_max_opm))) ')'])
+ylabel('time')
+xlabel('Phalange')
+ylim([0.05 0.15])
+savefig(h, fullfile('/Users/christophpfeiffer/data_local/Benchmarking_phalanges/', 'PeakLatency_M100.fig'))
+
+
+
+for i_sub = 1:size(subses,1)
     %% Prepare MRIs
     if exist(fullfile(save_path, 'headmodels.mat'),'file') && overwrite==false
         load(fullfile(save_path, 'headmodels.mat'));
@@ -296,49 +349,3 @@ for i_sub = 1:size(subses,1)
     end
 end
 close all
-
-%% Peak amplitude ratio
-h = figure('DefaultAxesFontSize',16);
-bar(1:5,mean(peak_ratio,1));
-hold on
-er = errorbar(1:5,mean(peak_ratio,1), mean(peak_ratio,1)-min(peak_ratio,[],1), mean(peak_ratio,1)-max(peak_ratio,[],1));    
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-er.LineWidth = 1;
-er.CapSize = 30;
-hold off
-title(['M100 peak amplitude ratio (mean = ' num2str(mean(mean(peak_ratio))) ')'])
-ylabel('SQUID/OPM')
-xlabel('Phalange')
-xticklabels(phalange_labels)
-savefig(h, fullfile('/Users/christophpfeiffer/data_local/Benchmarking_phalanges/', 'PeakAmpRatio_M100.fig'))
-
-%% Peak latency
-h = figure;
-subplot(2,1,1)
-bar(1:5,mean(t_max_meg,1));
-hold on
-er = errorbar(1:5,mean(t_max_meg,1), mean(t_max_meg,1)-min(t_max_meg,[],1), mean(t_max_meg,1)-max(t_max_meg,[],1));    
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-er.LineWidth = 1;
-er.CapSize = 30;
-hold off
-title(['SQUID peak latency (mean = ' num2str(mean(mean(t_max_meg))) ')'])
-ylabel('time')
-xlabel('Phalange')
-
-subplot(2,1,2)
-bar(1:5,mean(t_max_opm,1));
-hold on
-er = errorbar(1:5,mean(t_max_opm,1), mean(t_max_opm,1)-min(t_max_opm,[],1), mean(t_max_opm,1)-max(t_max_opm,[],1));    
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-er.LineWidth = 1;
-er.CapSize = 30;
-hold off
-title(['OPM peak latency (mean = ' num2str(mean(mean(t_max_opm))) ')'])
-ylabel('time')
-xlabel('Phalange')
-ylim([0.05 0.15])
-savefig(h, fullfile('/Users/christophpfeiffer/data_local/Benchmarking_phalanges/', 'PeakLatency_M100.fig'))

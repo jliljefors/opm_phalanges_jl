@@ -54,7 +54,6 @@ cfg.lpfilter        = 'yes';
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
 cfg.hpfreq          = params.filter.hp_freq;
-%cfg.hpfilttype      = 'firws';
 cfg.hpinstabilityfix  = 'reduce';
 cfg.padding         = 1;
 cfg.padtype         = 'data';

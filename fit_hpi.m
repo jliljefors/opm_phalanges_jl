@@ -3,11 +3,7 @@ function [hpi_fit, opm_trans, dip_pos_tf] = fit_hpi(file, aux_file, save_path, p
 % recordings and combine with auxiliary TRIUX data/EEG. 
 % Requires the following arguments:
 % Path: containing save_path and meg_file
-% Params: containing pre, post (pre- and poststim), and ds_freq 
-% (downsampling frequency).
-
-%%
-hpi_freq = params.hpi_freq;
+% Params: hpi_freq.
 
 %% --- Read triggers ---
 % OPM
@@ -16,10 +12,10 @@ cfg.datafile        = file;
 cfg.coordsys        = 'dewar';
 cfg.coilaccuracy    = 0;
 cfg.lpfilter        = 'yes';         
-cfg.lpfreq          = hpi_freq+10;
+cfg.lpfreq          = params.hpi_freq+10;
 cfg.hpfilter        = 'yes';         
-cfg.hpfreq          = hpi_freq-10;
-cfg.padding         = 2;
+cfg.hpfreq          = params.hpi_freq-10;
+cfg.padding         = 1;
 cfg.padtype         = 'data';
 raw = ft_preprocessing(cfg);
 
@@ -67,8 +63,8 @@ for coil = 1:length(hpi_chs)
     R = zeros(size(epo.trial{hpi_trl{coil}(1)},1),length(hpi_trl{coil}));
     Theta = zeros(size(epo.trial{hpi_trl{coil}(1)},1),length(hpi_trl{coil}));
     for i_trl = 1:length(hpi_trl{coil})
-        X = mean(cos(2*pi*hpi_freq*epo.time{hpi_trl{coil}(i_trl)}).*epo.trial{hpi_trl{coil}(i_trl)},2);
-        Y = mean(sin(2*pi*hpi_freq*epo.time{hpi_trl{coil}(i_trl)}).*epo.trial{hpi_trl{coil}(i_trl)},2);
+        X = mean(cos(2*pi*params.hpi_freq*epo.time{hpi_trl{coil}(i_trl)}).*epo.trial{hpi_trl{coil}(i_trl)},2);
+        Y = mean(sin(2*pi*params.hpi_freq*epo.time{hpi_trl{coil}(i_trl)}).*epo.trial{hpi_trl{coil}(i_trl)},2);
         tmp = complex(X,Y);
         R(:,i_trl) = abs(tmp);
         Theta(:,i_trl) = angle(tmp./repmat(tmp(hpi_chs(coil)),[length(tmp) 1]));
@@ -84,30 +80,6 @@ for coil = 1:length(hpi_chs)
     cfg.channel = '*bz';
     h = figure; ft_topoplotER(cfg,timelocked); colorbar
     savefig(h, fullfile(save_path, 'figs', ['hpi_topo_coil-' num2str(coil) '.fig']))
-%     cfg = [];
-%     cfg.channel = '*bz';
-%     cfg.trials = hpi_trl{coil};
-%     cfg.output = 'fourier';
-%     cfg.method = 'mtmfft';
-%     cfg.taper = 'hanning';
-%     cfg.foi = [33 34];
-%     cfg.tapsmofrq = 1;
-%     opm_fft{coil} = ft_freqanalysis(cfg,epo);
-%     
-%     cfg = [];
-%     cfg.channel = hpi_labels{coil};
-%     cfg.trials = hpi_trl{coil};
-%     cfg.output = 'fourier';
-%     cfg.method = 'mtmfft';
-%     cfg.taper = 'hanning';
-%     cfg.foi = [33 34];
-%     cfg.tapsmofrq = 1;
-%     hpiin_fft{coil} = ft_freqanalysis(cfg,epo);
-% 
-%     % Amplitude normalize drive signal
-%     hpiin_fft{coil}.fourierspctrm = (hpiin_fft{coil}.fourierspctrm./abs(hpiin_fft{coil}.fourierspctrm)); 
-%     % Divide by amplitude normalized drive signal
-%     opm_fft{coil}.fourierspctrm = opm_fft{coil}.fourierspctrm./repmat(hpiin_fft{coil}.fourierspctrm,[1 size(opm_fft{coil}.fourierspctrm,2)]);
 
     %% Dipole fit
     cfg = [];
