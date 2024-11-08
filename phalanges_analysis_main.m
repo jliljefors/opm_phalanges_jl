@@ -28,7 +28,7 @@ params.corr_threshold = 0.7; % correlation threshold for badchannel neighbors
 params.opm_std_threshold = 5e-12;
 params.eeg_std_threshold = 5e-5;
 params.megmag_std_threshold = 5e-12;
-params.magplanar_std_threshold = 5e-12;
+params.megplanar_std_threshold = 5e-11;
 params.hpi_freq = 33;
 
 params.trigger_code = [2 4 8 16 32];
@@ -120,14 +120,6 @@ for i_sub = 1:3%size(subses,1)
         params.chs = 'EEG*';
         opmeeg_timelocked = timelock_MEG(opmeeg_ica, save_path, params);
         close all
-    end
-
-    %% HPI localization
-    if exist(fullfile(save_path, 'opm_trans.mat'),'file') && overwrite==false
-        load(fullfile(save_path, 'hpi_fit.mat'));
-        load(fullfile(save_path, 'opm_trans.mat'));
-    else
-        [hpi_fit, opm_trans, hpi_fit_tf] = fit_hpi(hpi_file, aux_file, save_path, params);
     end
 
     %% --- SQUID-MEG ------------------------------------------------------
@@ -248,6 +240,15 @@ savefig(h, fullfile('/Users/christophpfeiffer/data_local/Benchmarking_phalanges/
 
 
 for i_sub = 1:size(subses,1)
+    %% HPI localization
+    if exist(fullfile(save_path, 'opm_trans.mat'),'file') && overwrite==false
+        load(fullfile(save_path, 'hpi_fit.mat'));
+        load(fullfile(save_path, 'opm_trans.mat'));
+    else
+        ft_hastoolbox('mne', 1);
+        [hpi_fit, opm_trans, hpi_fit_tf] = fit_hpi(hpi_file, aux_file, save_path, params);
+    end
+
     %% Prepare MRIs
     if exist(fullfile(save_path, 'headmodels.mat'),'file') && overwrite==false
         load(fullfile(save_path, 'headmodels.mat'));
