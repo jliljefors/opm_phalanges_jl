@@ -24,9 +24,9 @@ params.filter.notch = sort([50:50:150 60:60:120]);
 params.n_comp = 40;
 params.ica_threshold = 0.8; % cutoff for EOG/ECG coherence
 params.z_threshold = 20;
-params.corr_threshold = 0.7; % correlation threshold for badchannel neighbors
+params.corr_threshold = 0.6; % correlation threshold for badchannel neighbors
 params.opm_std_threshold = 5e-12;
-params.eeg_std_threshold = 5e-5;
+params.eeg_std_threshold = 1e-4;
 params.megmag_std_threshold = 5e-12;
 params.megplanar_std_threshold = 5e-11;
 params.hpi_freq = 33;
@@ -143,7 +143,7 @@ for i_sub = 1:3%size(subses,1)
         load(fullfile(save_path, [params.sub '_megeeg_layout.mat']));
     else
         params.modality = 'meg';
-        params.layout = 'fieldlinebeta2bz_helmet.mat';
+        params.layout = 'neuromag306all.lay';
         params.chs = 'MEG*';
         meg_ica = ica_MEG(meg_cleaned, save_path, params);
 
@@ -178,7 +178,9 @@ end
 
 %% --- Group sensor level -------------------------------------------------
 %% Peak amplitude ratio
-for i_sub = 1:size(subses,1)
+%peak_ratio_meg = zeros(size(subses,1),length(params.phalange_labels));
+%peak_ratio_eeg = zeros(size(subses,1),length(params.phalange_labels));
+for i_sub = 1:3%size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
     save_path = fullfile('/home/chrpfe/Documents/21099_opm/Phalanges',params.sub);
@@ -190,23 +192,44 @@ for i_sub = 1:size(subses,1)
     M100_meg{i_sub} = M100;
     load(fullfile(save_path, [params.sub '_megeeg_M100']));
     M100_megeeg{i_sub} = M100;
-
+    for i_phalange = 1:length(params.phalange_labels)
+        peak_ratio_meg(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_meg{i_sub}{i_phalange}.max_amplitude;
+        peak_ratio_eeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.max_amplitude/M100_megeeg{i_sub}{i_phalange}.max_amplitude;
+        peak_ratio_meg(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_meg{i_sub}{i_phalange}.max_amplitude;
+        peak_ratio_eeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.max_amplitude/M100_megeeg{i_sub}{i_phalange}.max_amplitude;
+    end
+    
 end
 
 h = figure('DefaultAxesFontSize',16);
-bar(1:5,mean(peak_ratio,1));
+bar(1:length(params.phalange_labels),mean(peak_ratio_meg,1));
 hold on
-er = errorbar(1:5,mean(peak_ratio,1), mean(peak_ratio,1)-min(peak_ratio,[],1), mean(peak_ratio,1)-max(peak_ratio,[],1));    
+er = errorbar(1:5,mean(peak_ratio_meg,1), mean(peak_ratio_meg,1)-min(peak_ratio_meg,[],1), mean(peak_ratio_meg,1)-max(peak_ratio_meg,[],1));    
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['M100 peak amplitude ratio (mean = ' num2str(mean(mean(peak_ratio))) ')'])
-ylabel('SQUID/OPM')
+title(['M100 peak amplitude ratio (mean = ' num2str(mean(mean(peak_ratio_meg))) ')'])
+ylabel('OPM/SQUID')
 xlabel('Phalange')
-xticklabels(phalange_labels)
-savefig(h, fullfile('/Users/christophpfeiffer/data_local/Benchmarking_phalanges/', 'PeakAmpRatio_M100.fig'))
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'Peak_amplitude_ratios_meg.jpg'))
+
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),mean(peak_ratio_eeg,1));
+hold on
+er = errorbar(1:5,mean(peak_ratio_eeg,1), mean(peak_ratio_eeg,1)-min(peak_ratio_eeg,[],1), mean(peak_ratio_eeg,1)-max(peak_ratio_eeg,[],1));    
+er.Color = [0 0 0];                            
+er.LineStyle = 'none';  
+er.LineWidth = 1;
+er.CapSize = 30;
+hold off
+title(['M100 peak amplitude ratio (mean = ' num2str(mean(mean(peak_ratio_eeg))) ')'])
+ylabel('OPMEEG/SQUIDEEG')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'Peak_amplitude_ratios_eeg.jpg'))
 
 %% Peak latency
 h = figure;
@@ -237,7 +260,6 @@ ylabel('time')
 xlabel('Phalange')
 ylim([0.05 0.15])
 savefig(h, fullfile('/Users/christophpfeiffer/data_local/Benchmarking_phalanges/', 'PeakLatency_M100.fig'))
-
 
 
 for i_sub = 1:size(subses,1)
