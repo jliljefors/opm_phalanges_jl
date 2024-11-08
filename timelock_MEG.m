@@ -50,8 +50,9 @@ save(fullfile(save_path, [params.sub '_' params.modality '_M100']), 'M100', '-v7
 
 %% Topoplots
 for i_phalange = 1:length(params.trigger_code)
+    chs = find(contains(timelocked{i_phalange}.label,ft_channelselection(params.chs,timelocked{i_phalange}.label)));
     h = figure;
-    plot(timelocked{i_phalange}.time*1e3,timelocked{i_phalange}.avg*1e15)
+    plot(timelocked{i_phalange}.time*1e3,timelocked{i_phalange}.avg(chs,:)*1e15)
     xlabel('t [msec]')
     ylabel('B [fT]')
     title(['Evoked ' params.modality ' - phalange ' params.phalange_labels{i_phalange} ' (n_trls=' num2str(length(timelocked{i_phalange}.cfg.trials)) ')'])

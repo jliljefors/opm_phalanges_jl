@@ -24,9 +24,9 @@ params.filter.notch = sort([50:50:150 60:60:120]);
 params.n_comp = 40;
 params.ica_threshold = 0.8; % cutoff for EOG/ECG coherence
 params.z_threshold = 20;
-params.corr_threshold = 0.7; % correlation threshold for badchannel neighbors
+params.corr_threshold = 0.6; % correlation threshold for badchannel neighbors
 params.opm_std_threshold = 5e-12;
-params.eeg_std_threshold = 5e-5;
+params.eeg_std_threshold = 1e-4;
 params.megmag_std_threshold = 5e-12;
 params.megplanar_std_threshold = 5e-11;
 params.hpi_freq = 33;
@@ -123,6 +123,7 @@ for i_sub = 1:3%size(subses,1)
     end
 
     %% --- SQUID-MEG ------------------------------------------------------
+    ft_hastoolbox('mne', 1);
     %% Preprocess
     % Read data, filter and reject bad channels/trials
     if exist(fullfile(save_path, [params.sub '_megeeg_cleaned.mat']),'file') && overwrite==false
@@ -142,7 +143,7 @@ for i_sub = 1:3%size(subses,1)
         load(fullfile(save_path, [params.sub '_megeeg_layout.mat']));
     else
         params.modality = 'meg';
-        params.layout = 'fieldlinebeta2bz_helmet.mat';
+        params.layout = 'neuromag306all.lay';
         params.chs = 'MEG*';
         meg_ica = ica_MEG(meg_cleaned, save_path, params);
 

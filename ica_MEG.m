@@ -23,10 +23,10 @@ cfg.channel    = params.chs;
 comp           = ft_componentanalysis(cfg, data_ds);
 
 %% Plot
-if n_comp>20
-    for i = 1:floor(n_comp/20)
+if n_comp>16
+    for i = 1:floor(n_comp/16)
         cfg           = [];
-        cfg.component = (((i-1)*20)+1):(i*20);       
+        cfg.component = (((i-1)*16)+1):(i*16);       
         cfg.layout    = params.layout; 
         cfg.comment   = 'no';
         h = figure;
@@ -34,13 +34,15 @@ if n_comp>20
         saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_comps' num2str(i) '.jpg'])) 
     end
 
-    cfg           = [];
-    cfg.component = (((i-1)*20)+1):n_comp;       
-    cfg.layout    = params.layout; 
-    cfg.comment   = 'no';
-    h = figure;
-    ft_topoplotIC(cfg, comp);   
-    saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_comps' num2str(i+1) '.jpg'])) 
+    if mod(n_comp,16)~=0
+        cfg           = [];
+        cfg.component = ((i*16)+1):n_comp;       
+        cfg.layout    = params.layout; 
+        cfg.comment   = 'no';
+        h = figure;
+        ft_topoplotIC(cfg, comp);   
+        saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_comps' num2str(i+1) '.jpg'])) 
+    end
 else
     cfg           = [];
     cfg.component = 1:n_comp;       
@@ -281,6 +283,14 @@ data_ica = ft_rejectcomponent(cfg, comp, data);
 % Save
 save(fullfile(save_path, [params.sub '_' params.modality '_ica_comp']), 'comp', 'ecg_comp_idx', 'eog1_comp_idx', 'eog2_comp_idx'); disp('done');
 save(fullfile(save_path, [params.sub '_' params.modality '_ica']), 'data_ica',"-v7.3"); disp('done');
+
+cfg           = [];
+cfg.component = reject_comp;       
+cfg.layout    = params.layout; 
+cfg.comment   = 'no';
+h = figure;
+ft_topoplotIC(cfg, comp);   
+saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_rejected_comps' num2str(i) '.jpg'])) 
 
 %%
 cfg = [];

@@ -99,7 +99,7 @@ cfg.preproc.medianfilter  = 'yes';
 cfg.preproc.medianfiltord  = 9;
 cfg.preproc.absdiff       = 'yes';
 cfg.threshold = params.z_threshold;
-[cfg, badtrl_opmeeg_jump] = ft_badsegment(cfg, megeeg_cleaned);
+[cfg, badtrl_megeeg_jump] = ft_badsegment(cfg, megeeg_cleaned);
 megeeg_cleaned = ft_rejectartifact(cfg,megeeg_cleaned);
 
 % Reject noisy trials
@@ -107,7 +107,7 @@ cfg = [];
 cfg.channel = {'EEG*'};
 cfg.metric = 'std';
 cfg.threshold = params.eeg_std_threshold;
-[cfg, badtrl_opmeeg_std] = ft_badsegment(cfg, megeeg_cleaned);
+[cfg, badtrl_megeeg_std] = ft_badsegment(cfg, megeeg_cleaned);
 megeeg_cleaned = ft_rejectartifact(cfg,megeeg_cleaned);
 
 %% Save 
@@ -116,13 +116,13 @@ save(fullfile(save_path, [params.sub '_megeeg_badchs']), ...
     'badchs_megeeg_neighbors', ...
     'badchs_megeeg_zmax' ,"-v7.3"); 
 
-save(fullfile(save_path, [params.sub '_opm_badchs']), ...
+save(fullfile(save_path, [params.sub '_meg_badtrls']), ...
     'badtrl_meg_jump', ...
     'badtrl_megmag_std', ...
     'badtrl_megplanar_std' ,"-v7.3"); 
-save(fullfile(save_path, [params.sub '_opmeeg_badchs']), ...
-    'badtrl_opmeeg_jump', ...
-    'badtrl_opmeeg_std',"-v7.3"); 
+save(fullfile(save_path, [params.sub '_megeeg_badtrls']), ...
+    'badtrl_megeeg_jump', ...
+    'badtrl_megeeg_std',"-v7.3"); 
 
 save(fullfile(save_path, [params.sub '_meg_cleaned']), 'meg_cleaned',"-v7.3");
 save(fullfile(save_path, [params.sub '_megeeg_cleaned']), 'megeeg_cleaned',"-v7.3"); disp('done');
