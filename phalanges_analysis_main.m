@@ -197,10 +197,19 @@ for i_sub = 1:3%size(subses,1)
         peak_ratio_eeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.max_amplitude/M100_megeeg{i_sub}{i_phalange}.max_amplitude;
         peak_ratio_meg(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_meg{i_sub}{i_phalange}.max_amplitude;
         peak_ratio_eeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.max_amplitude/M100_megeeg{i_sub}{i_phalange}.max_amplitude;
+        snr_error_opm{i_sub,i_phalange} = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_opm{i_sub}{i_phalange}.std_error;
+        snr_error_meg{i_sub,i_phalange} = M100_meg{i_sub}{i_phalange}.max_amplitude/M100_meg{i_sub}{i_phalange}.std_error;
+        snr_prestim_opm{i_sub,i_phalange} = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_opm{i_sub}{i_phalange}.prestim_std;
+        snr_prestim_meg{i_sub,i_phalange} = M100_meg{i_sub}{i_phalange}.max_amplitude/M100_meg{i_sub}{i_phalange}.prestim_std;
+        snr_ratio_error{i_sub,i_phalange} = snr_error_opm{i_sub,i_phalange}/snr_error_meg{i_sub,i_phalange};
+        snr_prestim_error{i_sub,i_phalange} = snr_prestim_opm{i_sub,i_phalange}/snr_prestim_meg{i_sub,i_phalange};
+        latency_opm{i_sub,i_phalange} = M100_opm{i_sub}{i_phalange}.peak_latency;
+        latency_meg{i_sub,i_phalange} = M100_meg{i_sub}{i_phalange}.peak_latency;
+        latency_opmeeg{i_sub,i_phalange} = M100_opmeeg{i_sub}{i_phalange}.peak_latency;
+        latency_megeeg{i_sub,i_phalange} = M100_megeeg{i_sub}{i_phalange}.peak_latency;
     end
-    
 end
-
+%% Plot group figures
 h = figure('DefaultAxesFontSize',16);
 bar(1:length(params.phalange_labels),mean(peak_ratio_meg,1));
 hold on
@@ -231,36 +240,56 @@ xlabel('Phalange')
 xticklabels(params.phalange_labels)
 saveas(h, fullfile(save_path, 'figs', 'Peak_amplitude_ratios_eeg.jpg'))
 
+% SNR
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),mean(snr_ratio_error,1));
+hold on
+er = errorbar(1:5,mean(snr_ratio_error,1), mean(snr_ratio_error,1)-min(snr_ratio_error,[],1), mean(snr_ratio_error,1)-max(snr_ratio_error,[],1));    
+er.Color = [0 0 0];                            
+er.LineStyle = 'none';  
+er.LineWidth = 1;
+er.CapSize = 30;
+hold off
+title(['M100 SNR_{stderror} ratio (mean = ' num2str(mean(mean(snr_ratio_error))) ')'])
+ylabel('OPM/SQUID')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'SNR_ratios_error.jpg'))
+
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),mean(snr_ratio_prestim,1));
+hold on
+er = errorbar(1:5,mean(snr_ratio_prestim,1), mean(snr_ratio_prestim,1)-min(snr_ratio_prestim,[],1), mean(snr_ratio_prestim,1)-max(snr_ratio_prestim,[],1));    
+er.Color = [0 0 0];                            
+er.LineStyle = 'none';  
+er.LineWidth = 1;
+er.CapSize = 30;
+hold off
+title(['M100 SNR_{prestim} ratio (mean = ' num2str(mean(mean(snr_ratio_prestim))) ')'])
+ylabel('OPM/SQUID')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'SNR_ratios_prestim.jpg'))
+
 %% Peak latency
-h = figure;
-subplot(2,1,1)
-bar(1:5,mean(t_max_meg,1));
+tmp = latency_opm-latency_meg;
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),mean(tmp,1));
 hold on
-er = errorbar(1:5,mean(t_max_meg,1), mean(t_max_meg,1)-min(t_max_meg,[],1), mean(t_max_meg,1)-max(t_max_meg,[],1));    
+er = errorbar(1:5,mean(tmp,1), mean(tmp,1)-min(tmp,[],1), mean(tmp,1)-max(tmp,[],1));    
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['SQUID peak latency (mean = ' num2str(mean(mean(t_max_meg))) ')'])
-ylabel('time')
+title(['M100 latency diff (opm mean = ' num2str(mean(mean(latency_opm))) '; meg mean = ' num2str(mean(mean(latency_meg))) ')'])
+ylabel('t_{OPM}-t_{SQUID}')
 xlabel('Phalange')
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'Latency.jpg'))
 
-subplot(2,1,2)
-bar(1:5,mean(t_max_opm,1));
-hold on
-er = errorbar(1:5,mean(t_max_opm,1), mean(t_max_opm,1)-min(t_max_opm,[],1), mean(t_max_opm,1)-max(t_max_opm,[],1));    
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-er.LineWidth = 1;
-er.CapSize = 30;
-hold off
-title(['OPM peak latency (mean = ' num2str(mean(mean(t_max_opm))) ')'])
-ylabel('time')
-xlabel('Phalange')
-ylim([0.05 0.15])
-savefig(h, fullfile('/Users/christophpfeiffer/data_local/Benchmarking_phalanges/', 'PeakLatency_M100.fig'))
 
+%%
 
 for i_sub = 1:size(subses,1)
     %% HPI localization
