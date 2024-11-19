@@ -23,13 +23,35 @@ cfg.channel    = params.chs;
 comp           = ft_componentanalysis(cfg, data_ds);
 
 %% Plot
-cfg           = [];
-cfg.component = 1:n_comp;       
-cfg.layout    = params.layout; 
-cfg.comment   = 'no';
-h = ft_topoplotIC(cfg, comp);
+if n_comp>16
+    for i = 1:floor(n_comp/16)
+        cfg           = [];
+        cfg.component = (((i-1)*16)+1):(i*16);       
+        cfg.layout    = params.layout; 
+        cfg.comment   = 'no';
+        h = figure;
+        ft_topoplotIC(cfg, comp);   
+        saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_comps' num2str(i) '.jpg'])) 
+    end
 
-saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_comps.jpg'])) 
+    if mod(n_comp,16)~=0
+        cfg           = [];
+        cfg.component = ((i*16)+1):n_comp;       
+        cfg.layout    = params.layout; 
+        cfg.comment   = 'no';
+        h = figure;
+        ft_topoplotIC(cfg, comp);   
+        saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_comps' num2str(i+1) '.jpg'])) 
+    end
+else
+    cfg           = [];
+    cfg.component = 1:n_comp;       
+    cfg.layout    = params.layout; 
+    cfg.comment   = 'no';
+    h = figure;
+    ft_topoplotIC(cfg, comp);   
+    saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_comps.jpg'])) 
+end
 
 %% --- ECG ----
 % Find ECG artifacts
@@ -149,6 +171,12 @@ cfg.channel    = 'EOG';
 eog = ft_selectdata(cfg, temp);
 eog.channel{:} = 'EOG';         % renaming for bookkeeping
     
+for i = 1:length(eog.trial)
+    incl(i) = eog.trial{i};
+end
+cfg = [];
+cfg.trials = incl;
+eog = ft_selectdata(cfg,eog)
 % Filter power line noise
 cfg = [];
 cfg.dftfilter  = 'yes';
@@ -218,10 +246,10 @@ for i = 1:length(eog2_comp_idx)
     plot(timelock.time, timelock.avg(eog2_comp_idx(i)+2,:));  
     title(['Comp: ' num2str(eog2_comp_idx(i)) '; R_{eog2} = ' num2str(R(eog2_comp_idx(i),2))])
 end
-saveas(fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eo2g_cor'])) 
+saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eo2g_cor.jpg'])) 
 
 % Plot coherence spectrum between all components and the EOG
-figure;
+h = figure;
 subplot(3,2,1); title('EOG001'); xlabel('freq'); ylabel('coh');
 plot(fdcomp_eog1.freq, abs(fdcomp_eog1.cohspctrm)); hold on
 plot([min(fdcomp_eog1.freq),max(fdcomp_eog1.freq)],[params.ica_threshold, params.ica_threshold], 'k--');
@@ -245,7 +273,7 @@ bp = bar(1:length(maxcoh), diag(maxcoh), 'stacked');
 set(bp(foo),'facecolor','w'); set(bp(eog2_comp_idx),'facecolor','r'); 
 axis([0.5, length(maxcoh)+0.5, 0, 1]);
 
-savefig(fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog_coh'])) 
+saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog_coh.jpg'])) 
 
 %% Remove components
 % Make a list of all "bad" components
@@ -261,6 +289,14 @@ data_ica = ft_rejectcomponent(cfg, comp, data);
 % Save
 save(fullfile(save_path, [params.sub '_' params.modality '_ica_comp']), 'comp', 'ecg_comp_idx', 'eog1_comp_idx', 'eog2_comp_idx'); disp('done');
 save(fullfile(save_path, [params.sub '_' params.modality '_ica']), 'data_ica',"-v7.3"); disp('done');
+
+cfg           = [];
+cfg.component = reject_comp;       
+cfg.layout    = params.layout; 
+cfg.comment   = 'no';
+h = figure;
+ft_topoplotIC(cfg, comp);   
+saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_rejected_comps' num2str(i) '.jpg'])) 
 
 %%
 cfg = [];

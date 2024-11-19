@@ -170,7 +170,15 @@ data_eog = ft_selectdata(cfg, temp);
 cfg.channel    = 'EOG';
 eog = ft_selectdata(cfg, temp);
 eog.channel{:} = 'EOG';         % renaming for bookkeeping
-    
+
+% Exclude too short trials
+for i = 1:length(eog.trial)
+    incl(i) = size(eog.trial{i},2)>10;
+end
+cfg = [];
+cfg.trials = incl;
+eog = ft_selectdata(cfg,eog);
+
 % Filter power line noise
 cfg = [];
 cfg.dftfilter  = 'yes';
@@ -182,6 +190,10 @@ cfg = [];
 cfg.unmixing  = comp.unmixing;
 cfg.topolabel = comp.topolabel;
 comp_eog = ft_componentanalysis(cfg, data_eog);
+
+cfg = [];
+cfg.trials = incl;
+comp_eog = ft_selectdata(cfg,comp_eog);
 
 % Combine EOG and EOG-locked data
 comp_eog = ft_appenddata([], eog, comp_eog);

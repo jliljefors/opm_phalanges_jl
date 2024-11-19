@@ -79,7 +79,7 @@ for coil = 1:length(hpi_chs)
     cfg.parameter = 'avg';
     cfg.channel = '*bz';
     h = figure; ft_topoplotER(cfg,timelocked); colorbar
-    savefig(h, fullfile(save_path, 'figs', ['hpi_topo_coil-' num2str(coil) '.fig']))
+    saveas(h, fullfile(save_path, 'figs', ['hpi_topo_coil-' num2str(coil) '.jpg']))
 
     %% Dipole fit
     cfg = [];
@@ -146,7 +146,7 @@ scatter3(hpi_polhemus(:,1),hpi_polhemus(:,2),hpi_polhemus(:,3),'r','DisplayName'
 hold off
 title(['HPI fits (mean dist = ' num2str(dist*10) ' mm)'])
 legend
-savefig(h, fullfile(save_path, 'figs', 'hpi_fits.fig'))
+saveas(h, fullfile(save_path, 'figs', 'hpi_fits.jpg'))
 
 %% Save 
 save(fullfile(save_path, 'hpi_fit'), 'hpi_fit'); disp('done');
