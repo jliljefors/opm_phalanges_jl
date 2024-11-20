@@ -25,7 +25,7 @@ params.n_comp = 40;
 params.ica_threshold = 0.8; % cutoff for EOG/ECG coherence
 params.z_threshold = 20;
 params.corr_threshold = 0.6; % correlation threshold for badchannel neighbors
-params.opm_std_threshold = 5e-12;
+params.opm_std_threshold = 2.5e-12;
 params.eeg_std_threshold = 1e-4;
 params.megmag_std_threshold = 5e-12;
 params.megplanar_std_threshold = 5e-11;
@@ -50,15 +50,19 @@ subses = {'0005' '240208';
     '1195' '241030'};
 mri_files = {'00000001.dcm' '/nifti/anat/sub-15931_T1w.nii.gz'  '/nifti/anat/sub-15985_T1w.nii.gz'};
 
+%%
+base_data_path = '/archive/21099_opm/MEG/';
+base_save_path = '/home/chrpfe/Documents/21099_opm/Phalanges';
+
 %% Loop over subjects
-for i_sub = [9]%size(subses,1)
+for i_sub = [4]%size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
 
     %% Paths
-    raw_path = fullfile('/archive/21099_opm/MEG/',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
-    save_path = fullfile('/home/chrpfe/Documents/21099_opm/Phalanges',params.sub);
-    mri_path = fullfile('/Users/christophpfeiffer/data_archive/21099_opm/MRI/',['NatMEG_' subses{i_sub,1}]);
+    raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    save_path = fullfile(base_save_path,params.sub);
+    mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
     if ~exist(save_path, 'dir')
        mkdir(save_path)
     end
@@ -186,7 +190,7 @@ end
 for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
-    save_path = fullfile('/home/chrpfe/Documents/21099_opm/Phalanges',params.sub);
+    save_path = fullfile(base_save_path,params.sub);
     load(fullfile(save_path, [params.sub '_opm_M100'])); 
     M100_opm{i_sub} = M100;
     load(fullfile(save_path, [params.sub '_opmeeg_M100'])); 
@@ -235,7 +239,7 @@ for i_sub = 1:size(subses,1)
     close all
 end
 %% Plot group figures
-save_path = '/home/chrpfe/Documents/21099_opm/Phalanges';
+save_path = base_save_path;
 if ~exist(fullfile(save_path,'figs'), 'dir')
        mkdir(fullfile(save_path,'figs'))
 end
@@ -320,10 +324,11 @@ saveas(h, fullfile(save_path, 'figs', 'Latency.jpg'))
 
 
 %% HPI localization
-for i_sub = 1:size(subses,1)
+for i_sub = 4%:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
-    save_path = fullfile('/home/chrpfe/Documents/21099_opm/Phalanges',params.sub);
+    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    save_path = fullfile(base_save_path,params.sub);
     aux_file = fullfile(raw_path, 'meg', 'PhalangesEEG.fif');
     hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
 
@@ -332,6 +337,9 @@ for i_sub = 1:size(subses,1)
         load(fullfile(save_path, 'opm_trans.mat'));
     else
         ft_hastoolbox('mne', 1);
+        load(fullfile(save_path, [params.sub '_opm_ica_ds']));
+        params.include_chs = data_ica_ds.label(find(contains(data_ica_ds.label,'bz')));
+        params.include_chs = params.include_chs([1:75 77:end]);
         [hpi_fit, opm_trans, hpi_fit_tf] = fit_hpi(hpi_file, aux_file, save_path, params);
         close all
     end
@@ -339,12 +347,16 @@ end
 
 %% Prepare MRIs
 for i_sub = 1:size(subses,1)
+    ft_hastoolbox('mne',1);
+    params.sub = ['sub_' num2str(i_sub,'%02d')];
+    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    save_path = fullfile(base_save_path,params.sub);
     if exist(fullfile(save_path, 'headmodels.mat'),'file') && overwrite==false
         load(fullfile(save_path, 'headmodels.mat'));
         load(fullfile(save_path, 'meshes.mat'));
         load(fullfile(save_path, 'mri_resliced_cm.mat'));
     else
-        meg_file = fullfile(meg_path, 'meg', 'PhalangesMEG_tsss.fif');
+        meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_tsss.fif');
         mri_file = fullfile(mri_path, mri_files{i_sub});
         [headmodels, meshes, mri_resliced_cm] = prepare_mri(mri_file,meg_file,aux_file,save_path);
         close all

@@ -145,8 +145,8 @@ dip_include = dip_include([2 3 1 4]);
 ft_hastoolbox('mne',1);
 headshape = ft_read_headshape(aux_file);
 hpi_polhemus = headshape.pos(find(contains(headshape.label,'hpi')),:);
-fixed = pointCloud(hpi_polhemus(dip_include,:));
-moving = pointCloud(dip_pos(dip_include,:));
+fixed = pointCloud(hpi_polhemus(dip_include,:)*1e3);
+moving = pointCloud(dip_pos(dip_include,:)*1e3);
 [opm_trans, dip_pos_tf, dist] = pcregistericp(moving, fixed, 'Tolerance',[0.001 0.01], 'MaxIterations',500,'Verbose',true);
 
 % n_dipoles = size(dip_pos,1);
@@ -169,9 +169,7 @@ h = figure;
 ft_plot_sens(epoT.grad,'unit','cm','DisplayName','senspos'); 
 hold on 
 for coil = 1:length(hpi_chs)
-    if dip_include(coil)
-        quiver3(dip_pos_tf.Location(coil,1),dip_pos_tf.Location(coil,2),dip_pos_tf.Location(coil,3),dip_ori_tf(coil,1),dip_ori_tf(coil,2),dip_ori_tf(coil,3),'*','Color',colors(coil,:),'DisplayName',[hpi_labels{coil} ' (GOF=' num2str((hpi_fit{coil}.dip.gof)*100,'%.2f') '%)'],'LineWidth',2);
-    end
+    quiver3(dip_pos_tf.Location(coil,1),dip_pos_tf.Location(coil,2),dip_pos_tf.Location(coil,3),dip_ori_tf(coil,1),dip_ori_tf(coil,2),dip_ori_tf(coil,3),'*','Color',colors(coil,:),'DisplayName',[hpi_labels{coil} ' (GOF=' num2str((hpi_fit{coil}.dip.gof)*100,'%.2f') '%)'],'LineWidth',2);
 end
 scatter3(hpi_polhemus(:,1),hpi_polhemus(:,2),hpi_polhemus(:,3),'r','DisplayName','polhemus'); 
 hold off
