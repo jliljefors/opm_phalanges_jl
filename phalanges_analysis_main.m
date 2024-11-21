@@ -11,7 +11,11 @@ global ft_default
 ft_default.showcallinfo = 'no';
 
 %% Params
-overwrite = false;
+overwrite = [];
+overwrite.preproc = true;
+overwrite.coreg = true;
+overwrite.dip = true;
+overwrite.mne = true;
 
 params = [];
 params.pre = 0.1; %sec
@@ -24,7 +28,7 @@ params.filter.notch = sort([50:50:150 60:60:120]);
 params.n_comp = 40;
 params.ica_threshold = 0.8; % cutoff for EOG/ECG coherence
 params.z_threshold = 20;
-params.corr_threshold = 0.6; % correlation threshold for badchannel neighbors
+params.corr_threshold = 0.7; % correlation threshold for badchannel neighbors
 params.opm_std_threshold = 2.5e-12;
 params.eeg_std_threshold = 1e-4;
 params.megmag_std_threshold = 5e-12;
@@ -51,11 +55,11 @@ subses = {'0005' '240208';
 mri_files = {'00000001.dcm' '/nifti/anat/sub-15931_T1w.nii.gz'  '/nifti/anat/sub-15985_T1w.nii.gz'};
 
 %% Base paths
-base_data_path = '/archive/21099_opm/MEG/';
+base_data_path = '/archive/21099_opm/';
 base_save_path = '/home/chrpfe/Documents/21099_opm/Phalanges';
 
 %% Loop over subjects
-for i_sub = [4]%size(subses,1)
+for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
 
@@ -80,7 +84,7 @@ for i_sub = [4]%size(subses,1)
     %% --- OPM-MEG --------------------------------------------------------
     %% Preprocess
     % Read data, filter and reject bad channels/trials
-    if exist(fullfile(save_path, [params.sub '_opm_cleaned.mat']),'file') && overwrite==false
+    if exist(fullfile(save_path, [params.sub '_opm_cleaned.mat']),'file') && overwrite.preproc==false
         load(fullfile(save_path, [params.sub '_opm_cleaned.mat']));
         load(fullfile(save_path, [params.sub '_opmeeg_cleaned.mat']));
     else
@@ -88,7 +92,7 @@ for i_sub = [4]%size(subses,1)
     end
 
     %% Remove eye and heart artifacts with ICA
-    if exist(fullfile(save_path, [params.sub '_opmeeg_ica.mat']),'file') && overwrite==false
+    if exist(fullfile(save_path, [params.sub '_opmeeg_ica.mat']),'file') && overwrite.preproc==false
         load(fullfile(save_path, [params.sub '_opm_ica.mat']));
         opm_ica = data_ica;
         load(fullfile(save_path, [params.sub '_opmeeg_ica.mat']));
@@ -112,7 +116,7 @@ for i_sub = [4]%size(subses,1)
         close all
     end
     %% Average
-    if exist(fullfile(save_path, [params.sub '_opmeeg_timelocked.mat']),'file') && overwrite==false
+    if exist(fullfile(save_path, [params.sub '_opmeeg_timelocked.mat']),'file') && overwrite.preproc==false
         fullfile(save_path, [params.sub '_opm_timelocked.mat'])
         fullfile(save_path, [params.sub '_opmeeg_timelocked.mat'])
     else
@@ -133,7 +137,7 @@ for i_sub = [4]%size(subses,1)
     ft_hastoolbox('mne', 1);
     %% Preprocess
     % Read data, filter and reject bad channels/trials
-    if exist(fullfile(save_path, [params.sub '_megeeg_cleaned.mat']),'file') && overwrite==false
+    if exist(fullfile(save_path, [params.sub '_megeeg_cleaned.mat']),'file') && overwrite.preproc==false
         load(fullfile(save_path, [params.sub '_meg_cleaned.mat']));
         load(fullfile(save_path, [params.sub '_megeeg_cleaned.mat']));
     else
@@ -141,7 +145,7 @@ for i_sub = [4]%size(subses,1)
     end
 
     %% Remove eye and heart artifacts with ICA
-    if exist(fullfile(save_path, [params.sub '_megeeg_ica.mat']),'file') && overwrite==false
+    if exist(fullfile(save_path, [params.sub '_megeeg_ica.mat']),'file') && overwrite.preproc==false
         load(fullfile(save_path, [params.sub '_meg_ica.mat']));
         meg_ica = data_ica;
         load(fullfile(save_path, [params.sub '_megeeg_ica.mat']));
@@ -165,7 +169,7 @@ for i_sub = [4]%size(subses,1)
         close all
     end
     %% Average
-    if exist(fullfile(save_path, [params.sub '_megeeg_timelocked.mat']),'file') && overwrite==false
+    if exist(fullfile(save_path, [params.sub '_megeeg_timelocked.mat']),'file') && overwrite.preproc==false
         fullfile(save_path, [params.sub '_meg_timelocked.mat'])
         fullfile(save_path, [params.sub '_megeeg_timelocked.mat'])
     else
@@ -324,7 +328,7 @@ saveas(h, fullfile(save_path, 'figs', 'Latency.jpg'))
 
 
 %% HPI localization
-for i_sub = 4%:size(subses,1)
+for i_sub = 2:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
@@ -332,7 +336,7 @@ for i_sub = 4%:size(subses,1)
     aux_file = fullfile(raw_path, 'meg', 'PhalangesEEG.fif');
     hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
 
-    if exist(fullfile(save_path, 'opm_trans.mat'),'file') && overwrite==false
+    if exist(fullfile(save_path, 'opm_trans.mat'),'file') && overwrite.coreg==false
         load(fullfile(save_path, 'hpi_fit.mat'));
         load(fullfile(save_path, 'opm_trans.mat'));
     else
@@ -352,7 +356,7 @@ for i_sub = 1:size(subses,1)
     raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
-    if exist(fullfile(save_path, 'headmodels.mat'),'file') && overwrite==false
+    if exist(fullfile(save_path, 'headmodels.mat'),'file') && overwrite.coreg==false
         load(fullfile(save_path, 'headmodels.mat'));
         load(fullfile(save_path, 'meshes.mat'));
         load(fullfile(save_path, 'mri_resliced_cm.mat'));
@@ -397,8 +401,12 @@ for i_sub = 1:size(subses,1)
     saveas(h, fullfile(save_path, 'figs', 'meg_layout.jpg'))
 
     %% Dipole fits
-    [megmag_dipole, megplanar_dipole, opm_dipole, eeg_dipole] = fit_dipoles(save_path,meg_timelocked,opm_timelockedT,headmodels,mri_resliced_cm,params);
-    
+    if exist(fullfile(save_path, 'dipoles.mat'),'file') && overwrite.dip==false
+        load(fullfile(save_path, 'dipoles.mat'));
+    else
+        [megmag_dipole, megplanar_dipole, opm_dipole, eeg_dipole] = fit_dipoles(save_path,meg_timelocked,opm_timelockedT,headmodels,mri_resliced_cm,params);
+    end
+
     %% Read cotrical restrained source model
     subjectname = ['NatMEG_' sub{i_sub}];
     filename = fullfile(mri_path,'workbench',[subjectname,'.L.midthickness.8k_fs_LR.surf.gii']);
@@ -449,7 +457,7 @@ for i_sub = 1:size(subses,1)
     saveas(h, fullfile(save_path, 'figs', 'meg_layout2.jpg'))
 
     %% MNE fit
-    if exist(fullfile(save_path, 'mne_fits.mat'),'file') && overwrite==false
+    if exist(fullfile(save_path, 'mne_fits.mat'),'file') && overwrite.mne==false
         load(fullfile(save_path, 'mne_fits.mat'));
     else
         [megmag_mne, megplanaer_mne, opm_mne, eeg_mne, FAHM] = fit_mne(save_path,meg_timelocked,opm_timelockedT,headmodels,sourcemodelT,params);

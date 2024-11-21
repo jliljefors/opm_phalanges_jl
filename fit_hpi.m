@@ -61,15 +61,17 @@ end
 hpi_chs = hpi_chs(hpi_on);
 
 %% Prepare for dipole grid search
-[X,Y,Z] = meshgrid((min(epo.grad.chanpos(:,1))-0.01):0.005:(max(epo.grad.chanpos(:,1))+0.01),(min(epo.grad.chanpos(:,2))-0.01):0.005:(max(epo.grad.chanpos(:,2))+0.01),(min(epo.grad.chanpos(:,3))-0.01):0.005:(max(epo.grad.chanpos(:,3))+0.01));
-pos = [X(:) Y(:) Z(:)];
-addpath('/Users/christophpfeiffer/Dropbox/Mac/Documents/MATLAB/myFunctions/')
-inside = insidePointcloud(pos,epo.grad.chanpos) & (vecnorm(pos,2,2) > (min(vecnorm(epo.grad.chanpos,2,2))-0.01));
+% [X,Y,Z] = meshgrid((min(epo.grad.chanpos(:,1))-0.01):0.005:(max(epo.grad.chanpos(:,1))+0.01),(min(epo.grad.chanpos(:,2))-0.01):0.005:(max(epo.grad.chanpos(:,2))+0.01),(min(epo.grad.chanpos(:,3))-0.01):0.005:(max(epo.grad.chanpos(:,3))+0.01));
+% pos = [X(:) Y(:) Z(:)];
+% addpath('/Users/christophpfeiffer/Dropbox/Mac/Documents/MATLAB/myFunctions/')
+% inside = insidePointcloud(pos,epo.grad.chanpos) & (vecnorm(pos,2,2) > (min(vecnorm(epo.grad.chanpos,2,2))-0.01));
 
 %% Freq analysis
 amp = zeros(size(epo.trial{1},1),length(hpi_chs));
 dip_pos = zeros(length(hpi_chs),3);
+dip_ori = zeros(length(hpi_chs),3);
 dip_include = false(length(hpi_chs),1);
+dip_gof = zeros(length(hpi_chs),1);
 for coil = 1:length(hpi_chs)
     % Lock-in
     R = zeros(size(epo.trial{hpi_trl{coil}(1)},1),length(hpi_trl{coil}));
@@ -104,9 +106,9 @@ for coil = 1:length(hpi_chs)
         opm_chs = find(contains(timelocked.label,'bz'));
         [~, i_maxchan] = max(abs(timelocked.avg(opm_chs,:)));
         max_pos = timelocked.grad.chanpos(i_maxchan,:);
-        [X,Y,Z] = meshgrid((max_pos-0.05):0.005:(max_pos+0.05), ...
-            (max_pos-0.05):0.005:(max_pos+0.05), ...
-            (max_pos-0.05):0.005:(max_pos+0.05));
+        [X,Y,Z] = meshgrid((max_pos(1)-0.05):0.005:(max_pos(1)+0.05), ...
+            (max_pos(2)-0.05):0.005:(max_pos(2)+0.05), ...
+            (max_pos(3)-0.05):0.005:(max_pos(3)+0.05));
         pos = [X(:) Y(:) Z(:)];
         inside = vecnorm(pos,2,2) < (vecnorm(max_pos,2)+0.01);
 
@@ -132,6 +134,7 @@ for coil = 1:length(hpi_chs)
         dip_pos(coil,:) = hpi_fit{coil}.dip.pos*1e2;
         dip_ori(coil,:) = hpi_fit{coil}.dip.ori;
         dip_include(coil) = true;
+        dip_gof(coil) = hpi_fit{coil}.dip.gof;
     else
         disp(['Looks like no coil found. Max amp: ' num2str(max(timelocked.avg(find(contains(timelocked.label,'bz')))))])
     end
@@ -139,15 +142,17 @@ end
 
 %%
 % Adjust order
-dip_pos = dip_pos([2 3 1 4],:);
-dip_include = dip_include([2 3 1 4]);
+dip_pos = dip_pos([1 4 2 3],:);
+dip_ori = dip_ori([1 4 2 3],:);
+dip_include = dip_include([1 4 2 3]);
+dip_gof = dip_gof([1 4 2 3]);
 
 ft_hastoolbox('mne',1);
 headshape = ft_read_headshape(aux_file);
 hpi_polhemus = headshape.pos(find(contains(headshape.label,'hpi')),:);
 fixed = pointCloud(hpi_polhemus(dip_include,:));
 moving = pointCloud(dip_pos(dip_include,:));
-[opm_trans, dip_pos_tf, dist] = pcregistericp(moving, fixed, 'Tolerance',[0.001 0.01], 'MaxIterations',500,'Verbose',true);
+[opm_trans, dip_pos_tf, dist] = pcregistericp(moving, fixed, 'Tolerance',[0.0001 0.001], 'MaxIterations',500,'Verbose',true);
 
 % n_dipoles = size(dip_pos,1);
 % i_min = zeros(n_dipoles,1);
@@ -157,6 +162,8 @@ moving = pointCloud(dip_pos(dip_include,:));
 % end
 
 dip_ori_tf = dip_ori*opm_trans.Rotation;
+dip_ori_tf = dip_ori_tf(dip_include,:);
+dip_gof_tf = dip_gof(dip_include);
 
 epoT = epo;
 epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos*1e2)*1e-2;
@@ -168,12 +175,14 @@ colors = [[0.8500 0.3250 0.0980]; [0.9290 0.6940 0.1250]; [0.4940 0.1840 0.5560]
 h = figure;
 ft_plot_sens(epoT.grad,'unit','cm','DisplayName','senspos'); 
 hold on 
-for coil = 1:length(hpi_chs)
-    if dip_include(coil)
-        quiver3(dip_pos_tf.Location(coil,1),dip_pos_tf.Location(coil,2),dip_pos_tf.Location(coil,3),dip_ori_tf(coil,1),dip_ori_tf(coil,2),dip_ori_tf(coil,3),'*','Color',colors(coil,:),'DisplayName',[hpi_labels{coil} ' (GOF=' num2str((hpi_fit{coil}.dip.gof)*100,'%.2f') '%)'],'LineWidth',2);
-    end
+for coil = 1:size(dip_ori_tf,1)
+    quiver3(dip_pos_tf.Location(coil,1),dip_pos_tf.Location(coil,2),dip_pos_tf.Location(coil,3),dip_ori_tf(coil,1),dip_ori_tf(coil,2),dip_ori_tf(coil,3),'*','Color',colors(coil,:),'DisplayName',[hpi_labels{coil} ' (GOF=' num2str((dip_gof_tf(coil))*100,'%.2f') '%)'],'LineWidth',2);
 end
 scatter3(hpi_polhemus(:,1),hpi_polhemus(:,2),hpi_polhemus(:,3),'r','DisplayName','polhemus'); 
+scatter3(headshape.fid.pos(:,1),headshape.fid.pos(:,2),headshape.fid.pos(:,3),'g.','DisplayName','fiducials'); 
+scatter3(headshape.pos(:,1),headshape.pos(:,2),headshape.pos(:,3),'k.','DisplayName','headshape'); 
+scatter3(hpi_polhemus(dip_include,1),hpi_polhemus(dip_include,2),hpi_polhemus(dip_include,3),'r*','DisplayName','polhemus'); 
+
 hold off
 title(['HPI fits (mean dist = ' num2str(dist*10) ' mm)'])
 legend
