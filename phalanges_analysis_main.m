@@ -1,10 +1,28 @@
-%% Set up
+%% Reset all
 clear all
 close all
 restoredefaultpath
-addpath('/home/chrpfe/Documents/MATLAB/fieldtrip-20231220/') % Fieldtrip path
-addpath('/home/chrpfe/Documents/MATLAB/fieldtrip_private') % Fieldtrip private functions
-addpath('/home/chrpfe/Documents/MATLAB/21099_opm/phalanges')
+
+%% Base paths
+compute = true;
+if compute == true
+    % Compute:
+    base_data_path = '/archive/21099_opm/';
+    base_save_path = '/home/chrpfe/Documents/21099_opm/Phalanges';
+    base_matlab_path = '/home/chrpfe/Documents/MATLAB/';
+    project_scripts_path = '/home/chrpfe/Documents/MATLAB/21099_opm/phalanges';
+else
+    % Laptop:
+    base_data_path = '/Users/christophpfeiffer/data_archive/21099_opm';
+    base_save_path = '/Users/christophpfeiffer/data_local/Benchmarking_phalanges';
+    base_matlab_path = '/Users/christophpfeiffer/Dropbox/Mac/Documents/MATLAB';
+    project_scripts_path = '/Users/christophpfeiffer/opm_phalanges';
+end
+
+%% Set up fieldtrip
+addpath(fullfile(base_matlab_path,'fieldtrip-20231220/')) % Fieldtrip path
+addpath(fullfile(base_matlab_path,'fieldtrip_private')) % Fieldtrip private functions
+addpath(project_scripts_path)
 ft_defaults
 
 global ft_default
@@ -53,10 +71,6 @@ subses = {'0005' '240208';
     '1194' '241029';
     '1195' '241030'};
 mri_files = {'00000001.dcm' '/nifti/anat/sub-15931_T1w.nii.gz'  '/nifti/anat/sub-15985_T1w.nii.gz'};
-
-%% Base paths
-base_data_path = '/archive/21099_opm/';
-base_save_path = '/home/chrpfe/Documents/21099_opm/Phalanges';
 
 %% Loop over subjects
 for i_sub = 1:size(subses,1)
@@ -189,143 +203,10 @@ end
 
 %% --- Group sensor level -------------------------------------------------
 %% Peak amplitude ratio
-%peak_ratio_meg = zeros(size(subses,1),length(params.phalange_labels));
-%peak_ratio_eeg = zeros(size(subses,1),length(params.phalange_labels));
-for i_sub = 1:size(subses,1)
-    params.sub = ['sub_' num2str(i_sub,'%02d')];
-    ft_hastoolbox('mne', 1);
-    save_path = fullfile(base_save_path,params.sub);
-    load(fullfile(save_path, [params.sub '_opm_M100'])); 
-    M100_opm{i_sub} = M100;
-    load(fullfile(save_path, [params.sub '_opmeeg_M100'])); 
-    M100_opmeeg{i_sub} = M100;
-    load(fullfile(save_path, [params.sub '_meg_M100'])); 
-    M100_meg{i_sub} = M100;
-    load(fullfile(save_path, [params.sub '_megeeg_M100']));
-    M100_megeeg{i_sub} = M100;
-    
-    load(fullfile(save_path, [params.sub '_meg_timelocked'])); 
-    meg_timelocked = timelocked;
-    load(fullfile(save_path, [params.sub '_opm_timelocked'])); 
-    meg_chs = find(contains(meg_timelocked{1}.label,'MEG'));
-    opm_timelocked = timelocked;
-    opm_chs = find(contains(opm_timelocked{1}.label,'bz'));
-
-    for i_phalange = 1:length(params.phalange_labels)
-        peak_ratio_meg(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_meg{i_sub}{i_phalange}.max_amplitude;
-        peak_ratio_eeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.max_amplitude/M100_megeeg{i_sub}{i_phalange}.max_amplitude;
-        peak_ratio_meg(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_meg{i_sub}{i_phalange}.max_amplitude;
-        peak_ratio_eeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.max_amplitude/M100_megeeg{i_sub}{i_phalange}.max_amplitude;
-        snr_error_opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_opm{i_sub}{i_phalange}.std_error;
-        snr_error_meg(i_sub,i_phalange) = M100_meg{i_sub}{i_phalange}.max_amplitude/M100_meg{i_sub}{i_phalange}.std_error;
-        snr_prestim_opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_opm{i_sub}{i_phalange}.prestim_std;
-        snr_prestim_meg(i_sub,i_phalange) = M100_meg{i_sub}{i_phalange}.max_amplitude/M100_meg{i_sub}{i_phalange}.prestim_std;
-        snr_ratio_error(i_sub,i_phalange) = snr_error_opm(i_sub,i_phalange)/snr_error_meg(i_sub,i_phalange);
-        snr_ratio_prestim(i_sub,i_phalange) = snr_prestim_opm(i_sub,i_phalange)/snr_prestim_meg(i_sub,i_phalange);
-        latency_opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_latency;
-        latency_meg(i_sub,i_phalange) = M100_meg{i_sub}{i_phalange}.peak_latency;
-        latency_opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_latency;
-        latency_megeeg(i_sub,i_phalange) = M100_megeeg{i_sub}{i_phalange}.peak_latency;
-
-        h = figure;
-        subplot(2,1,1)
-        plot(meg_timelocked{i_phalange}.time*1e3,meg_timelocked{i_phalange}.avg(meg_chs(1:3:end),:)*1e15)
-        xlabel('t [msec]')
-        ylabel('B [fT]')
-        title(['Evoked SQUID MAG - phalange ' params.phalange_labels{i_phalange} ' (n_trls=' num2str(length(meg_timelocked{i_phalange}.cfg.trials)) ')'])
-        subplot(2,1,2)
-        plot(opm_timelocked{i_phalange}.time*1e3,meg_timelocked{i_phalange}.avg(opm_chs,:)*1e15)
-        xlabel('t [msec]')
-        ylabel('B [fT]')
-        title(['Evoked OPM MAG - phalange ' params.phalange_labels{i_phalange} ' (n_trls=' num2str(length(opm_timelocked{i_phalange}.cfg.trials)) ')'])
-        saveas(h, fullfile(save_path, 'figs', [params.sub '_megopm_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']))
-    end
-    close all
-end
-%% Plot group figures
-save_path = base_save_path;
 if ~exist(fullfile(save_path,'figs'), 'dir')
        mkdir(fullfile(save_path,'figs'))
 end
-
-h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),mean(peak_ratio_meg,1));
-hold on
-er = errorbar(1:5,mean(peak_ratio_meg,1), mean(peak_ratio_meg,1)-min(peak_ratio_meg,[],1), mean(peak_ratio_meg,1)-max(peak_ratio_meg,[],1));    
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-er.LineWidth = 1;
-er.CapSize = 30;
-hold off
-title(['M100 peak amplitude ratio (mean = ' num2str(mean(mean(peak_ratio_meg))) ')'])
-ylabel('OPM/SQUID')
-xlabel('Phalange')
-xticklabels(params.phalange_labels)
-saveas(h, fullfile(save_path, 'figs', 'Peak_amplitude_ratios_meg.jpg'))
-
-h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),mean(peak_ratio_eeg,1));
-hold on
-er = errorbar(1:5,mean(peak_ratio_eeg,1), mean(peak_ratio_eeg,1)-min(peak_ratio_eeg,[],1), mean(peak_ratio_eeg,1)-max(peak_ratio_eeg,[],1));    
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-er.LineWidth = 1;
-er.CapSize = 30;
-hold off
-title(['M100 peak amplitude ratio (mean = ' num2str(mean(mean(peak_ratio_eeg))) ')'])
-ylabel('OPMEEG/SQUIDEEG')
-xlabel('Phalange')
-xticklabels(params.phalange_labels)
-saveas(h, fullfile(save_path, 'figs', 'Peak_amplitude_ratios_eeg.jpg'))
-
-% SNR
-h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),mean(snr_ratio_error,1));
-hold on
-er = errorbar(1:5,mean(snr_ratio_error,1), mean(snr_ratio_error,1)-min(snr_ratio_error,[],1), mean(snr_ratio_error,1)-max(snr_ratio_error,[],1));    
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-er.LineWidth = 1;
-er.CapSize = 30;
-hold off
-title(['M100 SNR_{stderror} ratio (mean = ' num2str(mean(mean(snr_ratio_error))) ')'])
-ylabel('OPM/SQUID')
-xlabel('Phalange')
-xticklabels(params.phalange_labels)
-saveas(h, fullfile(save_path, 'figs', 'SNR_ratios_error.jpg'))
-
-h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),mean(snr_ratio_prestim,1));
-hold on
-er = errorbar(1:5,mean(snr_ratio_prestim,1), mean(snr_ratio_prestim,1)-min(snr_ratio_prestim,[],1), mean(snr_ratio_prestim,1)-max(snr_ratio_prestim,[],1));    
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-er.LineWidth = 1;
-er.CapSize = 30;
-hold off
-title(['M100 SNR_{prestim} ratio (mean = ' num2str(mean(mean(snr_ratio_prestim))) ')'])
-ylabel('OPM/SQUID')
-xlabel('Phalange')
-xticklabels(params.phalange_labels)
-saveas(h, fullfile(save_path, 'figs', 'SNR_ratios_prestim.jpg'))
-
-%% Peak latency
-tmp = latency_opm-latency_meg;
-h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),mean(tmp,1));
-hold on
-er = errorbar(1:5,mean(tmp,1), mean(tmp,1)-min(tmp,[],1), mean(tmp,1)-max(tmp,[],1));    
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-er.LineWidth = 1;
-er.CapSize = 30;
-hold off
-title(['M100 latency diff (opm mean = ' num2str(mean(mean(latency_opm))) '; meg mean = ' num2str(mean(mean(latency_meg))) ')'])
-ylabel('t_{OPM}-t_{SQUID}')
-xlabel('Phalange')
-xticklabels(params.phalange_labels)
-saveas(h, fullfile(save_path, 'figs', 'Latency.jpg'))
-
+plot_sensor_results_goup(base_save_path,snr, peak_ratio, latency, params)
 
 %% HPI localization
 for i_sub = 2:size(subses,1)
@@ -366,48 +247,81 @@ for i_sub = 1:size(subses,1)
         [headmodels, meshes, mri_resliced_cm] = prepare_mri(mri_file,meg_file,aux_file,save_path);
         close all
     end
+end
+
+%% Transform for OPM data
+for i_sub = 1:size(subses,1)
+    ft_hastoolbox('mne',1);
+    params.sub = ['sub_' num2str(i_sub,'%02d')];
+    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    save_path = fullfile(base_save_path,params.sub);
+    mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
+    if exist(fullfile(save_path, 'headmodels.mat'),'file') && fullfile(save_path, 'opm_trans.mat') && overwrite.coreg==false
+        load(fullfile(save_path, 'opm_trans.mat'));
+        load(fullfile(save_path, 'headmodels.mat'));
+        opm_timelockedT = opm_timelocked;
+        for i = 1:5
+            opm_timelockedT{i}.grad.chanpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.chanpos*1e2)*1e-2;
+            opm_timelockedT{i}.grad.coilpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.coilpos*1e2)*1e-2;
+            opm_timelockedT{i}.elec.chanpos = meg_timelocked{i}.elec.chanpos;
+            opm_timelockedT{i}.elec.elecpos = meg_timelocked{i}.elec.elecpos;
+        end
+        
+        h = figure; 
+        hold on; 
+        ft_plot_sens(opm_timelockedT{1}.grad,'unit','cm')
+        ft_plot_sens(opm_timelockedT{1}.elec,'unit','cm', 'style', '.r','elecsize',20)
+        ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.7,'FaceColor',[229 194 152]/256,'unit','cm')
+        ft_plot_headmodel(headmodels.headmodel_meg)
+        hold off;
+        title('OPM-MEG')
+        view([-140 10])
+        savefig(h, fullfile(save_path, 'figs', 'opm_layout.fig'))
+        saveas(h, fullfile(save_path, 'figs', 'opm_layout.jpg'))
     
-    %% Transform for OPM
-    opm_timelockedT = opm_timelocked;
-    for i = 1:5
-        opm_timelockedT{i}.grad.chanpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.chanpos*1e2)*1e-2;
-        opm_timelockedT{i}.grad.coilpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.coilpos*1e2)*1e-2;
-        opm_timelockedT{i}.elec.chanpos = meg_timelocked{i}.elec.chanpos;
-        opm_timelockedT{i}.elec.elecpos = meg_timelocked{i}.elec.elecpos;
+        h = figure; 
+        hold on
+        ft_plot_sens(meg_timelocked{1}.grad,'unit','cm')
+        ft_plot_sens(meg_timelocked{1}.elec,'unit','cm', 'style', '.r','elecsize',20)
+        ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.7,'FaceColor',[229 194 152]/256,'unit','cm')
+        ft_plot_headmodel(headmodels.headmodel_meg)
+        hold off;
+        title('SQUID-MEG')
+        view([-140 10])
+        savefig(h, fullfile(save_path, 'figs', 'meg_layout.fig'))
+        saveas(h, fullfile(save_path, 'figs', 'meg_layout.jpg'))
+    
+        %% Save
+        save(fullfile(save_path, [params.sub '_opm_timelockedT']), 'opm_timelockedT', '-v7.3');
+    else
+        disp('Required files not found. No transformed OPM data was saved.')
     end
-    
-    h = figure; 
-    hold on; 
-    ft_plot_sens(opm_timelockedT{1}.grad,'unit','cm')
-    ft_plot_sens(opm_timelockedT{1}.elec,'unit','cm', 'style', '.r','elecsize',20)
-    ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.7,'FaceColor',[229 194 152]/256,'unit','cm')
-    ft_plot_headmodel(headmodels.headmodel_meg)
-    hold off;
-    title('OPM-MEG')
-    view([-140 10])
-    savefig(h, fullfile(save_path, 'figs', 'opm_layout.fig'))
-    saveas(h, fullfile(save_path, 'figs', 'opm_layout.jpg'))
+end
 
-    h = figure; 
-    hold on
-    ft_plot_sens(meg_timelocked{1}.grad,'unit','cm')
-    ft_plot_sens(meg_timelocked{1}.elec,'unit','cm', 'style', '.r','elecsize',20)
-    ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.7,'FaceColor',[229 194 152]/256,'unit','cm')
-    ft_plot_headmodel(headmodels.headmodel_meg)
-    hold off;
-    title('SQUID-MEG')
-    view([-140 10])
-    savefig(h, fullfile(save_path, 'figs', 'meg_layout.fig'))
-    saveas(h, fullfile(save_path, 'figs', 'meg_layout.jpg'))
+%% Dipole fits
+for i_sub = 1:size(subses,1)
+    ft_hastoolbox('mne',1);
+    params.sub = ['sub_' num2str(i_sub,'%02d')];
+    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    save_path = fullfile(base_save_path,params.sub);
+    mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
 
-    %% Dipole fits
     if exist(fullfile(save_path, 'dipoles.mat'),'file') && overwrite.dip==false
         load(fullfile(save_path, 'dipoles.mat'));
     else
         [megmag_dipole, megplanar_dipole, opm_dipole, eeg_dipole] = fit_dipoles(save_path,meg_timelocked,opm_timelockedT,headmodels,mri_resliced_cm,params);
     end
+end
 
-    %% Read cotrical restrained source model
+%% Prepare MNE sourcemodel 
+for i_sub = 1:size(subses,1)
+    ft_hastoolbox('mne',1);
+    params.sub = ['sub_' num2str(i_sub,'%02d')];
+    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    save_path = fullfile(base_save_path,params.sub);
+    mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
+
+    %% Read and transform cortical restrained source model
     subjectname = ['NatMEG_' sub{i_sub}];
     filename = fullfile(mri_path,'workbench',[subjectname,'.L.midthickness.8k_fs_LR.surf.gii']);
     sourcemodel = ft_read_headshape({filename, strrep(filename, '.L.', '.R.')});
@@ -456,10 +370,23 @@ for i_sub = 1:size(subses,1)
     savefig(h, fullfile(save_path, 'figs', 'meg_layout2.fig'))
     saveas(h, fullfile(save_path, 'figs', 'meg_layout2.jpg'))
 
+    %% Save
+    save(fullfile(save_path, [params.sub '_sourcemodelT']), 'sourcemodelT', '-v7.3');
+end
+
+%% MNE
+for i_sub = 1:size(subses,1)
+    ft_hastoolbox('mne',1);
+    params.sub = ['sub_' num2str(i_sub,'%02d')];
+    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    save_path = fullfile(base_save_path,params.sub);
+    mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
+
     %% MNE fit
     if exist(fullfile(save_path, 'mne_fits.mat'),'file') && overwrite.mne==false
         load(fullfile(save_path, 'mne_fits.mat'));
     else
+        load(fullfile(save_path, [params.sub '_sourcemodelT']);
         [megmag_mne, megplanaer_mne, opm_mne, eeg_mne, FAHM] = fit_mne(save_path,meg_timelocked,opm_timelockedT,headmodels,sourcemodelT,params);
     end
 end

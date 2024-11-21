@@ -1,0 +1,83 @@
+function [snr, peak_ratio, latency] = sensor_results_goup(save_path, base_data_path, subs, params)
+%UNTITLED3 Summary of this function goes here
+%   Detailed explanation goes here
+
+
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),mean(peak_ratio.meg,1));
+hold on
+er = errorbar(1:5,mean(peak_ratio.meg,1), mean(peak_ratio.meg,1)-min(peak_ratio.meg,[],1), mean(peak_ratio.meg,1)-max(peak_ratio.meg,[],1));    
+er.Color = [0 0 0];                            
+er.LineStyle = 'none';  
+er.LineWidth = 1;
+er.CapSize = 30;
+hold off
+title(['M100 peak amplitude ratio (mean = ' num2str(mean(mean(peak_ratio.meg))) ')'])
+ylabel('OPM/SQUID')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'Peak_amplitude_ratios_meg.jpg'))
+
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),mean(peak_ratio.eeg,1));
+hold on
+er = errorbar(1:5,mean(peak_ratio.eeg,1), mean(peak_ratio.eeg,1)-min(peak_ratio.eeg,[],1), mean(peak_ratio.eeg,1)-max(peak_ratio.eeg,[],1));    
+er.Color = [0 0 0];                            
+er.LineStyle = 'none';  
+er.LineWidth = 1;
+er.CapSize = 30;
+hold off
+title(['M100 peak amplitude ratio (mean = ' num2str(mean(mean(peak_ratio.eeg))) ')'])
+ylabel('OPMEEG/SQUIDEEG')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'Peak_amplitude_ratios_eeg.jpg'))
+
+% SNR
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),mean(snr.ratio_error,1));
+hold on
+er = errorbar(1:5,mean(snr.ratio_error,1), mean(snr.ratio_error,1)-min(snr.ratio_error,[],1), mean(snr.ratio_error,1)-max(snr.ratio_error,[],1));    
+er.Color = [0 0 0];                            
+er.LineStyle = 'none';  
+er.LineWidth = 1;
+er.CapSize = 30;
+hold off
+title(['M100 SNR_{stderror} ratio (mean = ' num2str(mean(mean(snr.ratio_error))) ')'])
+ylabel('OPM/SQUID')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'SNR_ratios_error.jpg'))
+
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),mean(snr.ratio_prestim,1));
+hold on
+er = errorbar(1:5,mean(snr.ratio_prestim,1), mean(snr.ratio_prestim,1)-min(snr.ratio_prestim,[],1), mean(snr.ratio_prestim,1)-max(snr.ratio_prestim,[],1));    
+er.Color = [0 0 0];                            
+er.LineStyle = 'none';  
+er.LineWidth = 1;
+er.CapSize = 30;
+hold off
+title(['M100 SNR_{prestim} ratio (mean = ' num2str(mean(mean(snr.ratio_prestim))) ')'])
+ylabel('OPM/SQUID')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'SNR_ratios_prestim.jpg'))
+
+%% Peak latency
+tmp = latency.opm-latency.meg;
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),mean(tmp,1));
+hold on
+er = errorbar(1:5,mean(tmp,1), mean(tmp,1)-min(tmp,[],1), mean(tmp,1)-max(tmp,[],1));    
+er.Color = [0 0 0];                            
+er.LineStyle = 'none';  
+er.LineWidth = 1;
+er.CapSize = 30;
+hold off
+title(['M100 latency diff (opm mean = ' num2str(mean(mean(latency.opm))) '; meg mean = ' num2str(mean(mean(latency.meg))) ')'])
+ylabel('t_{OPM}-t_{SQUID}')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'Latency.jpg'))
+end
