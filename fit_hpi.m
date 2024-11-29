@@ -106,11 +106,16 @@ for coil = 1:length(hpi_chs)
         opm_chs = find(contains(timelocked.label,'bz'));
         [~, i_maxchan] = max(abs(timelocked.avg(opm_chs,:)));
         max_pos = timelocked.grad.chanpos(i_maxchan,:);
-        [X,Y,Z] = meshgrid((max_pos(1)-0.05):0.005:(max_pos(1)+0.05), ...
-            (max_pos(2)-0.05):0.005:(max_pos(2)+0.05), ...
-            (max_pos(3)-0.05):0.005:(max_pos(3)+0.05));
+        [X,Y,Z] = meshgrid(-0.03:0.003:0.03, ...
+            -0.03:0.003:0.03, ...
+            -0.03:0.003:0);
         pos = [X(:) Y(:) Z(:)];
-        inside = vecnorm(pos,2,2) < (vecnorm(max_pos,2)+0.01);
+        
+        T = transformToZAxis(timelocked.grad.chanpos(i_maxchan,:),timelocked.grad.chanori(i_maxchan,:));
+        posT = [pos, ones(size(pos, 1), 1)];
+        posT = (T * posT')';
+        posT = posT(:,1:3);
+        inside = true(size(posT,1),1);
 
         cfg = [];
         %cfg.frequency       = 33;
@@ -119,7 +124,7 @@ for coil = 1:length(hpi_chs)
         cfg.gridsearch      = 'yes';
         cfg.channel = params.include_chs;
         cfg.sourcemodel     = [];
-        cfg.sourcemodel.pos = pos;
+        cfg.sourcemodel.pos = posT;
         cfg.sourcemodel.inside = inside;
         %cfg.xgrid           = (min(opm_fft{coil}.grad.chanpos(:,1))-0.01):0.01:(max(opm_fft{coil}.grad.chanpos(:,1))+0.01);
         %cfg.ygrid           = (min(opm_fft{coil}.grad.chanpos(:,2))-0.01):0.01:(max(opm_fft{coil}.grad.chanpos(:,2))+0.01);

@@ -209,10 +209,10 @@ end
 plot_sensor_results_goup(base_save_path,snr, peak_ratio, latency, params)
 
 %% HPI localization
-for i_sub = 2:size(subses,1)
+for i_sub = 4%2:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
-    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
     aux_file = fullfile(raw_path, 'meg', 'PhalangesEEG.fif');
     hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
@@ -234,7 +234,7 @@ end
 for i_sub = 1:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
-    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
     if exist(fullfile(save_path, 'headmodels.mat'),'file') && overwrite.coreg==false
@@ -253,7 +253,7 @@ end
 for i_sub = 1:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
-    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
     if exist(fullfile(save_path, 'headmodels.mat'),'file') && fullfile(save_path, 'opm_trans.mat') && overwrite.coreg==false
@@ -302,7 +302,7 @@ end
 for i_sub = 1:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
-    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
 
@@ -317,7 +317,7 @@ end
 for i_sub = 1:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
-    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
 
@@ -378,7 +378,7 @@ end
 for i_sub = 1:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
-    raw_path = fullfile(base_data_path,['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
 
@@ -386,7 +386,7 @@ for i_sub = 1:size(subses,1)
     if exist(fullfile(save_path, 'mne_fits.mat'),'file') && overwrite.mne==false
         load(fullfile(save_path, 'mne_fits.mat'));
     else
-        load(fullfile(save_path, [params.sub '_sourcemodelT']);
+        load(fullfile(save_path, [params.sub '_sourcemodelT']));
         [megmag_mne, megplanaer_mne, opm_mne, eeg_mne, FAHM] = fit_mne(save_path,meg_timelocked,opm_timelockedT,headmodels,sourcemodelT,params);
     end
 end
