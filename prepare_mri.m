@@ -23,18 +23,18 @@ function [headmodels, meshes] = prepare_mri(mri_file,meg_file,save_path)
     cfg.headshape.icp       = 'yes';
     cfg.headshape.interactive    = 'no';
     mri_realigned_2 = ft_volumerealign(cfg, mri_realigned_1);
-    
+
     % Check co-registration
     cfg.headshape.icp       = 'no';        % Do not fit points again
     cfg.headshape.interactive    = 'yes';
     mri_realigned_2 = ft_volumerealign(cfg, mri_realigned_2);
     
     %% Reslice MRI
-    cfg = [];
-    cfg.resolution = 1;
-    mri_resliced = ft_volumereslice(cfg, mri_realigned_2);
-    mri_resliced = ft_convert_units(mri_resliced, 'cm');
-    %mri_resliced_cm = ft_convert_units(mri_realigned_3, 'cm');
+    %cfg = [];
+    %cfg.resolution = 1;
+    %mri_resliced = ft_volumereslice(cfg, mri_realigned_2);
+    %mri_resliced = ft_convert_units(mri_resliced, 'cm');
+    mri_resliced = ft_convert_units(mri_realigned_2, 'cm');
     
     save(fullfile(save_path, 'mri_resliced.mat'), 'mri_resliced'); disp('done')
     vox2neuromag = mri_resliced.transform;
