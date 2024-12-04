@@ -1,4 +1,4 @@
-function [headmodels, meshes] = prepare_mri(mri_file,meg_file,save_path)
+function [headmodels, meshes, mri_resliced_cm] = prepare_mri(mri_file,meg_file,aux_file,save_path)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -40,24 +40,24 @@ function [headmodels, meshes] = prepare_mri(mri_file,meg_file,save_path)
     vox2neuromag = mri_resliced.transform;
     save(fullfile(save_path, 'vox2neuromag.mat'), 'vox2neuromag'); disp('done')
 
-%     cfg = [];
-%     cfg.method = 'interactive';
-%     cfg.coordsys = 'spm';
-%     mri_spm = ft_volumerealign(cfg,mri_resliced);
-% 
-%     vox2spm = mri_spm.transform;
-%     save(fullfile(save_path, 'vox2spm.mat'), 'vox2spm'); disp('done')
-%     
-%     cfg = [];
-%     cfg.filename = fullfile(save_path,'mri_spm.mgz');
-%     cfg.filetype = 'mgz';
-%     cfg.parameter = 'anatomy';
-%     ft_volumewrite(cfg,mri_spm);
+    cfg = [];
+    cfg.method = 'interactive';
+    cfg.coordsys = 'spm';
+    mri_spm = ft_volumerealign(cfg,mri_resliced);
+
+    vox2spm = mri_spm.transform;
+    save(fullfile(save_path, 'vox2spm.mat'), 'vox2spm'); disp('done')
+    
+    cfg = [];
+    cfg.filename = fullfile(save_path,'mri_spm.mgz');
+    cfg.filetype = 'mgz';
+    cfg.parameter = 'anatomy';
+    ft_wolumewrite(cfg,mri_spm);
 
     %% Segment MRI
     cfg = [];
     cfg.output = {'brain' 'skull' 'scalp'};
-    mri_segmented = ft_volumesegment(cfg, mri_resliced);
+    mri_segmented = ft_volumesegment(cfg, mri_resliced_cm);
     save(fullfile(save_path, 'mri_segmented.mat'), 'mri_segmented'); disp('done')
     
     %% Correct compartments
@@ -71,7 +71,7 @@ function [headmodels, meshes] = prepare_mri(mri_file,meg_file,save_path)
 
     % Copy MRI
     mri_segmented_2 = mri_segmented;                    % Copy stucture
-    mri_segmented_2.anatomy = mri_resliced.anatomy;  % Copy anatomical data
+    mri_segmented_2.anatomy = mri_resliced_cm.anatomy;  % Copy anatomical data
       
     % insert the updated binary volumes, taking out the center part for skull and scalp
     mri_segmented_2.brain    = binary_brain;

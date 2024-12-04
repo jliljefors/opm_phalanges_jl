@@ -94,7 +94,7 @@ for coil = 1:length(hpi_chs)
     cfg.channel = params.include_chs;
     h = figure; ft_topoplotER(cfg,timelocked); colorbar
     saveas(h, fullfile(save_path, 'figs', ['hpi_topo_coil-' num2str(coil) '.jpg']))
-
+    close
     disp(['Max amp: ' num2str(max(abs(timelocked.avg(find(contains(timelocked.label,'bz'))))))])
 
     if any(abs(timelocked.avg(find(contains(timelocked.label,'bz')))) > 1e-11)
