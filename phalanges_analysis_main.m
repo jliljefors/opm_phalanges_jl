@@ -4,9 +4,8 @@ close all
 restoredefaultpath
 
 %% Base paths
-compute = true;
-if compute == true
-    % Compute:
+if contains(pwd,'/home/chrpfe')
+    % Server:
     base_data_path = '/archive/21099_opm/';
     base_save_path = '/home/chrpfe/Documents/21099_opm/Phalanges';
     base_matlab_path = '/home/chrpfe/Documents/MATLAB/';
@@ -239,7 +238,7 @@ for i_sub = 2:size(subses,1)
 end
 
 %% Transform for OPM data
-for i_sub = 7%2:size(subses,1)
+for i_sub = 2:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
@@ -255,6 +254,10 @@ for i_sub = 7%2:size(subses,1)
         load(fullfile(save_path, [params.sub '_meg_timelocked.mat']))
         meg_timelocked = timelocked;
         clear timelocked;
+        meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
+        if i_sub == 9
+            meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98.fif');
+        end
         headshape = ft_read_headshape(meg_file);
         for i = 1:5
             opm_timelockedT{i}.grad.chanpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.chanpos*1e2)*1e-2;
@@ -288,7 +291,7 @@ for i_sub = 7%2:size(subses,1)
         view([-140 10])
         savefig(h, fullfile(save_path, 'figs', 'meg_layout.fig'))
         saveas(h, fullfile(save_path, 'figs', 'meg_layout.jpg'))
-        %close all
+        close all
 
         %% Save
         save(fullfile(save_path, [params.sub '_opm_timelockedT']), 'opm_timelockedT', '-v7.3');
@@ -298,7 +301,7 @@ for i_sub = 7%2:size(subses,1)
 end
 
 %% Dipole fits
-for i_sub = 1:size(subses,1)
+for i_sub = 2:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
@@ -308,7 +311,13 @@ for i_sub = 1:size(subses,1)
     if exist(fullfile(save_path, 'dipoles.mat'),'file') && overwrite.dip==false
         load(fullfile(save_path, 'dipoles.mat'));
     else
-        [megmag_dipole, megplanar_dipole, opm_dipole, eeg_dipole] = fit_dipoles(save_path,meg_timelocked,opm_timelockedT,headmodels,mri_resliced_cm,params);
+        load(fullfile(save_path, [params.sub '_opm_timelockedT.mat']))
+        load(fullfile(save_path, [params.sub '_meg_timelocked.mat']))
+        meg_timelocked = timelocked;
+        clear timelocked
+        load(fullfile(save_path, 'headmodels.mat'));
+        load(fullfile(save_path, 'mri_resliced.mat'));
+        [megmag_dipole, megplanar_dipole, opm_dipole, eeg_dipole] = fit_dipoles(save_path,meg_timelocked,opm_timelockedT,headmodels,mri_resliced,params);
     end
 end
 
