@@ -4,9 +4,8 @@ close all
 restoredefaultpath
 
 %% Base paths
-compute = true;
-if compute == true
-    % Compute:
+if contains(pwd,'/home/chrpfe')
+    % Server:
     base_data_path = '/archive/21099_opm/';
     base_save_path = '/home/chrpfe/Documents/21099_opm/Phalanges';
     base_matlab_path = '/home/chrpfe/Documents/MATLAB/';
@@ -302,7 +301,7 @@ for i_sub = 2:size(subses,1)
 end
 
 %% Dipole fits
-for i_sub = 2:size(subses,1)
+for i_sub = 4%2:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
@@ -318,6 +317,8 @@ for i_sub = 2:size(subses,1)
         clear timelocked
         load(fullfile(save_path, 'headmodels.mat'));
         load(fullfile(save_path, 'mri_resliced.mat'));
+        mri_resliced = mri_resliced_cm;
+        clear mri_rescliced_cm
         [megmag_dipole, megplanar_dipole, opm_dipole, eeg_dipole] = fit_dipoles(save_path,meg_timelocked,opm_timelockedT,headmodels,mri_resliced,params);
     end
 end

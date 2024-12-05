@@ -11,46 +11,52 @@ colors = [[0 0.4470 0.7410]; % blue
 
 latency_m100 = [0.08 0.13];
 
+cfg              = [];
+cfg.resolution   = 0.5;
+cfg.tight        = 'yes';
+cfg.inwardshift  = 0;
+cfg.headmodel    = headmodels.headmodel_meg;
+sourcemodel    = ft_prepare_sourcemodel(cfg);
+
 %% Fit dipoles
 for i_phalange = 1:5
     % MEG
     cfg = [];
-    cfg.gridsearch      = 'yes';            % search the grid for an optimal starting point
-    cfg.numdipoles      = 1;                % N dipoles in model
-    cfg.grid.resolution = 1;            % Grid spacing 1x1x1 of unit defined below
-    cfg.grid.unit       = 'cm';         % Grid unit
-    cfg.headmodel       = headmodels.headmodel_meg;    % supply the headmodel
-    cfg.senstype        = 'meg';            % sensor type
-    cfg.channel         = 'megmag';         % which channels to use
-    cfg.nonlinear       = 'yes';            % do a non-linear search
-    cfg.latency         = latency_m100;    % specify the latency´
+    cfg.gridsearch      = 'yes';           
+    cfg.numdipoles      = 1;                
+    cfg.sourcemodel     = sourcemodel;           
+    cfg.headmodel       = headmodels.headmodel_meg;    
+    cfg.senstype        = 'meg';            
+    cfg.channel         = 'megmag';         
+    cfg.nonlinear       = 'yes';           
+    cfg.latency         = latency_m100;   
+    cffg.mri            = mri_rescliced;
     cfg.dipfit.checkinside = 'yes';
     cfg.dipfit.noisecov = meg_timelocked{i_phalange}.cov;
     megmag_dipole{i_phalange} = ft_dipolefitting(cfg, meg_timelocked{i_phalange});
-    cfg.channel         = 'meglpanar';            % which channels to use
+    cfg.channel         = 'meglpanar';           
     megplanar_dipole{i_phalange} = ft_dipolefitting(cfg, meg_timelocked{i_phalange});
-    cfg.headmodel       = headmodels.headmodel_eeg;    % supply the headmodel
-    cfg.senstype        = 'eeg';            % sensor type
-    cfg.channel         = 'eeg';         % which channels to use
+    cfg.headmodel       = headmodels.headmodel_eeg;    
+    cfg.senstype        = 'eeg';            
+    cfg.channel         = 'eeg';        
     eeg_dipole{i_phalange} = ft_dipolefitting(cfg, meg_timelocked{i_phalange});
 
     % OPM
     cfg = [];
-    cfg.gridsearch      = 'yes';            % search the grid for an optimal starting point
-    cfg.numdipoles      = 1;                % N dipoles in model
-    cfg.grid.resolution = 1;            % Grid spacing 1x1x1 of unit defined below
-    cfg.grid.unit       = 'cm';         % Grid unit
-    cfg.headmodel       = headmodels.headmodel_meg;    % supply the headmodel
-    cfg.senstype        = 'meg';            % sensor type
-    cfg.channel         = '*bz';         % which channels to use
-    cfg.nonlinear       = 'yes';            % do a non-linear search
-    cfg.latency         = latency_m100;    % specify the latency
+    cfg.gridsearch      = 'yes';           
+    cfg.numdipoles      = 1;                
+    cfg.sourcemodel     = sourcemodel;            
+    cfg.headmodel       = headmodels.headmodel_meg;    
+    cfg.senstype        = 'meg';            
+    cfg.channel         = '*bz';        
+    cfg.nonlinear       = 'yes';            
+    cfg.latency         = latency_m100;   
     cfg.dipfit.checkinside = 'yes';
     cfg.dipfit.noisecov = opm_timelocked{i_phalange}.cov;
     opm_dipole{i_phalange} = ft_dipolefitting(cfg, opm_timelocked{i_phalange});
-    cfg.headmodel       = headmodels.headmodel_eeg;    % supply the headmodel
-    cfg.senstype        = 'eeg';            % sensor type
-    cfg.channel         = 'eeg';         % which channels to use
+    cfg.headmodel       = headmodels.headmodel_eeg;  
+    cfg.senstype        = 'eeg';           
+    cfg.channel         = 'eeg';        
     opmeeg_dipole{i_phalange} = ft_dipolefitting(cfg, opm_timelocked{i_phalange});
 
     % Plot OPM vs SQUID
