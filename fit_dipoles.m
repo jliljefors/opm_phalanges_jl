@@ -12,7 +12,7 @@ colors = [[0 0.4470 0.7410]; % blue
 latency_m100 = [0.08 0.13];
 
 cfg              = [];
-cfg.resolution   = 0.5;
+cfg.resolution   = 1;
 cfg.tight        = 'yes';
 cfg.inwardshift  = 0;
 cfg.headmodel    = headmodels.headmodel_meg;
@@ -30,9 +30,8 @@ for i_phalange = 1:5
     cfg.channel         = 'megmag';         
     cfg.nonlinear       = 'yes';           
     cfg.latency         = latency_m100;   
-    cffg.mri            = mri_rescliced;
     cfg.dipfit.checkinside = 'yes';
-    cfg.dipfit.noisecov = meg_timelocked{i_phalange}.cov;
+    %cfg.dipfit.noisecov = meg_timelocked{i_phalange}.cov;
     megmag_dipole{i_phalange} = ft_dipolefitting(cfg, meg_timelocked{i_phalange});
     cfg.channel         = 'meglpanar';           
     megplanar_dipole{i_phalange} = ft_dipolefitting(cfg, meg_timelocked{i_phalange});
@@ -52,7 +51,7 @@ for i_phalange = 1:5
     cfg.nonlinear       = 'yes';            
     cfg.latency         = latency_m100;   
     cfg.dipfit.checkinside = 'yes';
-    cfg.dipfit.noisecov = opm_timelocked{i_phalange}.cov;
+    %cfg.dipfit.noisecov = opm_timelocked{i_phalange}.cov;
     opm_dipole{i_phalange} = ft_dipolefitting(cfg, opm_timelocked{i_phalange});
     cfg.headmodel       = headmodels.headmodel_eeg;  
     cfg.senstype        = 'eeg';           
@@ -89,8 +88,9 @@ for i_phalange = 1:5
     ft_plot_dipole(pos_planar,ori_planar,'color',colors(3,:))
     ft_plot_headmodel(headmodels.headmodel_meg,'EdgeAlpha',0,'FaceAlpha',0.3,'FaceColor',[229 194 152]/256,'unit','cm') 
     hold off
-    title([params.phalange_labels{i_phalange} ' (SQUID - OPM = ' num2str(norm(pos_mag-pos_opm)*10) ' mm)'])
-    savefig(h, fullfile(save_path, 'figs', ['dipfit_SQUIDvOPM_ph-' params.phalange_labels{i_phalange} '.fig']))
+    title([params.phalange_labels{i_phalange} ' (SqMAG-OPM = ' num2str(norm(pos_mag-pos_opm)*10,'%.1f') 'mm / SqGRAD-OPM = ' num2str(norm(pos_planar-pos_opm)*10,'%.1f') 'mm)'])
+    legend('SQUIDMAG','OPM','SQUIDPLANAR','brain')
+    saveas(h, fullfile(save_path, 'figs', ['dipfit_SQUIDvOPM_ph-' params.phalange_labels{i_phalange} '.jpg']))
     close
 
     h = figure;
@@ -99,8 +99,9 @@ for i_phalange = 1:5
     ft_plot_dipole(pos_opmeeg,ori_opmeeg,'color',colors(2,:))
     ft_plot_headmodel(headmodels.headmodel_meg,'EdgeAlpha',0,'FaceAlpha',0.3,'FaceColor',[229 194 152]/256,'unit','cm') 
     hold off
-    title([params.phalange_labels{i_phalange} ' (SQUID-EEG - OPM-EEG = ' num2str(norm((pos_eeg-pos_opmeeg)*10)) ' mm)'])
-    savefig(h, fullfile(save_path, 'figs', ['dipfit_EEGvOPMEEG_ph-' params.phalange_labels{i_phalange} '.fig']))
+    title([params.phalange_labels{i_phalange} ' (SqEEG-OpmEEG = ' num2str(norm((pos_eeg-pos_opmeeg))*10,'%.1f') 'mm)'])
+    legend('SQUIDEEG','OPMEEG','brain')
+    saveas(h, fullfile(save_path, 'figs', ['dipfit_EEGvOPMEEG_ph-' params.phalange_labels{i_phalange} '.jpg']))
     close
 end
 close all
@@ -127,7 +128,6 @@ end
 hold off
 view(-90,0)
 title('SQUID-MAG')
-savefig(h, fullfile(save_path, 'figs', 'dipfit-SQUIDMAG_100.fig'))
 saveas(h, fullfile(save_path, 'figs', 'dipfit-SQUIDMAG_100.jpg'))
 %010
 h=figure;
@@ -141,7 +141,6 @@ end
 hold off
 view(0,0)
 title('SQUID-MAG')
-savefig(h, fullfile(save_path, 'figs', 'dipfit-SQUIDMAG_010.fig'))
 saveas(h, fullfile(save_path, 'figs', 'dipfit-SQUIDMAG_010.jpg'))
 %001
 h=figure;
@@ -154,7 +153,6 @@ for i = 1:5
 end
 hold off
 title('SQUID-MAG')
-savefig(h, fullfile(save_path, 'figs', 'dipfit-SQUIDMAG_001.fig'))
 saveas(h, fullfile(save_path, 'figs', 'dipfit-SQUIDMAG_001.jpg'))
 close all
 
@@ -179,7 +177,6 @@ end
 hold off
 view(-90,0)
 title('OPM')
-savefig(h, fullfile(save_path, 'figs', 'dipfit-OPM_100.fig'))
 saveas(h, fullfile(save_path, 'figs', 'dipfit-OPM_100.jpg'))
 %010
 h=figure;
@@ -193,7 +190,6 @@ end
 hold off
 view(0,0)
 title('OPM')
-savefig(h, fullfile(save_path, 'figs', 'dipfit-OPM_010.fig'))
 saveas(h, fullfile(save_path, 'figs', 'dipfit-OPM_010.jpg'))
 %001
 h=figure;
@@ -206,7 +202,6 @@ for i = 1:5
 end
 hold off
 title('OPM')
-savefig(h, fullfile(save_path, 'figs', 'dipfit-OPM_001.fig'))
 saveas(h, fullfile(save_path, 'figs', 'dipfit-OPM_001.jpg'))
 close all
 %% Save 

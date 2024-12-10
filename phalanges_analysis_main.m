@@ -30,8 +30,8 @@ ft_default.showcallinfo = 'no';
 %% Params
 overwrite = [];
 overwrite.preproc = false;
-overwrite.coreg = true;
-overwrite.mri = true;
+overwrite.coreg = false;
+overwrite.mri = false;
 overwrite.dip = true;
 overwrite.mne = true;
 
@@ -311,6 +311,7 @@ for i_sub = 2:size(subses,1)
     if exist(fullfile(save_path, 'dipoles.mat'),'file') && overwrite.dip==false
         load(fullfile(save_path, 'dipoles.mat'));
     else
+        clear headmodels meg_timelocked opm_timelockedT mri_resliced
         load(fullfile(save_path, [params.sub '_opm_timelockedT.mat']))
         load(fullfile(save_path, [params.sub '_meg_timelocked.mat']))
         meg_timelocked = timelocked;
