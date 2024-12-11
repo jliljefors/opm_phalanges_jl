@@ -191,7 +191,7 @@ end
 plot_sensor_results_goup(base_save_path,snr, peak_ratio, latency, params)
 
 %% Prepare MRIs
-for i_sub = 2:size(subses,1)
+for i_sub = 7:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
@@ -206,7 +206,7 @@ for i_sub = 2:size(subses,1)
         if i_sub == 9
             meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98.fif');
         end
-        mri_file = fullfile(mri_path, 'T1.mgz');
+        mri_file = fullfile(mri_path, 'orig','001.mgz');
         [headmodels, meshes] = prepare_mri(mri_file,meg_file,save_path);
         close all
     end
@@ -331,26 +331,28 @@ for i_sub = 1:size(subses,1)
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
 
     %% Read and transform cortical restrained source model
-    subjectname = ['NatMEG_' sub{i_sub}];
-    filename = fullfile(mri_path,'workbench',[subjectname,'.L.midthickness.8k_fs_LR.surf.gii']);
+    files = dir(fullfile(mri_path,'workbench'));
+    for i = 1:length(files)
+        if endsWith(files(i).name,'.L.midthickness.8k_fs_LR.surf.gii')
+            filename = fullfile(mri_path,'workbench',files(i).name);
+            return;
+        end
+    end
     sourcemodel = ft_read_headshape({filename, strrep(filename, '.L.', '.R.')});
+    clear headmodels meg_timelocked opm_timelockedT meshes
+    load(fullfile(save_path,'headmodels.mat'));
+    load(fullfile(save_path,'meshes.mat'));    
+    load(fullfile(save_path, [params.sub '_opm_timelockedT.mat']))
+    load(fullfile(save_path, [params.sub '_meg_timelocked.mat']))
+    meg_timelocked = timelocked;
+    clear timelocked
 
     T = mri_resliced_cm.transform/mri_resliced_cm.hdr.vox2ras;
     sourcemodelT = ft_transform_geometry(T, sourcemodel);
-    sourcemodelT.inside = sourcemodelT.atlasroi>0;
-    sourcemodelT = rmfield(sourcemodelT, 'atlasroi');
+    sourcemodelT.inside = true(size(sourcemodelT.pos,1),1);
 
     %sourcemodelOPM = sourcemodelT;
     %sourcemodelOPM.pos = opm_trans.transformPointsForward(sourcemodelOPM.pos);
-
-    filename =fullfile(mri_path,'workbench',[subjectname,'.L.midthickness.32k_fs_LR.surf.gii']);
-    cortex = ft_read_headshape({filename, strrep(filename, '.L.', '.R.')});
-    cortex = ft_transform_geometry(T, cortex);
-    cortex = rmfield(cortex, 'sulc');
-    cortex = rmfield(cortex, 'curv');
-    cortex = rmfield(cortex, 'thickness');
-    cortex = rmfield(cortex, 'brainstructure');
-    cortex = rmfield(cortex, 'atlasroi');
 
     % Plot source and head models
     h=figure; 

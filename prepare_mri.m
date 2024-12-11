@@ -37,22 +37,6 @@ function [headmodels, meshes] = prepare_mri(mri_file,meg_file,save_path)
     mri_resliced = ft_convert_units(mri_realigned_2, 'cm');
     
     save(fullfile(save_path, 'mri_resliced.mat'), 'mri_resliced'); disp('done')
-    vox2neuromag = mri_resliced.transform;
-    save(fullfile(save_path, 'vox2neuromag.mat'), 'vox2neuromag'); disp('done')
-
-%     cfg = [];
-%     cfg.method = 'interactive';
-%     cfg.coordsys = 'spm';
-%     mri_spm = ft_volumerealign(cfg,mri_resliced);
-% 
-%     vox2spm = mri_spm.transform;
-%     save(fullfile(save_path, 'vox2spm.mat'), 'vox2spm'); disp('done')
-%     
-%     cfg = [];
-%     cfg.filename = fullfile(save_path,'mri_spm.mgz');
-%     cfg.filetype = 'mgz';
-%     cfg.parameter = 'anatomy';
-%     ft_volumewrite(cfg,mri_spm);
 
     %% Segment MRI
     cfg = [];
