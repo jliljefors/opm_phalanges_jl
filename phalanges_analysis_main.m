@@ -184,11 +184,11 @@ for i_sub = 1:size(subses,1)
 end
 
 %% --- Group sensor level -------------------------------------------------
-%% Peak amplitude ratio
-if ~exist(fullfile(save_path,'figs'), 'dir')
-       mkdir(fullfile(save_path,'figs'))
+if ~exist(fullfile(base_save_path,'figs'), 'dir')
+       mkdir(fullfile(base_save_path,'figs'))
 end
-plot_sensor_results_goup(base_save_path,snr, peak_ratio, latency, params)
+subs = 1:13;
+sensor_results_goup(base_save_path,subs, params)
 
 %% Prepare MRIs
 for i_sub = 7:size(subses,1)
@@ -321,6 +321,13 @@ for i_sub = 2:size(subses,1)
         [megmag_dipole, megplanar_dipole, opm_dipole, eeg_dipole] = fit_dipoles(save_path,meg_timelocked,opm_timelockedT,headmodels,mri_resliced,params);
     end
 end
+
+%% --- Group source level -------------------------------------------------
+if ~exist(fullfile(base_save_path,'figs'), 'dir')
+       mkdir(fullfile(base_save_path,'figs'))
+end
+subs = 2:13;
+dipole_results_goup(base_save_path,subs, params)
 
 %% Prepare MNE sourcemodel 
 for i_sub = 1:size(subses,1)
