@@ -1,4 +1,4 @@
-function [megmag_dipole, megplanar_dipole, opm_dipole, eeg_dipole, opmeeg_dipole] = fit_dipoles(save_path,meg_timelocked,opm_timelocked,headmodels,mri,params)
+function [megmag_dipole, megplanar_dipole, opm_dipole, megeeg_dipole, opmeeg_dipole] = fit_dipoles(save_path,megmag_timelocked,megplanar_timelocked,megeeg_timelocked,opm_timelocked,opmeeg_timelocked,headmodels,mri,latency,params)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -29,16 +29,23 @@ for i_phalange = 1:5
     cfg.senstype        = 'meg';            
     cfg.channel         = 'megmag';         
     cfg.nonlinear       = 'yes';           
-    cfg.latency         = latency_m100;   
+    cfg.latency         = latency{i_phalange}.megmag;   
     cfg.dipfit.checkinside = 'yes';
     %cfg.dipfit.noisecov = meg_timelocked{i_phalange}.cov;
-    megmag_dipole{i_phalange} = ft_dipolefitting(cfg, meg_timelocked{i_phalange});
+    megmag_dipole{i_phalange} = ft_dipolefitting(cfg, megmag_timelocked{i_phalange});
+    
+    cfg.latency         = latency{i_phalange}.megplanar;   
     cfg.channel         = 'meglpanar';           
-    megplanar_dipole{i_phalange} = ft_dipolefitting(cfg, meg_timelocked{i_phalange});
-    cfg.headmodel       = headmodels.headmodel_eeg;    
-    cfg.senstype        = 'eeg';            
-    cfg.channel         = 'eeg';        
-    eeg_dipole{i_phalange} = ft_dipolefitting(cfg, meg_timelocked{i_phalange});
+    megplanar_dipole{i_phalange} = ft_dipolefitting(cfg, megplanar_timelocked{i_phalange});
+    if ~isempty(headmodels.headmodel_eeg)
+        cfg.headmodel       = headmodels.headmodel_eeg;    
+        cfg.senstype        = 'eeg';            
+        cfg.channel         = 'eeg';   
+        cfg.latency         = latency{i_phalange}.megeeg;   
+        megeeg_dipole{i_phalange} = ft_dipolefitting(cfg, megeeg_timelocked{i_phalange});
+    else 
+        megeeg_dipole = [];
+    end
 
     % OPM
     cfg = [];
@@ -49,14 +56,19 @@ for i_phalange = 1:5
     cfg.senstype        = 'meg';            
     cfg.channel         = '*bz';        
     cfg.nonlinear       = 'yes';            
-    cfg.latency         = latency_m100;   
+    cfg.latency         = latency{i_phalange}.opm;   
     cfg.dipfit.checkinside = 'yes';
     %cfg.dipfit.noisecov = opm_timelocked{i_phalange}.cov;
     opm_dipole{i_phalange} = ft_dipolefitting(cfg, opm_timelocked{i_phalange});
-    cfg.headmodel       = headmodels.headmodel_eeg;  
-    cfg.senstype        = 'eeg';           
-    cfg.channel         = 'eeg';        
-    opmeeg_dipole{i_phalange} = ft_dipolefitting(cfg, opm_timelocked{i_phalange});
+    if ~isempty(headmodels.headmodel_eeg)
+        cfg.headmodel       = headmodels.headmodel_eeg;  
+        cfg.senstype        = 'eeg';           
+        cfg.channel         = 'eeg';        
+        cfg.latency         = latency{i_phalange}.opmeeg;   
+        opmeeg_dipole{i_phalange} = ft_dipolefitting(cfg, opmeeg_timelocked{i_phalange});
+    else 
+        opmeeg_dipole = [];
+    end
 
     % Plot OPM vs SQUID
     pos_mag = megmag_dipole{i_phalange}.dip.pos;
@@ -72,14 +84,27 @@ for i_phalange = 1:5
     [~,idx] = max(vecnorm(opm_dipole{i_phalange}.dip.mom,2,1));
     ori_opm = -opm_dipole{i_phalange}.dip.mom(:,idx);
 
-    pos_eeg = eeg_dipole{i_phalange}.dip.pos;
-    [~,idx] = max(vecnorm(eeg_dipole{i_phalange}.dip.mom,2,1));
-    ori_eeg = eeg_dipole{i_phalange}.dip.mom(:,idx);
+    if ~isempty(headmodels.headmodel_eeg)
+        pos_eeg = megeeg_dipole{i_phalange}.dip.pos;
+        [~,idx] = max(vecnorm(megeeg_dipole{i_phalange}.dip.mom,2,1));
+        ori_eeg = megeeg_dipole{i_phalange}.dip.mom(:,idx);
+    
+        pos_opmeeg = opmeeg_dipole{i_phalange}.dip.pos;
+        %pos_opmeeg = opm_trans.transformPointsInverse(pos_opmeeg);
+        [~,idx] = max(vecnorm(opmeeg_dipole{i_phalange}.dip.mom,2,1));
+        ori_opmeeg = -opmeeg_dipole{i_phalange}.dip.mom(:,idx);
 
-    pos_opmeeg = opmeeg_dipole{i_phalange}.dip.pos;
-    %pos_opmeeg = opm_trans.transformPointsInverse(pos_opmeeg);
-    [~,idx] = max(vecnorm(opmeeg_dipole{i_phalange}.dip.mom,2,1));
-    ori_opmeeg = -opmeeg_dipole{i_phalange}.dip.mom(:,idx);
+        h = figure;
+        ft_plot_dipole(pos_eeg,ori_eeg,'color',colors(1,:))
+        hold on;
+        ft_plot_dipole(pos_opmeeg,ori_opmeeg,'color',colors(2,:))
+        ft_plot_headmodel(headmodels.headmodel_meg,'EdgeAlpha',0,'FaceAlpha',0.3,'FaceColor',[229 194 152]/256,'unit','cm') 
+        hold off
+        title([params.phalange_labels{i_phalange} ' (SqEEG-OpmEEG = ' num2str(norm((pos_eeg-pos_opmeeg))*10,'%.1f') 'mm)'])
+        legend('SQUIDEEG','OPMEEG','brain')
+        saveas(h, fullfile(save_path, 'figs', ['dipfit_EEGvOPMEEG_ph-' params.phalange_labels{i_phalange} '.jpg']))
+        close
+    end
 
     h = figure;
     ft_plot_dipole(pos_mag,ori_mag,'color',colors(1,:))
@@ -91,17 +116,6 @@ for i_phalange = 1:5
     title([params.phalange_labels{i_phalange} ' (SqMAG-OPM = ' num2str(norm(pos_mag-pos_opm)*10,'%.1f') 'mm / SqGRAD-OPM = ' num2str(norm(pos_planar-pos_opm)*10,'%.1f') 'mm)'])
     legend('SQUIDMAG','OPM','SQUIDPLANAR','brain')
     saveas(h, fullfile(save_path, 'figs', ['dipfit_SQUIDvOPM_ph-' params.phalange_labels{i_phalange} '.jpg']))
-    close
-
-    h = figure;
-    ft_plot_dipole(pos_eeg,ori_eeg,'color',colors(1,:))
-    hold on;
-    ft_plot_dipole(pos_opmeeg,ori_opmeeg,'color',colors(2,:))
-    ft_plot_headmodel(headmodels.headmodel_meg,'EdgeAlpha',0,'FaceAlpha',0.3,'FaceColor',[229 194 152]/256,'unit','cm') 
-    hold off
-    title([params.phalange_labels{i_phalange} ' (SqEEG-OpmEEG = ' num2str(norm((pos_eeg-pos_opmeeg))*10,'%.1f') 'mm)'])
-    legend('SQUIDEEG','OPMEEG','brain')
-    saveas(h, fullfile(save_path, 'figs', ['dipfit_EEGvOPMEEG_ph-' params.phalange_labels{i_phalange} '.jpg']))
     close
 end
 close all
@@ -205,6 +219,6 @@ title('OPM')
 saveas(h, fullfile(save_path, 'figs', 'dipfit-OPM_001.jpg'))
 close all
 %% Save 
-save(fullfile(save_path, 'dipoles'), 'megmag_dipole', 'megplanar_dipole', 'opm_dipole', 'eeg_dipole', 'opmeeg_dipole'); disp('done');
+save(fullfile(save_path, 'dipoles'), 'megmag_dipole', 'megplanar_dipole', 'opm_dipole', 'megeeg_dipole', 'opmeeg_dipole'); disp('done');
 
 end

@@ -7,6 +7,10 @@ M100 = cell(5,1);
 h = figure; 
 hold on
 leg = [];
+
+cfg = [];
+cfg.channel = params.chs;
+data = ft_selectdata(cfg, data);
 for i_phalange = 1:length(params.trigger_code)
     cfg = [];
     cfg.covariance          = 'yes';
@@ -14,9 +18,6 @@ for i_phalange = 1:length(params.trigger_code)
     cfg.trials = find(data.trialinfo==params.trigger_code(i_phalange));
     timelocked{i_phalange} = ft_timelockanalysis(cfg, data);
 
-    cfg = [];
-    cfg.channel = params.chs;
-    dat = ft_selectdata(cfg, timelocked{i_phalange});
     [~, interval_M100(1)] = min(abs(dat.time-0.08));
     [~, interval_M100(2)] = min(abs(dat.time-0.125));
     [~, interval_M100(3)] = min(abs(dat.time-0));
@@ -26,11 +27,11 @@ for i_phalange = 1:length(params.trigger_code)
     [~,i_peak_latency] = max(dat.avg(i_maxch,interval_M100(1):interval_M100(2)));
     tmp.peak_latency = dat.time(interval_M100(1)-1+i_peak_latency);
     tmp.prestim_std = std(dat.avg(i_maxch,1:interval_M100(3)));
-    tmp.std_error = 0;
-    for i_trl = find(data.trialinfo==params.trigger_code(i_phalange))'
-        tmp.std_error = tmp.std_error + abs(tmp.max_amplitude - data.trial{i_trl}(i_maxch,interval_M100(1)-1+i_peak_latency));
-    end
-    tmp.std_error = tmp.std_error/length(find(data.trialinfo==params.trigger_code(i_phalange)));
+    tmp.std_error = sqrt(dat.var(i_maxch,tmp.peak_latency));
+    %for i_trl = find(data.trialinfo==params.trigger_code(i_phalange))'
+    %    tmp.std_error = tmp.std_error + abs(tmp.max_amplitude - data.trial{i_trl}(i_maxch,interval_M100(1)-1+i_peak_latency));
+    %end
+    %tmp.std_error = tmp.std_error/length(find(data.trialinfo==params.trigger_code(i_phalange)));
     M100{i_phalange} = tmp;
     
     plot(dat.time.*1e3, dat.avg(i_maxch,:).*1e15)
@@ -42,16 +43,33 @@ title([params.modality ' - Max channel'])
 ylabel('Field [fT]')
 xlabel('time [ms]')
 legend(leg)
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_evoked_maxchannel.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_evoked_maxchannels.jpg']))
 
 save(fullfile(save_path, [params.sub '_' params.modality '_timelocked']), 'timelocked', '-v7.3'); 
 save(fullfile(save_path, [params.sub '_' params.modality '_M100']), 'M100', '-v7.3'); 
 
+%% Plot max channel with variation and peak time
+for i_phalange = 1:length(params.trigger_code)
+    h = figure;
+    hold on
+    for i_trl = find(data.trialinfo==params.trigger_code(i_phalange))
+        plot(data.time{i_trl}.*1e3, data.trial{i_trl}(i_maxch,:).*1e15,[211,211,211])
+    end
+    plot(dat.time.*1e3, dat.avg(i_maxch,:).*1e15,[0,0,0])
+    ylimits = ylim;
+    plot([1e3*M100{i_phalange}.peakl_latency lat],ylimits,'r--')
+    hold off
+    title([params.modality ' - Max channel'])
+    ylabel('Field [fT]')
+    xlabel('time [ms]')
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_evoked_maxchannel_ph' num2str(i_phalange) '.jpg']))
+end
 
 %% Topoplots
 for i_phalange = 1:length(params.trigger_code)
+    chs = find(contains(timelocked{i_phalange}.label,ft_channelselection(params.chs,timelocked{i_phalange}.label)));
     h = figure;
-    plot(timelocked{i_phalange}.time*1e3,timelocked{i_phalange}.avg(find(timelocked),:)*1e15)
+    plot(timelocked{i_phalange}.time*1e3,timelocked{i_phalange}.avg(chs,:)*1e15)
     xlabel('t [msec]')
     ylabel('B [fT]')
     title(['Evoked ' params.modality ' - phalange ' params.phalange_labels{i_phalange} ' (n_trls=' num2str(length(timelocked{i_phalange}.cfg.trials)) ')'])

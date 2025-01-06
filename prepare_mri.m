@@ -90,11 +90,14 @@ function [headmodels, meshes] = prepare_mri(mri_file,meg_file,save_path)
     cfg.method = 'singleshell';
     headmodel_meg = ft_prepare_headmodel(cfg, mesh_brain);
     
-    cfg = [];
-    cfg.method = 'bemcp';
-    cfg.conductivity = [1 1/20 1] .* (1/3);  % Standard values     
-    headmodel_eeg = ft_prepare_headmodel(cfg, meshes);
-    
+    try
+        cfg = [];
+        cfg.method = 'bemcp';
+        cfg.conductivity = [1 1/20 1] .* (1/3);  % Standard values     
+        headmodel_eeg = ft_prepare_headmodel(cfg, meshes);
+    catch 
+        headmodel_eeg = [];
+    end
     %% Plot
     figure
     ft_plot_sens(grad)

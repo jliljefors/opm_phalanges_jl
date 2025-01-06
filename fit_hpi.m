@@ -12,9 +12,9 @@ cfg.datafile        = file;
 cfg.coordsys        = 'dewar';
 cfg.coilaccuracy    = 0;
 cfg.lpfilter        = 'yes';         
-cfg.lpfreq          = params.hpi_freq+10;
+cfg.lpfreq          = params.hpi_freq+15;
 cfg.hpfilter        = 'yes';         
-cfg.hpfreq          = params.hpi_freq-10;
+cfg.hpfreq          = params.hpi_freq-15;
 cfg.padding         = 1;
 cfg.padtype         = 'data';
 raw = ft_preprocessing(cfg);
@@ -106,9 +106,9 @@ for coil = 1:length(hpi_chs)
         opm_chs = find(contains(timelocked.label,'bz'));
         [~, i_maxchan] = max(abs(timelocked.avg(opm_chs,:)));
         max_pos = timelocked.grad.chanpos(i_maxchan,:);
-        [X,Y,Z] = meshgrid(-0.03:0.003:0.03, ...
-            -0.03:0.003:0.03, ...
-            -0.03:0.003:0);
+        [X,Y,Z] = meshgrid(-0.03:0.002:0.03, ...
+            -0.03:0.002:0.03, ...
+            -0.015:0.002:0);
         pos = [X(:) Y(:) Z(:)];
         
         T = transformToZAxis(timelocked.grad.chanpos(i_maxchan,:),timelocked.grad.chanori(i_maxchan,:));
