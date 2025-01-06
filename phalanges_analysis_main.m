@@ -386,6 +386,9 @@ for i_sub = 2:size(subses,1)
 
     % Read and transform cortical restrained source model
     files = dir(fullfile(mri_path,'workbench'));
+    if i_sub ==5
+        files = dir(fullfile(save_path,'wb'));
+    end
     for i = 1:length(files)
         if endsWith(files(i).name,'.L.midthickness.8k_fs_LR.surf.gii')
             filename = fullfile(mri_path,'workbench',files(i).name);
@@ -393,7 +396,7 @@ for i_sub = 2:size(subses,1)
         end
     end
     sourcemodel = ft_read_headshape({filename, strrep(filename, '.L.', '.R.')});
-
+dir
     T = mri_resliced.transform/mri_resliced.hdr.vox2ras;
     sourcemodelT = ft_transform_geometry(T, sourcemodel);
     sourcemodelT.inside = true(size(sourcemodelT.pos,1),1);

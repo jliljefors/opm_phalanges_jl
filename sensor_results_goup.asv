@@ -142,12 +142,14 @@ h = figure('DefaultAxesFontSize',16);
 bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
 hold on
 for k=1:length(params.phalange_labels)
-    errorbar(k-)
+    errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+    errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
 end
 hold off
-title(['M100 latency diff (opm = ' num2str(mean(mean(1e3*latency.opm)),'%.1f') '; meg = ' num2str(mean(mean(1e3*latency.megmag)),'%.1f') ')'])
-ylabel('t_{OPM}-t_{SQUID} (mm)')
+title('Group level M100 latency')
+ylabel('Latency [ms]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
+legend({'megmag','opm'});
 saveas(h, fullfile(save_path, 'figs', 'Latency.jpg'))
 end

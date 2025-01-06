@@ -9,8 +9,6 @@ colors = [[0 0.4470 0.7410]; % blue
     [0.4660 0.6740 0.1880]; % green
     [0.6350 0.0780 0.1840]]; % light blue
 
-latency_m100 = [0.08 0.13];
-
 cfg              = [];
 cfg.resolution   = 1;
 cfg.tight        = 'yes';
@@ -29,19 +27,20 @@ for i_phalange = 1:5
     cfg.senstype        = 'meg';            
     cfg.channel         = 'megmag';         
     cfg.nonlinear       = 'yes';           
-    cfg.latency         = latency{i_phalange}.megmag;   
+    cfg.latency         = latency{i_phalange}.megmag + [-0.01 0.01];
     cfg.dipfit.checkinside = 'yes';
     %cfg.dipfit.noisecov = meg_timelocked{i_phalange}.cov;
     megmag_dipole{i_phalange} = ft_dipolefitting(cfg, megmag_timelocked{i_phalange});
     
-    cfg.latency         = latency{i_phalange}.megplanar;   
+    cfg.latency         = latency{i_phalange}.megplanar + [-0.01 0.01];   
     cfg.channel         = 'meglpanar';           
     megplanar_dipole{i_phalange} = ft_dipolefitting(cfg, megplanar_timelocked{i_phalange});
+
     if ~isempty(headmodels.headmodel_eeg)
         cfg.headmodel       = headmodels.headmodel_eeg;    
         cfg.senstype        = 'eeg';            
         cfg.channel         = 'eeg';   
-        cfg.latency         = latency{i_phalange}.megeeg;   
+        cfg.latency         = latency{i_phalange}.megeeg + [-0.01 0.01];   
         megeeg_dipole{i_phalange} = ft_dipolefitting(cfg, megeeg_timelocked{i_phalange});
     else 
         megeeg_dipole = [];
@@ -56,15 +55,16 @@ for i_phalange = 1:5
     cfg.senstype        = 'meg';            
     cfg.channel         = '*bz';        
     cfg.nonlinear       = 'yes';            
-    cfg.latency         = latency{i_phalange}.opm;   
+    cfg.latency         = latency{i_phalange}.opm + [-0.01 0.01];   
     cfg.dipfit.checkinside = 'yes';
     %cfg.dipfit.noisecov = opm_timelocked{i_phalange}.cov;
     opm_dipole{i_phalange} = ft_dipolefitting(cfg, opm_timelocked{i_phalange});
+
     if ~isempty(headmodels.headmodel_eeg)
         cfg.headmodel       = headmodels.headmodel_eeg;  
         cfg.senstype        = 'eeg';           
         cfg.channel         = 'eeg';        
-        cfg.latency         = latency{i_phalange}.opmeeg;   
+        cfg.latency         = latency{i_phalange}.opmeeg + [-0.01 0.01];   
         opmeeg_dipole{i_phalange} = ft_dipolefitting(cfg, opmeeg_timelocked{i_phalange});
     else 
         opmeeg_dipole = [];
