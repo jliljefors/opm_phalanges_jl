@@ -17,17 +17,21 @@ for i_phalange = 1:length(params.trigger_code)
     cfg.covariancewindow    = 'prestim';
     cfg.trials = find(data.trialinfo==params.trigger_code(i_phalange));
     timelocked{i_phalange} = ft_timelockanalysis(cfg, data);
-
-    [~, interval_M100(1)] = min(abs(dat.time-0.08));
-    [~, interval_M100(2)] = min(abs(dat.time-0.125));
-    [~, interval_M100(3)] = min(abs(dat.time-0));
+    dat = timelocked{i_phalange};
+    [~, interval_M100(1)] = min(abs(dat.time-0.08)); % find closest time sample
+    [~, interval_M100(2)] = min(abs(dat.time-0.125)); % find closest time sample
+    [~, interval_M100(3)] = min(abs(dat.time-0)); % find closest time sample
     tmp = [];
-    [tmp.max_amplitude, i_maxch] = max(max(dat.avg(:,(interval_M100(1):interval_M100(2))),[],2));
-    tmp.max_channel = dat.label{i_maxch};
-    [~,i_peak_latency] = max(dat.avg(i_maxch,interval_M100(1):interval_M100(2)));
+    [~, i_peak_latency] = findpeaks(mean(abs(dat.avg(:,(interval_M100(1):interval_M100(2)))),1),'MinPeakWidth',10,'SortStr','descend');
+    i_peak_latency = i_peak_latency(1); % if multiple peaks found pick strongest
     tmp.peak_latency = dat.time(interval_M100(1)-1+i_peak_latency);
+    [tmp.max_amplitude, i_maxch] = max(abs(dat.avg(:,i_peak_latency)));
+    %[tmp.max_amplitude, i_maxch] = max(max(abs(dat.avg(:,(interval_M100(1):interval_M100(2)))),[],2));
+    tmp.max_channel = dat.label{i_maxch};
+    %[~,i_peak_latency] = max(abs(dat.avg(i_maxch,interval_M100(1):interval_M100(2))));
+    %tmp.peak_latency = dat.time(interval_M100(1)-1+i_peak_latency);
     tmp.prestim_std = std(dat.avg(i_maxch,1:interval_M100(3)));
-    tmp.std_error = sqrt(dat.var(i_maxch,tmp.peak_latency));
+    tmp.std_error = sqrt(dat.var(i_maxch,interval_M100(1)-1+i_peak_latency));
     %for i_trl = find(data.trialinfo==params.trigger_code(i_phalange))'
     %    tmp.std_error = tmp.std_error + abs(tmp.max_amplitude - data.trial{i_trl}(i_maxch,interval_M100(1)-1+i_peak_latency));
     %end
@@ -50,14 +54,15 @@ save(fullfile(save_path, [params.sub '_' params.modality '_M100']), 'M100', '-v7
 
 %% Plot max channel with variation and peak time
 for i_phalange = 1:length(params.trigger_code)
+    dat = timelocked{i_phalange};
     h = figure;
     hold on
-    for i_trl = find(data.trialinfo==params.trigger_code(i_phalange))
-        plot(data.time{i_trl}.*1e3, data.trial{i_trl}(i_maxch,:).*1e15,[211,211,211]/255)
+    for i_trl = find(data.trialinfo==params.trigger_code(i_phalange))'
+        plot(data.time{i_trl}*1e3, data.trial{i_trl}(i_maxch,:)*1e15,'Color',[211 211 211]/255)
     end
-    plot(dat.time.*1e3, dat.avg(i_maxch,:).*1e15,[0,0,0]/255)
+    plot(dat.time*1e3, dat.avg(i_maxch,:)*1e15,'Color',[0 0 0]/255)
     ylimits = ylim;
-    latency = 1e3*M100{i_phalange}.peakl_latency;
+    latency = 1e3*M100{i_phalange}.peak_latency;
     plot([latency latency],ylimits,'r--')
     hold off
     title(['Peak channel ' params.modality ': ' M100{i_phalange}.max_channel])

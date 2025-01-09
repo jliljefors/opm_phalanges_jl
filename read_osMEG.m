@@ -170,7 +170,6 @@ cfg.threshold = params.opm_std_threshold;
 [cfg,badtrl_opm_std] = ft_badsegment(cfg, opm_cleaned);
 opm_cleaned = ft_rejectartifact(cfg,opm_cleaned);
 
-
 %% EEG
 cfg = [];
 cfg.channel = comb.label(find(~contains(comb.label,'bz')));
@@ -226,7 +225,7 @@ save(fullfile(save_path, [params.sub '_opmeeg_trls']), ...
     'badtrl_opmeeg_jump', ...
     'badtrl_opmeeg_std',"-v7.3"); 
 
-save(fullfile(save_path, [params.sub '_opm_cleaned']), 'opm_cleaned',"-v7.3");
-save(fullfile(save_path, [params.sub '_opmeeg_cleaned']), 'opmeeg_cleaned',"-v7.3"); disp('done');
+%save(fullfile(save_path, [params.sub '_opm_cleaned']), 'opm_cleaned',"-v7.3");
+%save(fullfile(save_path, [params.sub '_opmeeg_cleaned']), 'opmeeg_cleaned',"-v7.3"); disp('done');
 
 end

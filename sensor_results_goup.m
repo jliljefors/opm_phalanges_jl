@@ -51,12 +51,12 @@ for i_sub = subs
         plot(meg_timelocked{i_phalange}.time*1e3,meg_timelocked{i_phalange}.avg(meg_chs(1:3:end),:)*1e15)
         xlabel('t [msec]')
         ylabel('B [fT]')
-        title(['Evoked SQUID MAG - phalange ' params.phalange_labels{i_phalange} ' (n_trls=' num2str(length(meg_timelocked{i_phalange}.cfg.trials)) ')'])
+        title(['Evoked SQUID MAG - phalange ' params.phalange_labels{i_phalange} ' (n_{trls}=' num2str(length(meg_timelocked{i_phalange}.cfg.trials)) ')'])
         subplot(2,1,2)
         plot(opm_timelocked{i_phalange}.time*1e3,meg_timelocked{i_phalange}.avg(opm_chs,:)*1e15)
         xlabel('t [msec]')
         ylabel('B [fT]')
-        title(['Evoked OPM MAG - phalange ' params.phalange_labels{i_phalange} ' (n_trls=' num2str(length(opm_timelocked{i_phalange}.cfg.trials)) ')'])
+        title(['Evoked OPM MAG - phalange ' params.phalange_labels{i_phalange} ' (n_{trls}=' num2str(length(opm_timelocked{i_phalange}.cfg.trials)) ')'])
         saveas(h, fullfile(save_path, 'figs', [params.sub '_megopm_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']))
     end
     close all
@@ -64,6 +64,8 @@ end
 
 %% Save
 save(fullfile(save_path, 'group_sensor'),"peak_ratio","snr","latency","-v7.3");
+
+save_path = fullfile(base_save_path,'figs');
 
 %% Plot ratio
 h = figure('DefaultAxesFontSize',16);
@@ -129,12 +131,14 @@ xticklabels(params.phalange_labels)
 saveas(h, fullfile(save_path, 'figs', 'SNR_ratios_prestim.jpg'))
 
 %% Plot peak latency
-mean1 = mean(1e3*latency.megmag,1);
-mean2 = mean(1e3*latency.opm,1);
-min1 = min(1e3*latency.megmag,[],1);
-min2 = min(1e3*latency.opm,[],1);
-max1 = max(1e3*latency.megmag,[],1);
-max2 = max(1e3*latency.opm,[],1);
+data1 = 1e3*latency.megmag;
+data2 = 1e3*latency.opm;
+mean1 = mean(data1,1);
+mean2 = mean(data2,1);
+min1 = min(data1,[],1);
+min2 = min(data2,[],1);
+max1 = max(data1,[],1);
+max2 = max(data2,[],1);
 err1 = [mean1-min1; max1-mean1];
 err2 = [mean2-min2; max2-mean2];
 
@@ -152,4 +156,57 @@ xlabel('Phalange')
 xticklabels(params.phalange_labels)
 legend({'megmag','opm'});
 saveas(h, fullfile(save_path, 'figs', 'Latency.jpg'))
+
+%% Plot SNR - error
+data1 = snr.error_opm;
+data2 = snr_error_meg;
+mean1 = mean(data1,1);
+mean2 = mean(data2,1);
+min1 = mins(data1,[],1);
+min2 = min(data2,[],1);
+max1 = max(data1,[],1);
+max2 = max(data2,[],1);
+err1 = [mean1-min1; max1-mean1];
+err2 = [mean2-min2; max2-mean2];
+
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
+hold on
+for k=1:length(params.phalange_labels)
+    errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+    errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+end
+hold off
+title('Group level SNR_{m100,stderror}')
+ylabel('SNR')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'SNR_error.jpg'))
+
+%% Plot SNR - prestim
+data1 = snr.prestim_opm;
+data2 = snr_prestim_meg;
+mean1 = mean(data1,1);
+mean2 = mean(data2,1);
+min1 = mins(data1,[],1);
+min2 = min(data2,[],1);
+max1 = max(data1,[],1);
+max2 = max(data2,[],1);
+err1 = [mean1-min1; max1-mean1];
+err2 = [mean2-min2; max2-mean2];
+
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
+hold on
+for k=1:length(params.phalange_labels)
+    errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+    errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+end
+hold off
+title('Group level SNR_{m100,prestim}')
+ylabel('SNR')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(save_path, 'figs', 'SNR_prestim.jpg'))
+
 end

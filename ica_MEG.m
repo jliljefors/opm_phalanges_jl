@@ -294,7 +294,7 @@ data_ica = ft_rejectcomponent(cfg, comp, data);
 
 % Save
 save(fullfile(save_path, [params.sub '_' params.modality '_ica_comp']), 'comp', 'ecg_comp_idx', 'eog1_comp_idx', 'eog2_comp_idx'); disp('done');
-save(fullfile(save_path, [params.sub '_' params.modality '_ica']), 'data_ica',"-v7.3"); disp('done');
+%save(fullfile(save_path, [params.sub '_' params.modality '_ica']), 'data_ica',"-v7.3"); disp('done');
 
 cfg           = [];
 cfg.component = reject_comp;       

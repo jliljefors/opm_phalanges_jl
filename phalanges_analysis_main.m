@@ -109,6 +109,13 @@ for i_sub = 1:size(subses,1)
         % Read data
         [opm_cleaned, opmeeg_cleaned] = read_osMEG(opm_file, aux_file, save_path, params); % Read data
         
+        if i_sub <=3 % Flip amplitudes in old recordings
+            chs = find(contains(opm_cleaned.label,'bz'));
+            for i_trl = 1:length(opm_cleaned.trial)
+                opm_cleaned.trial{i_trl}(chs,:) = -opm_cleaned.trial{i_trl}(chs,:);
+            end
+        end
+
         % ICA
         params.modality = 'opm';
         params.layout = 'fieldlinebeta2bz_helmet.mat';
@@ -178,8 +185,8 @@ for i_sub = 1:size(subses,1)
         close all
 
         params.modality = 'megplanar';
-        params.layout = 'neuromag306mag.lay';
-        params.chs = 'megplanarr';
+        params.layout = 'neuromag306planar.lay';
+        params.chs = 'megplanar';
         megplanar_timelocked = timelock_MEG(meg_ica, save_path, params);
         close all
 
@@ -306,7 +313,7 @@ for i_sub = 2:size(subses,1)
 
         %% Save
         save(fullfile(save_path, [params.sub '_opm_timelockedT']), 'opm_timelockedT', '-v7.3');
-        save(fullfile(save_path, [params.sub '_opmeeg_timelockedT']), 'opm_timelockedT', '-v7.3');
+        save(fullfile(save_path, [params.sub '_opmeeg_timelockedT']), 'opmeeg_timelockedT', '-v7.3');
 
     else
         disp('Required files not found. No transformed OPM data was saved.')
@@ -352,7 +359,7 @@ for i_sub = 2:size(subses,1)
         end
         load(fullfile(save_path, 'headmodels.mat'));
         load(fullfile(save_path, 'mri_resliced.mat'));
-        [megmag_dipole, megplanar_dipole, opm_dipole, eeg_dipole] = fit_dipoles(save_path,megmag_timelocked,megplanar_timelocked,megeeg_timelocked,opm_timelockedT,opmeg_timelockedT,headmodels,mri_resliced,m100_latency,params);
+        [megmag_dipole, megplanar_dipole, opm_dipole, eeg_dipole] = fit_dipoles(save_path,megmag_timelocked,megplanar_timelocked,megeeg_timelocked,opm_timelockedT,opmeeg_timelockedT,headmodels,mri_resliced,m100_latency,params);
     end
 end
 

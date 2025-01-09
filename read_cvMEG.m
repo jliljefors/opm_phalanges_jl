@@ -124,7 +124,7 @@ save(fullfile(save_path, [params.sub '_megeeg_badtrls']), ...
     'badtrl_megeeg_jump', ...
     'badtrl_megeeg_std',"-v7.3"); 
 
-save(fullfile(save_path, [params.sub '_meg_cleaned']), 'meg_cleaned',"-v7.3");
-save(fullfile(save_path, [params.sub '_megeeg_cleaned']), 'megeeg_cleaned',"-v7.3"); disp('done');
+%save(fullfile(save_path, [params.sub '_meg_cleaned']), 'meg_cleaned',"-v7.3");
+%save(fullfile(save_path, [params.sub '_megeeg_cleaned']), 'megeeg_cleaned',"-v7.3"); disp('done');
 
 end
