@@ -40,7 +40,7 @@ for trial = 1:n_trls
     trial_mean = repmat(mean(dat,2),[1 size(dat,2)]);
     z_max(:,trial) = max(abs(dat-trial_mean),[],2);
 end    
-z_max = z_max./repmat(mean(trial_std,2),[1 n_trls]);
+z_max = z_max./repmat(median(trial_std,2),[1 n_trls]);
 
 % Bad channels (flat, low neighbor correlation, large number of jumps)
 badchs_flat = find(any(trial_std<1e-15,2));
