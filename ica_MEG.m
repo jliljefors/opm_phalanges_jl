@@ -120,19 +120,21 @@ fdcomp = ft_connectivityanalysis(cfg, freq);
 
 % Pick ECG components
 maxcoh = max(fdcomp.cohspctrm, [], 2);
-ecg_comp_idx = unique([find(R > params.ica_threshold); find(maxcoh > params.ica_threshold)]);
+ecg_comp_idx = unique([find(abs(R) > params.ica_threshold); find(maxcoh > params.ica_threshold)]);
 
 % Plot correlations
-h = figure;
-for i = 1:length(ecg_comp_idx)
-    subplot(length(ecg_comp_idx),1,i)
-    yyaxis left
-    plot(timelock.time, timelock.avg(1,:));
-    yyaxis right
-    plot(timelock.time, timelock.avg(ecg_comp_idx(i)+1,:));  
-    title(['Comp: ' num2str(ecg_comp_idx(i)) '; R_{ecg} = ' num2str(R(ecg_comp_idx(i),1))])
+if length(ecg_comp_idx)>=1
+    h = figure;
+    for i = 1:length(ecg_comp_idx)
+        subplot(length(ecg_comp_idx),1,i)
+        yyaxis left
+        plot(timelock.time, timelock.avg(1,:));
+        yyaxis right
+        plot(timelock.time, timelock.avg(ecg_comp_idx(i)+1,:));  
+        title(['Comp: ' num2str(ecg_comp_idx(i)) '; R_{ecg} = ' num2str(R(ecg_comp_idx(i),1))])
+    end
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_ecg_cor.jpg'])) 
 end
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_ecg_cor.jpg'])) 
 
 % Plot coherence spectrum between all components and the ECG
 h = figure;
@@ -228,32 +230,35 @@ fdcomp_eog2 = ft_connectivityanalysis(cfg, freq);
 
 % Find EOG components
 maxcoh = max(fdcomp_eog1.cohspctrm, [], 2);
-eog1_comp_idx = unique([find(R(:,1) > params.ica_threshold); find(maxcoh > params.ica_threshold)]);
+eog1_comp_idx = unique([find(abs(R(:,1)) > params.ica_threshold); find(maxcoh > params.ica_threshold)]);
 maxcoh = max(fdcomp_eog2.cohspctrm, [], 2);
-eog2_comp_idx = unique([find(R(:,2) > params.ica_threshold); find(maxcoh > params.ica_threshold)]);
+eog2_comp_idx = unique([find(abs(R(:,2)) > params.ica_threshold); find(maxcoh > params.ica_threshold)]);
 
-h = figure;
-for i = 1:length(eog1_comp_idx)
-    subplot(length(eog1_comp_idx),1,i)
-    yyaxis left
-    plot(timelock.time, timelock.avg(1,:));
-    yyaxis right
-    plot(timelock.time, timelock.avg(eog1_comp_idx(i)+2,:));  
-    title(['Comp: ' num2str(eog1_comp_idx(i)) '; R_{eog1} = ' num2str(R(eog1_comp_idx(i),1))])
+if length(eog1_comp_idx)>=1
+    h = figure;
+    for i = 1:length(eog1_comp_idx)
+        subplot(length(eog1_comp_idx),1,i)
+        yyaxis left
+        plot(timelock.time, timelock.avg(1,:));
+        yyaxis right
+        plot(timelock.time, timelock.avg(eog1_comp_idx(i)+2,:));  
+        title(['Comp: ' num2str(eog1_comp_idx(i)) '; R_{eog1} = ' num2str(R(eog1_comp_idx(i),1))])
+    end
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog1_cor.jpg'])) 
 end
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog1_cor.jpg'])) 
 
-h = figure;
-for i = 1:length(eog2_comp_idx)
-    subplot(length(eog2_comp_idx),1,i)
-    yyaxis left
-    plot(timelock.time, timelock.avg(2,:));
-    yyaxis right
-    plot(timelock.time, timelock.avg(eog2_comp_idx(i)+2,:));  
-    title(['Comp: ' num2str(eog2_comp_idx(i)) '; R_{eog2} = ' num2str(R(eog2_comp_idx(i),2))])
+if length(eog2_comp_idx)>=1
+    h = figure;
+    for i = 1:length(eog2_comp_idx)
+        subplot(length(eog2_comp_idx),1,i)
+        yyaxis left
+        plot(timelock.time, timelock.avg(2,:));
+        yyaxis right
+        plot(timelock.time, timelock.avg(eog2_comp_idx(i)+2,:));  
+        title(['Comp: ' num2str(eog2_comp_idx(i)) '; R_{eog2} = ' num2str(R(eog2_comp_idx(i),2))])
+    end
+    saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eo2g_cor.jpg'])) 
 end
-saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eo2g_cor.jpg'])) 
-
 % Plot coherence spectrum between all components and the EOG
 h = figure;
 subplot(3,2,1); title('EOG001'); xlabel('freq'); ylabel('coh');
@@ -300,9 +305,12 @@ cfg           = [];
 cfg.component = reject_comp;       
 cfg.layout    = params.layout; 
 cfg.comment   = 'no';
-h = figure;
-ft_topoplotIC(cfg, comp);   
-saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_rejected_comps' num2str(i) '.jpg'])) 
+
+if length(reject_comp)>=1
+    h = figure;
+    ft_topoplotIC(cfg, comp);   
+    saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_rejected_comps' num2str(i) '.jpg'])) 
+end
 
 %%
 cfg = [];

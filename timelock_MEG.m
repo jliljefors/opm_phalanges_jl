@@ -22,7 +22,8 @@ for i_phalange = 1:length(params.trigger_code)
     [~, interval_M100(2)] = min(abs(dat.time-0.125)); % find closest time sample
     [~, interval_M100(3)] = min(abs(dat.time-0)); % find closest time sample
     tmp = [];
-    [~, i_peak_latency] = findpeaks(mean(abs(dat.avg(:,(interval_M100(1):interval_M100(2)))),1),'MinPeakWidth',10,'SortStr','descend');
+    [~, i_peak_latency] = findpeaks(mean(abs(dat.avg(:,(interval_M100(1):interval_M100(2)))),1),'SortStr','descend');
+    disp(i_peak_latency);
     i_peak_latency = i_peak_latency(1); % if multiple peaks found pick strongest
     tmp.peak_latency = dat.time(interval_M100(1)-1+i_peak_latency);
     [tmp.max_amplitude, i_maxch] = max(abs(dat.avg(:,i_peak_latency)));
