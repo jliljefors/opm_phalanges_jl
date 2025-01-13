@@ -29,6 +29,12 @@ for subNumber = subs
     % Define sections
     sections = {'opm', 'meg', 'opmeeg', 'megeeg'};
 
+    %%
+    chapter = Chapter('Parameters');
+    processStruct(params, 'params', chapter);
+    add(rpt, chapter);
+    
+    
     %% Bad Channels chapter
     chapter = Chapter('Bad Channels');
     chapter.Numbered = false; % Remove chapter numbering
@@ -269,5 +275,34 @@ for subNumber = subs
 
     %% Close the report
     close(rpt);
+end
+
+function processStruct(s, parentName, chapter)
+    localFields = fieldnames(s); % Make fields local
+    for localI = 1:numel(localFields) % Make i local
+        fieldName = localFields{localI};
+        fieldValue = s.(fieldName);
+        fullName = strcat(parentName, '.', fieldName);
+        
+        if isstruct(fieldValue)
+            % If the field is a struct, process it recursively
+            processStruct(fieldValue, fullName, chapter);
+        elseif isvector(fieldValue) && isnumeric(fieldValue)
+            % If the field is a 1-D array, convert it to a comma-separated string
+            valueStr = strjoin(arrayfun(@num2str, fieldValue, 'UniformOutput', false), ', ');
+            append(chapter, Paragraph([fullName, ': ', valueStr]));
+        elseif iscell(fieldValue) && all(cellfun(@ischar, fieldValue))
+            % If the field is a cell array of strings, convert it to a comma-separated string
+            valueStr = strjoin(fieldValue, ', ');
+            append(chapter, Paragraph([fullName, ': ', valueStr]));
+        elseif isempty(fieldValue)
+            % Otherwise, convert the value to a string and append it
+            append(chapter, Paragraph([fullName, ': []']));
+        else
+            % Otherwise, convert the value to a string and append it
+            valueStr = num2str(fieldValue);
+            append(chapter, Paragraph([fullName, ': ', valueStr]));
+        end
+    end
 end
 end

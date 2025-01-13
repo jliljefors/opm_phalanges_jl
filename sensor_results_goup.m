@@ -63,9 +63,8 @@ for i_sub = subs
 end
 
 %% Save
+save_path = base_save_path;
 save(fullfile(save_path, 'group_sensor'),"peak_ratio","snr","latency","-v7.3");
-
-save_path = fullfile(base_save_path,'figs');
 
 %% Plot ratio
 h = figure('DefaultAxesFontSize',16);
@@ -77,7 +76,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['M100 peak amp ratio (mean = ' num2str(mean(mean(peak_ratio.meg)),'%.1f') ')'])
+title(['M100 peak amp ratio (mean = ' num2str(mean(mean(peak_ratio.meg)),'%.2f') ')'])
 ylabel('OPM/SQUID')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -92,7 +91,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['M100 peak amp ratio (mean = ' num2str(mean(mean(peak_ratio.eeg)),'%.1f') ')'])
+title(['M100 peak amp ratio (mean = ' num2str(mean(mean(peak_ratio.eeg)),'%.2f') ')'])
 ylabel('OPMEEG/SQUIDEEG')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -108,7 +107,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['M100 SNR_{stderror} ratio (mean = ' num2str(mean(mean(snr.ratio_error)),'%.1f') ')'])
+title(['M100 SNR_{stderror} ratio (mean = ' num2str(mean(mean(snr.ratio_error)),'%.2f') ')'])
 ylabel('OPM/SQUID')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -124,7 +123,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['M100 SNR_{prestim} ratio (mean = ' num2str(mean(mean(snr.ratio_prestim)),'%.1f') ')'])
+title(['M100 SNR_{prestim} ratio (mean = ' num2str(mean(mean(snr.ratio_prestim)),'%.2f') ')'])
 ylabel('OPM/SQUID')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)

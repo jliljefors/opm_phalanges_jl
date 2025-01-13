@@ -196,6 +196,7 @@ for i_sub = 1:size(subses,1)
         meegeeg_timelocked = timelock_MEG(megeeg_ica, save_path, params);
         close all
     end
+    create_bads_reports(base_folder_path, i_sub, params);
 end
 
 %% --- Group sensor level -------------------------------------------------
