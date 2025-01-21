@@ -32,25 +32,29 @@ cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the
 cfg.headmodel        = headmodels.headmodel_meg;          % volume conduction model
 leadfield_opm = ft_prepare_leadfield(cfg,opm_timelocked{1});
 
-cfg = [];
-cfg.elec             = megeeg_timelocked{1}.elec;              % sensor positions
-cfg.channel          = 'eeg';                  % the used channels
-cfg.senstype         = 'eeg';            % sensor type
-cfg.grid.pos         = sourcemodel.pos;           % source points
-cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
-cfg.headmodel        = headmodels.headmodel_eeg;          % volume conduction model
-leadfield_megeeg = ft_prepare_leadfield(cfg,megeeg_timelocked{1});
-
-cfg = [];
-cfg.elec             = opmeeg_timelocked{1}.elec;              % sensor positions
-cfg.channel          = 'eeg';                  % the used channels
-cfg.senstype         = 'eeg';            % sensor type
-cfg.grid.pos         = sourcemodel.pos;           % source points
-cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
-cfg.headmodel        = headmodels.headmodel_eeg;          % volume conduction model
-leadfield_opmeeg = ft_prepare_leadfield(cfg,opmeeg_timelocked{1});
+if ~isempty(headmodels.headmodel_eeg)
+    cfg = [];
+    cfg.elec             = megeeg_timelocked{1}.elec;              % sensor positions
+    cfg.channel          = 'eeg';                  % the used channels
+    cfg.senstype         = 'eeg';            % sensor type
+    cfg.grid.pos         = sourcemodel.pos;           % source points
+    cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
+    cfg.headmodel        = headmodels.headmodel_eeg;          % volume conduction model
+    leadfield_megeeg = ft_prepare_leadfield(cfg,megeeg_timelocked{1});
+    
+    cfg = [];
+    cfg.elec             = opmeeg_timelocked{1}.elec;              % sensor positions
+    cfg.channel          = 'eeg';                  % the used channels
+    cfg.senstype         = 'eeg';            % sensor type
+    cfg.grid.pos         = sourcemodel.pos;           % source points
+    cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
+    cfg.headmodel        = headmodels.headmodel_eeg;          % volume conduction model
+    leadfield_opmeeg = ft_prepare_leadfield(cfg,opmeeg_timelocked{1});
+end
 
 %% Fit dipoles
+megmag_mne = [];
+megmag_mne.avg = cell(5,1);
 for i_phalange = 1:5
     % MEG
     cfg = [];
@@ -64,24 +68,62 @@ for i_phalange = 1:5
     cfg.sourcemodel         = leadfield_megmag;
     cfg.senstype            = 'meg';            % sensor type
     cfg.channel             = 'megmag';         % which channels to use
-    megmag_mne{i_phalange} = ft_sourceanalysis(cfg, megmag_timelocked{i_phalange});
-    megmag_mne{i_phalange}.tri = sourcemodel.tri;
-    
+    tmp{i_phalange} = ft_sourceanalysis(cfg, megmag_timelocked{i_phalange});
+    megmag_mne.avg{i_phalange} = [];
+    megmag_mne.avg{i_phalange}.pow = tmp.avg.pow;
+    megmag_mne.avg{i_phalange}.mom = tmp.avg.mom;
+end
+megmag_mne.time = tmp.time;
+megmag_mne.cfg = tmp.cfg;
+megmag_mne.method = tmp.method;
+megmag_mne.pos = tmp.pos;
+megmag_mne.tri = sourcemodel.tri;
+clear tmp
+
+megplanar_mne = [];
+megplanar_mne.avg = cell(5,1);
+for i_phalange = 1:5
     cfg.channel             = 'meggrad';            % which channels to use
     %cfg.sourcemodel.leadfield = leadfield_megplanar.leadfield;
     cfg.sourcemodel         = leadfield_megplanar;
-    megplanar_mne{i_phalange} = ft_sourceanalysis(cfg, megplanar_timelocked{i_phalange});
-    megplanar_mne{i_phalange}.tri = sourcemodel.tri;
-    
-    cfg.headmodel           = headmodels.headmodel_eeg;    % supply the headmodel
-    cfg.senstype            = 'eeg';            % sensor type
-    cfg.channel             = 'eeg';         % which channels to use
-    %cfg.sourcemodel.leaddield = leadfield_megeeg.leadfield;
-    cfg.sourcemodel         = leadfield_megeeg;
-    megeeg_mne{i_phalange} = ft_sourceanalysis(cfg, megeeg_timelocked{i_phalange});
-    megeeg_mne{i_phalange}.tri = sourcemodel.tri;
-    
-    % OPM
+    tmp = ft_sourceanalysis(cfg, megplanar_timelocked{i_phalange});
+    megplanar_mne.avg{i_phalange} = [];
+    megplanar_mne.avg{i_phalange}.pow = tmp.avg.pow;
+    megplanar_mne.avg{i_phalange}.mom = tmp.avg.mom;
+end
+megplanar_mne.time = tmp.time;
+megplanar_mne.cfg = tmp.cfg;
+megplanar_mne.method = tmp.method;
+megplanar_mne.pos = tmp.pos;
+megplanar_mne.tri = sourcemodel.tri;
+clear tmp
+
+megeeg_mne = [];
+megeeg_mne.avg = cell(5,1);
+for i_phalange = 1:5
+    megeeg_mne.avg{i_phalange} = [];
+    if ~isempty(headmodels.headmodel_eeg)
+        cfg.headmodel           = headmodels.headmodel_eeg;    % supply the headmodel
+        cfg.senstype            = 'eeg';            % sensor type
+        cfg.channel             = 'eeg';         % which channels to use
+        %cfg.sourcemodel.leaddield = leadfield_megeeg.leadfield;
+        cfg.sourcemodel         = leadfield_megeeg;
+        tmp = ft_sourceanalysis(cfg, megeeg_timelocked{i_phalange});
+        megeeg_mne.avg{i_phalange}.pow = tmp.avg.pow;
+        megeeg_mne.avg{i_phalange}.mom = tmp.avg.mom;
+        megeeg_mne.time = tmp.time;
+        megeeg_mne.cfg = tmp.cfg;
+        megeeg_mne.method = tmp.method;
+        megeeg_mne.pos = tmp.pos;
+        megeeg_mne.tri = sourcemodel.tri;
+    end
+end
+clear tmp
+
+% OPM
+opm_mne = [];
+opm_mne.avg = cell(5,1);
+for i_phalange = 1:5
     cfg = [];
     cfg.method              = 'mne';
     cfg.mne.prewhiten       = 'yes';
@@ -93,18 +135,42 @@ for i_phalange = 1:5
     cfg.sourcemodel         = leadfield_opm;
     cfg.senstype            = 'meg';            % sensor type
     cfg.channel             = '*bz';         % which channels to use
-    opm_mne{i_phalange} = ft_sourceanalysis(cfg, opm_timelocked{i_phalange});
-    opm_mne{i_phalange}.tri = sourcemodel.tri;
+    tmp = ft_sourceanalysis(cfg, opm_timelocked{i_phalange});
+    opm_mne.avg{i_phalange} = [];
+    opm_mne.avg{i_phalange}.pow = tmp.avg.pow;
+    opm_mne.avg{i_phalange}.mom = tmp.avg.mom;
+end
+opm_mne.time = tmp.time;
+opm_mne.cfg = tmp.cfg;
+opm_mne.method = tmp.method;
+opm_mne.pos = tmp.pos;
+opm_mne.tri = sourcemodel.tri;
+clear tmp
 
-    cfg.headmodel           = headmodels.headmodel_eeg;    % supply the headmodel
-    cfg.senstype            = 'eeg';            % sensor type
-    cfg.channel             = 'eeg';         % which channels to use
-    %cfg.sourcemodel.leadfield = leadfield_opmeeg.leadfield;
-    cfg.sourcemodel         = leadfield_opmeeg;
-    opmeeg_mne{i_phalange} = ft_sourceanalysis(cfg, opmeeg_timelocked{i_phalange});
-    opmeeg_mne{i_phalange}.tri = sourcemodel.tri;
-  
 
+opmeeg_mne = [];
+opmeeg_mne.avg = cell(5,1);
+for i_phalange = 1:5
+    opmeeg_mne.avg{i_phalange} = [];
+    if ~isempty(headmodels.headmodel_eeg)
+        cfg.headmodel           = headmodels.headmodel_eeg;    % supply the headmodel
+        cfg.senstype            = 'eeg';            % sensor type
+        cfg.channel             = 'eeg';         % which channels to use
+        %cfg.sourcemodel.leadfield = leadfield_opmeeg.leadfield;
+        cfg.sourcemodel         = leadfield_opmeeg;
+        tmp = ft_sourceanalysis(cfg, opmeeg_timelocked{i_phalange});
+        opmeeg_mne.avg{i_phalange}.pow = tmp.avg.pow;
+        opmeeg_mne.avg{i_phalange}.mom = tmp.avg.mom;
+        opmeeg_mne.time = tmp.time;
+        opmeeg_mne.cfg = tmp.cfg;
+        opmeeg_mne.method = tmp.method;
+        opmeeg_mne.pos = tmp.pos;
+        opmeeg_mne.tri = sourcemodel.tri;
+    end
+end
+clear tmp
+
+for i_phalange = 1:5
     %% Activation size (Full Area - Half Max)
     % Find max activation at latency_m100, find all vertices >= half max,
     % find all triangles tat include those vertices, calculate their area
@@ -112,45 +178,50 @@ for i_phalange = 1:5
     % will sum to the whole area).
     FAHM{i_phalange} = [];
 
-    tmp = megmag_mne{i_phalange};
+    tmp = megmag_mne;
     [~,i_latency] = min(abs(tmp.time-latency{i_phalange}.megmag));
-    half_max = max(tmp.avg.pow(:,i_latency))/2;
-    i_vertices = find(tmp.avg.pow(:,i_latency)>=half_max);
+    half_max = max(tmp.avg{i_phalange}.pow(:,i_latency))/2;
+    i_vertices = find(tmp.avg{i_phalange}.pow(:,i_latency)>=half_max);
     [triangles,~] = find(ismember(tmp.tri,i_vertices)); 
     triangles = tmp.tri(triangles,:);
     FAHM{i_phalange}.megmag = sum(calculateTriangleAreas(tmp.pos, triangles))/3;
 
-    tmp = megplanar_mne{i_phalange};
+    tmp = megplanar_mne;
     [~,i_latency] = min(abs(tmp.time-latency{i_phalange}.megplanar));
-    half_max = max(tmp.avg.pow(:,i_latency))/2;
-    i_vertices = find(tmp.avg.pow(:,i_latency)>=half_max);
+    half_max = max(tmp.avg{i_phalange}.pow(:,i_latency))/2;
+    i_vertices = find(tmp.avg{i_phalange}.pow(:,i_latency)>=half_max);
     [triangles,~] = find(ismember(tmp.tri,i_vertices)); 
     triangles = tmp.tri(triangles,:);
     FAHM{i_phalange}.megplanar = sum(calculateTriangleAreas(tmp.pos, triangles))/3;
 
-    tmp = opm_mne{i_phalange};
+    tmp = opm_mne;
     [~,i_latency] = min(abs(tmp.time-latency{i_phalange}.opm));
-    half_max = max(tmp.avg.pow(:,i_latency))/2;
-    i_vertices = find(tmp.avg.pow(:,i_latency)>=half_max);
+    half_max = max(tmp.avg{i_phalange}.pow(:,i_latency))/2;
+    i_vertices = find(tmp.avg{i_phalange}.pow(:,i_latency)>=half_max);
     [triangles,~] = find(ismember(tmp.tri,i_vertices)); 
     triangles = tmp.tri(triangles,:);
     FAHM{i_phalange}.opm = sum(calculateTriangleAreas(tmp.pos, triangles))/3;
 
-    tmp = opmeeg_mne{i_phalange};
-    [~,i_latency] = min(abs(tmp.time-latency{i_phalange}.opmeeg));
-    half_max = max(tmp.avg.pow(:,i_latency))/2;
-    i_vertices = find(tmp.avg.pow(:,i_latency)>=half_max);
-    [triangles,~] = find(ismember(tmp.tri,i_vertices)); 
-    triangles = tmp.tri(triangles,:);
-    FAHM{i_phalange}.opmeeg = sum(calculateTriangleAreas(tmp.pos, triangles))/3;
-
-    tmp = megeeg_mne{i_phalange};
-    [~,i_latency] = min(abs(tmp.time-latency{i_phalange}.megeeg));
-    half_max = max(tmp.avg.pow(:,i_latency))/2;
-    i_vertices = find(tmp.avg.pow(:,i_latency)>=half_max);
-    [triangles,~] = find(ismember(tmp.tri,i_vertices)); 
-    triangles = tmp.tri(triangles,:);
-    FAHM{i_phalange}.megeeg = sum(calculateTriangleAreas(tmp.pos, triangles))/3;
+    if ~isempty(headmodels.headmodel_eeg)
+        tmp = opmeeg_mne;
+        [~,i_latency] = min(abs(tmp.time-latency{i_phalange}.opmeeg));
+        half_max = max(tmp.avg{i_phalange}.pow(:,i_latency))/2;
+        i_vertices = find(tmp.avg{i_phalange}.pow(:,i_latency)>=half_max);
+        [triangles,~] = find(ismember(tmp.tri,i_vertices)); 
+        triangles = tmp.tri(triangles,:);
+        FAHM{i_phalange}.opmeeg = sum(calculateTriangleAreas(tmp.pos, triangles))/3;
+    
+        tmp = megeeg_mne;
+        [~,i_latency] = min(abs(tmp.time-latency{i_phalange}.megeeg));
+        half_max = max(tmp.avg{i_phalange}.pow(:,i_latency))/2;
+        i_vertices = find(tmp.avg{i_phalange}.pow(:,i_latency)>=half_max);
+        [triangles,~] = find(ismember(tmp.tri,i_vertices)); 
+        triangles = tmp.tri(triangles,:);
+        FAHM{i_phalange}.megeeg = sum(calculateTriangleAreas(tmp.pos, triangles))/3;
+    else
+        FAHM{i_phalange}.opmeeg = NaN;
+        FAHM{i_phalange}.megeeg = NaN;
+    end
 
     %% Plots
     cfg = [];
@@ -159,45 +230,58 @@ for i_phalange = 1:5
     cfg.funcolormap     = 'jet';    % Change for better color options
     cfg.colorbar        = 'no';
 
+    tmp = opm_mne;
+    tmp.avg = tmp.avg{i_phalange};
     cfg.latency         = latency{i_phalange}.opm;
     h = figure;
-    ft_sourceplot(cfg, opm_mne{i_phalange})
+    ft_sourceplot(cfg, tmp)
     title(['OPM (FAHM=' num2str(FAHM{i_phalange}.opm,3) ')'])
     savefig(h, fullfile(save_path,'figs', ['opm_mne_ph' params.phalange_labels{i_phalange} '.fig']))
     saveas(h, fullfile(save_path,'figs', ['opm_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
 
+    tmp = megmag_mne;
+    tmp.avg = tmp.avg{i_phalange};
     cfg.latency         = latency{i_phalange}.megmag;
     h = figure;
-    ft_sourceplot(cfg, megmag_mne{i_phalange})
+    ft_sourceplot(cfg, tmp)
     title(['MEG-MAG (FAHM=' num2str(FAHM{i_phalange}.megmag,3) ')'])
     savefig(h, fullfile(save_path,'figs', ['megmag_mne_ph' params.phalange_labels{i_phalange} '.fig']))
     saveas(h, fullfile(save_path,'figs', ['megmag_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
 
+    tmp = megplanar_mne;
+    tmp.avg = tmp.avg{i_phalange};
     cfg.latency         = latency{i_phalange}.megplanar;
     h = figure;
-    ft_sourceplot(cfg, megplanar_mne{i_phalange})
+    ft_sourceplot(cfg, tmp)
     title(['MEG-PLANAR (FAHM=' num2str(FAHM{i_phalange}.megplanar,3) ')'])
     savefig(h, fullfile(save_path,'figs', ['megplanar_mne_ph' params.phalange_labels{i_phalange} '.fig']))
     saveas(h, fullfile(save_path,'figs', ['megplanar_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
 
-    cfg.latency         = latency{i_phalange}.opmeeg;
-    h = figure;
-    ft_sourceplot(cfg, opmeeg_mne{i_phalange})
-    title(['OPM-EEG (FAHM=' num2str(FAHM{i_phalange}.opmeeg,3) ')'])
-    savefig(h, fullfile(save_path,'figs', ['opmeeg_mne_ph' params.phalange_labels{i_phalange} '.fig']))
-    saveas(h, fullfile(save_path,'figs', ['opmeeg_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
-
-    cfg.latency         = latency{i_phalange}.megeeg;
-    h = figure;
-    ft_sourceplot(cfg, megeeg_mne{i_phalange})
-    title(['MEG-EEG (FAHM=' num2str(FAHM{i_phalange}.megeeg,3) ')'])
-    savefig(h, fullfile(save_path,'figs', ['megeeg_mne_ph' params.phalange_labels{i_phalange} '.fig']))
-    saveas(h, fullfile(save_path,'figs', ['megeeg_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
+    if ~isempty(headmodels.headmodel_eeg)
+        tmp = opmeeg_mne;
+        tmp.avg = tmp.avg{i_phalange};
+        cfg.latency         = latency{i_phalange}.opmeeg;
+        h = figure;
+        ft_sourceplot(cfg, tmp)
+        title(['OPM-EEG (FAHM=' num2str(FAHM{i_phalange}.opmeeg,3) ')'])
+        savefig(h, fullfile(save_path,'figs', ['opmeeg_mne_ph' params.phalange_labels{i_phalange} '.fig']))
+        saveas(h, fullfile(save_path,'figs', ['opmeeg_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
+    
+        tmp = megeeg_mne;
+        tmp.avg = tmp.avg{i_phalange};
+        cfg.latency         = latency{i_phalange}.megeeg;
+        h = figure;
+        ft_sourceplot(cfg, tmp)
+        title(['MEG-EEG (FAHM=' num2str(FAHM{i_phalange}.megeeg,3) ')'])
+        savefig(h, fullfile(save_path,'figs', ['megeeg_mne_ph' params.phalange_labels{i_phalange} '.fig']))
+        saveas(h, fullfile(save_path,'figs', ['megeeg_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
+    end
 
     close all
 end
 
 %% Save
-save(fullfile(save_path, 'mne_fits'), 'megmag_mne', 'megplanar_mne', 'opm_mne', 'megeeg_mne', 'opmeeg_mne', 'FAHM'); disp('done');
+save(fullfile(save_path, 'mne_fits'), 'megmag_mne', 'megplanar_mne', 'opm_mne', 'megeeg_mne', 'opmeeg_mne'); 
+save(fullfile(save_path, 'mne_fahm'), 'FAHM'); disp('done');
 
 end

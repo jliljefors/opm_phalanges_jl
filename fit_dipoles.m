@@ -33,7 +33,7 @@ for i_phalange = 1:5
     megmag_dipole{i_phalange} = ft_dipolefitting(cfg, megmag_timelocked{i_phalange});
     
     cfg.latency         = latency{i_phalange}.megplanar + [-0.01 0.01];   
-    cfg.channel         = 'meglpanar';           
+    cfg.channel         = 'megplanar';           
     megplanar_dipole{i_phalange} = ft_dipolefitting(cfg, megplanar_timelocked{i_phalange});
 
     if ~isempty(headmodels.headmodel_eeg)

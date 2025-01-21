@@ -29,8 +29,8 @@ ft_default.showcallinfo = 'no';
 
 %% Params
 overwrite = [];
-overwrite.preproc = true;
-overwrite.coreg = true;
+overwrite.preproc = false;
+overwrite.coreg = false;
 overwrite.mri = false;
 overwrite.dip = true;
 overwrite.mne = true;
@@ -125,7 +125,7 @@ for i_sub = 1:size(subses,1)
         cfg = [];
         cfg.elec = opmeeg_cleaned.elec;
         cfg.output = fullfile(save_path, [params.sub '_opmeeg_layout.mat']);
-        opmeeg_layswout = ft_prepare_layout(cfg);
+        opmeeg_layout = ft_prepare_layout(cfg);
         params.layout = opmeeg_layout;
         params.chs = 'EEG*';
         params.modality = 'opmeeg';
@@ -196,6 +196,7 @@ for i_sub = 1:size(subses,1)
         meegeeg_timelocked = timelock_MEG(megeeg_ica, save_path, params);
         close all
     end
+    create_bads_reports(base_save_path, i_sub, params);
 end
 
 %% --- Group sensor level -------------------------------------------------
@@ -403,7 +404,6 @@ for i_sub = 2:size(subses,1)
         end
     end
     sourcemodel = ft_read_headshape({filename, strrep(filename, '.L.', '.R.')});
-dir
     T = mri_resliced.transform/mri_resliced.hdr.vox2ras;
     sourcemodelT = ft_transform_geometry(T, sourcemodel);
     sourcemodelT.inside = true(size(sourcemodelT.pos,1),1);
@@ -443,7 +443,7 @@ dir
 end
 
 %% MNE
-for i_sub = 2:size(subses,1)
+for i_sub = 9:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
@@ -455,6 +455,8 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, 'mne_fits.mat'));
     else
         clear headmodels sourcemodelT
+        load(fullfile(save_path, [params.sub '_sourcemodelT']));
+        load(fullfile(save_path,'headmodels.mat'));
         clear megmag_timelocked magplanar_timelocked megeeg_timelocked
         clear opm_timelockedT opmeeg_timelockedT
         load(fullfile(save_path, [params.sub '_opm_timelockedT.mat']))
@@ -480,7 +482,7 @@ for i_sub = 2:size(subses,1)
             load(fullfile(save_path, [params.sub '_megeeg_M100']));
             m100_latency{i_ph}.megeeg = M100{i_ph}.peak_latency;
         end
-        [megmag_mne, megplanaer_mne, opm_mne, eeg_mne, FAHM] = fit_mne(save_path,megmag_timelocked,megplanar_timelocked,opm_timelockedT,headmodels,sourcemodelT,m100_latency,params);
+        [megmag_mne, megplanaer_mne, opm_mne, eeg_mne, FAHM] = fit_mne(save_path,megmag_timelocked,megplanar_timelocked,megeeg_timelocked,opm_timelockedT,opmeeg_timelockedT,headmodels,sourcemodelT,m100_latency,params);
     end
 end
 close all

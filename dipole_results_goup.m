@@ -20,7 +20,7 @@ for i_sub = subs
     dipole_squidmag{i_sub} = megmag_dipole;
     dipole_squidgrad{i_sub} = megplanar_dipole;
     dipole_opm{i_sub} = opm_dipole;
-    dipole_squideeg{i_sub} = eeg_dipole;
+    dipole_squideeg{i_sub} = megeeg_dipole;
     dipole_opmeeg{i_sub} = opmeeg_dipole;
   
     % Metrics: 

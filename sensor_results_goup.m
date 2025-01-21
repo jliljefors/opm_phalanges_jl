@@ -158,10 +158,10 @@ saveas(h, fullfile(save_path, 'figs', 'Latency.jpg'))
 
 %% Plot SNR - error
 data1 = snr.error_opm;
-data2 = snr_error_meg;
+data2 = snr.error_meg;
 mean1 = mean(data1,1);
 mean2 = mean(data2,1);
-min1 = mins(data1,[],1);
+min1 = min(data1,[],1);
 min2 = min(data2,[],1);
 max1 = max(data1,[],1);
 max2 = max(data2,[],1);
@@ -184,10 +184,10 @@ saveas(h, fullfile(save_path, 'figs', 'SNR_error.jpg'))
 
 %% Plot SNR - prestim
 data1 = snr.prestim_opm;
-data2 = snr_prestim_meg;
+data2 = snr.prestim_meg;
 mean1 = mean(data1,1);
 mean2 = mean(data2,1);
-min1 = mins(data1,[],1);
+min1 = min(data1,[],1);
 min2 = min(data2,[],1);
 max1 = max(data1,[],1);
 max2 = max(data2,[],1);

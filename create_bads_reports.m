@@ -9,7 +9,7 @@ for subNumber = subs
     subStr = sprintf('%02d', subNumber);
 
     % Create the report name
-    reportName = ['sub_', subStr, ' bads'];
+    reportName = ['sub_', subStr, '_sensorlevel'];
 
     % Define the subject folder path
     subjectFolderPath = fullfile(base_folder_path, ['sub_', subStr]);
@@ -28,6 +28,7 @@ for subNumber = subs
 
     % Define sections
     sections = {'opm', 'meg', 'opmeeg', 'megeeg'};
+    sections2 = {'opm', 'megmag', 'opmeeg', 'megeeg'};
 
     %%
     chapter = Chapter('Parameters');
@@ -257,7 +258,7 @@ for subNumber = subs
             row = TableRow();
             for j = 1:2
                 imgIndex = (j-1)*2 + i;
-                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections{imgIndex} '_evoked_maxchannel_ph-' num2str(i_phalange) '.jpg']));
+                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_evoked_maxchannel_ph' num2str(i_phalange) '.jpg']));
                 img.Style = {Width('8cm'), ScaleToFit};
                 entry = TableEntry();
                 append(entry, img);
