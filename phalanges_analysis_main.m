@@ -163,7 +163,7 @@ for i_sub = 1:size(subses,1)
         
         % ICA
         params.modality = 'meg';
-        params.layout = 'neuromag306all.lay';
+        params.layout = 'neuromag306mag.lay';
         params.chs = 'MEG*';
         meg_ica = ica_MEG(meg_cleaned, save_path, params);
 
