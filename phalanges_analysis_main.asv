@@ -74,8 +74,8 @@ mri_files = {'00000001.dcm'
     '/mri/sub-15931_T1w.nii.gz'  
     '/nifti/anat/sub-15985_T1w.nii.gz'};
 
-%% Loop over subjects
-for i_sub = 1:size(subses,1)
+%% Loop over subjec
+for i_sub = 1%:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
 
     %% Paths
@@ -163,7 +163,7 @@ for i_sub = 1:size(subses,1)
         
         % ICA
         params.modality = 'meg';
-        params.layout = 'neuromag306all.lay';
+        params.layout = 'neuromag306mag.lay';
         params.chs = 'MEG*';
         meg_ica = ica_MEG(meg_cleaned, save_path, params);
 
@@ -443,7 +443,7 @@ for i_sub = 2:size(subses,1)
 end
 
 %% MNE
-for i_sub = 9:size(subses,1)
+for i_sub = 2:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});

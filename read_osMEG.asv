@@ -70,9 +70,6 @@ cfg.dftfilter    = 'yes';
 cfg.dftfreq      = params.filter.notch;
 aux_epo = ft_preprocessing(cfg,aux_epo);
 
-cfg = [];
-cfg.trl = trl_opm;
-opm_raw_epo = ft_redefinetrial(cfg,opm_raw);
 %% OPM data filter & epoch
 cfg = [];
 cfg.lpfilter        = 'yes';         
@@ -111,7 +108,7 @@ TRIG_channels = find(contains(aux_epo.label,'STI101'));
 include_channels = [EOG_channels; ECG_channels; EEG_channels; MISC_channels; TRIG_channels];
 
 comb = opm_epo_ds; 
-comb.elec = aux_epo.elec;close all
+comb.elec = aux_epo.elec;
 comb.time = aux_epo.time;
 comb.label = [comb.label; aux_epo.label(include_channels)];
 comb.hdr.label = comb.label;
@@ -131,7 +128,11 @@ opm_cleaned = ft_selectdata(cfg, comb);
 
 % Reject bad channels
 cfg = [];
+cfg.trl = trl_opm;
+opm_raw_epo = ft_redefinetrial(cfg,opm_raw);
+cfg = [];
 cfg.z_threshold = params.z_threshold;
+cfg.corr_threshold = params.corr_threshold;
 [badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw_epo);
 cfg = [];
 cfg.channel = setdiff(opm_cleaned.label,badchs_opm);
@@ -169,7 +170,6 @@ cfg.threshold = params.opm_std_threshold;
 [cfg,badtrl_opm_std] = ft_badsegment(cfg, opm_cleaned);
 opm_cleaned = ft_rejectartifact(cfg,opm_cleaned);
 
-
 %% EEG
 cfg = [];
 cfg.channel = comb.label(find(~contains(comb.label,'bz')));
@@ -177,8 +177,12 @@ opmeeg_cleaned = ft_selectdata(cfg, comb);
 
 % Reject bad channels
 cfg = [];
+cfg.trl = trl_aux;
+aux_raw_epo = ft_redefinetrial(cfg,aux_raw);
+cfg = [];
 cfg.z_threshold = params.z_threshold;
-[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors, badchs_opmeeg_zmax] = eeg_badchannels(cfg,opmeeg_cleaned);
+cfg.corr_threshold = params.corr_threshold;
+[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors, badchs_opmeeg_zmax] = eeg_badchannels(cfg,aux_raw_epo);
 cfg = [];
 cfg.channel = setdiff(opmeeg_cleaned.label,badchs_opmeeg);
 opmeeg_cleaned = ft_selectdata(cfg, opmeeg_cleaned);
@@ -213,15 +217,17 @@ save(fullfile(save_path, [params.sub '_opmeeg_badchs']), ...
     'badchs_opmeeg_neighbors', ...
     'badchs_opmeeg_zmax' ,"-v7.3"); 
 
-save(fullfile(save_path, [params.sub '_opm_badchs']), ...
+
+badtrl_opm_std = 
+save(fullfile(save_path, [params.sub '_opm_badtrls']), ...
     'badtrl_opm_jump', ...
     'badtrl_opm_std', ...
     'badtrl_opm_zmax' ,"-v7.3"); 
-save(fullfile(save_path, [params.sub '_opmeeg_badchs']), ...
+save(fullfile(save_path, [params.sub '_opmeeg_badtrls']), ...
     'badtrl_opmeeg_jump', ...
     'badtrl_opmeeg_std',"-v7.3"); 
 
-save(fullfile(save_path, [params.sub '_opm_cleaned']), 'opm_cleaned',"-v7.3");
-save(fullfile(save_path, [params.sub '_opmeeg_cleaned']), 'opmeeg_cleaned',"-v7.3"); disp('done');
+%save(fullfile(save_path, [params.sub '_opm_cleaned']), 'opm_cleaned',"-v7.3");
+%save(fullfile(save_path, [params.sub '_opmeeg_cleaned']), 'opmeeg_cleaned',"-v7.3"); disp('done');
 
 end
