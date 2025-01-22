@@ -182,9 +182,10 @@ aux_raw_epo = ft_redefinetrial(cfg,aux_raw);
 cfg = [];
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
-[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors, badchs_opmeeg_zmax] = eeg_badchannels(cfg,aux_raw_epo);
+[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors, badchs_opmeeg_zmax, badtrl_opmeeg_zmax] = eeg_badchannels(cfg,aux_raw_epo);
 cfg = [];
 cfg.channel = setdiff(opmeeg_cleaned.label,badchs_opmeeg);
+cfg.trials  = setdiff(1:length(opmeeg_cleaned.trial),badtrl_opmeeg_zmax); % remove bad trials
 opmeeg_cleaned = ft_selectdata(cfg, opmeeg_cleaned);
 
 % Reject jump trials
@@ -233,7 +234,8 @@ badtrl_opmeeg_jump = find(idx);
 badtrl_opmeeg_std = find(idx);
 save(fullfile(save_path, [params.sub '_opmeeg_badtrls']), ...
     'badtrl_opmeeg_jump', ...
-    'badtrl_opmeeg_std',"-v7.3"); 
+    'badtrl_opmeeg_std', ...
+    'badtrl_opmeeg_zmax',"-v7.3"); 
 
 %save(fullfile(save_path, [params.sub '_opm_cleaned']), 'opm_cleaned',"-v7.3");
 %save(fullfile(save_path, [params.sub '_opmeeg_cleaned']), 'opmeeg_cleaned',"-v7.3"); disp('done');

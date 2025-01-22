@@ -26,7 +26,6 @@ neighborscorr = zeros(n_chs,cfg.n_neighbors,n_trls);
 trial_std = zeros(n_chs,length(data.trial));
 trial_mean = zeros(n_chs,length(data.trial));
 z_max = zeros(n_chs,length(data.trial));
-z_mean = zeros(n_chs,length(data.trial));
 for trial = 1:n_trls
     dat = data.trial{trial}(chs,:);
     for i = 1:n_chs
@@ -35,7 +34,7 @@ for trial = 1:n_trls
                 neighborscorr(i,j,trial) = tmp2(1,2);
         end
     end
-    dat = diff(movmedian(dat,9*5,2),1,2);
+    dat = diff(movmedian(dat,9*data.fsample/1000,2),1,2);
     trial_std(:,trial) = std(dat,0,2);
     trial_mean = repmat(mean(dat,2),[1 size(dat,2)]);
     z_max(:,trial) = max(abs(dat-trial_mean),[],2);

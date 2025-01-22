@@ -86,9 +86,10 @@ meg_raw_epo = ft_redefinetrial(cfg,meg_raw);
 cfg = [];
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
-[badchs_opmeeg, badchs_megeeg_flat, badchs_megeeg_neighbors, badchs_megeeg_zmax] = eeg_badchannels(cfg,meg_raw_epo);
+[badchs_opmeeg, badchs_megeeg_flat, badchs_megeeg_neighbors, badchs_megeeg_zmax, badtrl_megeeg_zmax] = eeg_badchannels(cfg,meg_raw_epo);
 cfg = [];
 cfg.channel = setdiff(megeeg_cleaned.label,badchs_opmeeg);
+cfg.trials  = setdiff(1:length(megeeg_cleaned.trial),badtrl_megeeg_zmax); % remove bad trials
 megeeg_cleaned = ft_selectdata(cfg, megeeg_cleaned);
 
 % Reject jump trials
@@ -132,7 +133,8 @@ badtrl_megeeg_jump = find(idx);
 badtrl_megeeg_std = find(idx);
 save(fullfile(save_path, [params.sub '_megeeg_badtrls']), ...
     'badtrl_megeeg_jump', ...
-    'badtrl_megeeg_std',"-v7.3"); 
+    'badtrl_megeeg_std', ...
+    'badtrl_megeeg_zmax',"-v7.3"); 
 
 %save(fullfile(save_path, [params.sub '_meg_cleaned']), 'meg_cleaned',"-v7.3");
 %save(fullfile(save_path, [params.sub '_megeeg_cleaned']), 'megeeg_cleaned',"-v7.3"); disp('done');

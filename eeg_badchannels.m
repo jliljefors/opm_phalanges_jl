@@ -1,4 +1,4 @@
-function [badchs, badchs_flat, badchs_neighbors, badchs_zmax] = eeg_badchannels(cfg, data)
+function [badchs, badchs_flat, badchs_neighbors, badchs_zmax, badtrls_zmax] = eeg_badchannels(cfg, data)
 %opm_badchannels Detects channels that are flat, have low correlation with
 %their neighbors or show a lot of jumping artifacts.
 %   cfg.z_threshold
@@ -26,7 +26,6 @@ neighborscorr = zeros(n_chs,cfg.n_neighbors,n_trls);
 trial_std = zeros(n_chs,length(data.trial));
 trial_mean = zeros(n_chs,length(data.trial));
 z_max = zeros(n_chs,length(data.trial));
-z_mean = zeros(n_chs,length(data.trial));
 for trial = 1:n_trls
     dat = data.trial{trial}(chs,:);
     for i = 1:n_chs
@@ -35,7 +34,7 @@ for trial = 1:n_trls
                 neighborscorr(i,j,trial) = tmp2(1,2);
         end
     end
-    dat = diff(movmedian(dat,9*5,2),1,2);
+    dat = diff(movmedian(dat,9*data.fsample/1000,2),1,2);
     trial_std(:,trial) = std(dat,0,2);
     trial_mean = repmat(mean(dat,2),[1 size(dat,2)]);
     z_max(:,trial) = max(abs(dat-trial_mean),[],2);
@@ -45,8 +44,11 @@ z_max = z_max./repmat(median(trial_std,2),[1 n_trls]);
 % Bad channels (flat, low neighbor correlation, large number of jumps)
 badchs_flat = find(any(trial_std<1e-15,2));
 badchs_neighbors = find(~any(trimmean(neighborscorr,0.1,3)>cfg.corr_threshold,2)); % bad if no neighbors exceed correlation threshold
-badchs_zmax = find(sum(z_max(setdiff(1:end,[badchs_flat; badchs_neighbors]),:)>cfg.z_threshold,2)>(n_trls*cfg.njump_threshold));
-badchs = [badchs_flat; badchs_neighbors]; %badchs_zmax];
+badchs_zmax = find(sum(z_max>cfg.z_threshold,2)>(n_trls*cfg.njump_threshold));
+badchs = [badchs_flat; badchs_neighbors; badchs_zmax];
+
+% Bad trials (jumps)
+badtrls_zmax = find(sum(z_max(setdiff(1:end,badchs),:)>cfg.z_threshold,1)>0);
 
 % Convert to channel labels
 badchs = data.label(chs(badchs));
