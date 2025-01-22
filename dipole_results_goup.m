@@ -17,10 +17,10 @@ for i_sub = subs
     ft_hastoolbox('mne', 1);
     save_path = fullfile(base_save_path,params.sub);
     load(fullfile(save_path, 'dipoles')); 
-    dipole_squidmag{i_sub} = megmag_dipole;
-    dipole_squidgrad{i_sub} = megplanar_dipole;
+    dipole_squidmag{i_sub} = squidmag_dipole;
+    dipole_squidgrad{i_sub} = squidgrad_dipole;
     dipole_opm{i_sub} = opm_dipole;
-    dipole_squideeg{i_sub} = megeeg_dipole;
+    dipole_squideeg{i_sub} = squideeg_dipole;
     dipole_opmeeg{i_sub} = opmeeg_dipole;
   
     % Metrics: 
@@ -62,7 +62,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['Dist SQ-MAG to OPM (mean = ' num2str(mean(mean(dist_sqmag_opm,'omitnan'),'omitnan'),'%.1f') 'mm)'])
+title(['Dist SQUID-MAG to OPM (mean = ' num2str(mean(mean(dist_sqmag_opm,'omitnan'),'omitnan'),'%.1f') 'mm)'])
 ylabel('Distance [mm]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -77,7 +77,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['Dist SQ-GRAD to OPM (mean = ' num2str(mean(mean(dist_sqgrad_opm,'omitnan'),'omitnan'),'%.1f') 'mm)'])
+title(['Dist SQUID-GRAD to OPM (mean = ' num2str(mean(mean(dist_sqgrad_opm,'omitnan'),'omitnan'),'%.1f') 'mm)'])
 ylabel('Distance [mm]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -93,7 +93,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['Dist SQ-MAG to SQ-GRAD (mean = ' num2str(mean(mean(dist_sqmag_sqgrad,'omitnan'),'omitnan'),'%.1f') 'mm)'])
+title(['Dist SQUID-MAG to SQUID-GRAD (mean = ' num2str(mean(mean(dist_sqmag_sqgrad,'omitnan'),'omitnan'),'%.1f') 'mm)'])
 ylabel('Distance [mm]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -109,7 +109,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['Dist SQ-EEG to OPM-EEG (mean = ' num2str(mean(mean(dist_sqeeg_opmeeg,'omitnan'),'omitnan'),'%.1f') 'mm)'])
+title(['Dist SQUID-EEG to OPM-EEG (mean = ' num2str(mean(mean(dist_sqeeg_opmeeg,'omitnan'),'omitnan'),'%.1f') 'mm)'])
 ylabel('Distance [mm]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -141,7 +141,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['SQ-MAG spread (mean = ' num2str(mean(mean(spread_squidmag,'omitnan'),'omitnan'),'%.1f') 'mm)'])
+title(['SQUID-MAG spread (mean = ' num2str(mean(mean(spread_squidmag,'omitnan'),'omitnan'),'%.1f') 'mm)'])
 ylabel('Dipoles spread [mm]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -157,7 +157,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['SQ-GRAD spread (mean = ' num2str(mean(mean(spread_squidgrad,'omitnan'),'omitnan'),'%.1f') 'mm)'])
+title(['SQUID-GRAD spread (mean = ' num2str(mean(mean(spread_squidgrad,'omitnan'),'omitnan'),'%.1f') 'mm)'])
 ylabel('Dipoles spread [mm]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -189,7 +189,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['SQ-EEG spread (mean = ' num2str(mean(mean(spread_squideeg,'omitnan'),'omitnan'),'%.1f') 'mm)'])
+title(['SQUID-EEG spread (mean = ' num2str(mean(mean(spread_squideeg,'omitnan'),'omitnan'),'%.1f') 'mm)'])
 ylabel('Dipoles spread [mm]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)

@@ -1,8 +1,6 @@
-function [megmag_mne, megplanar_mne, opm_mne, megeeg_mne, opmeeg_mne, FAHM] = fit_mne(save_path,megmag_timelocked,megplanar_timelocked,megeeg_timelocked,opm_timelocked, opmeeg_timelocked,headmodels,sourcemodel,latency,params)
+function [megmag_mne, megplanar_mne, opm_mne, megeeg_mne, opmeeg_mne] = fit_mne(save_path,megmag_timelocked,megplanar_timelocked,megeeg_timelocked,opm_timelocked, opmeeg_timelocked,headmodels,sourcemodel,latency,params)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
-
-colors = [[0.8500 0.3250 0.0980]; [0.9290 0.6940 0.1250]; [0.4940 0.1840 0.5560]; [0.4660 0.6740 0.1880]; [0.6350 0.0780 0.1840]];
 
 %% Prepare leadfields
 cfg = [];
@@ -72,18 +70,18 @@ for i_phalange = 1:5
     megmag_mne.avg{i_phalange} = [];
     megmag_mne.avg{i_phalange}.pow = tmp.avg.pow;
     megmag_mne.avg{i_phalange}.mom = tmp.avg.mom;
-    megmag_mne.avg{i_phalange}.fahm = FullAreaHalfMax(megmag_mne,latency{i_phalange}.megmag,i_phalange);
+    megmag_mne.avg{i_phalange}.fahm = FullAreaHalfMax(megmag_mne,latency{i_phalange}.squidmag,i_phalange);
 
     cfg = [];
     cfg.method          = 'surface';
     cfg.funparameter    = 'pow';
     cfg.funcolormap     = 'jet';    
     cfg.colorbar        = 'no';
-    cfg.latency         = latency{i_phalange}.megmag;
+    cfg.latency         = latency{i_phalange}.squidmag;
     h = figure;
     ft_sourceplot(cfg, tmp)
-    title(['MEG-MAG (FAHM=' num2str(megmag_mne.avg{i_phalange}.fahm,3) ')'])
-    saveas(h, fullfile(save_path,'figs', ['megmag_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
+    title(['SQUID-MAG (FAHM=' num2str(megmag_mne.avg{i_phalange}.fahm,3) ')'])
+    saveas(h, fullfile(save_path,'figs', [params.sub '_squidmag_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
 end
 megmag_mne.time = tmp.time;
@@ -106,18 +104,18 @@ for i_phalange = 1:5
     megplanar_mne.avg{i_phalange} = [];
     megplanar_mne.avg{i_phalange}.pow = tmp.avg.pow;
     megplanar_mne.avg{i_phalange}.mom = tmp.avg.mom;
-    megplanar_mne.avg{i_phalange}.fahm = FullAreaHalfMax(megplanar_mne,latency{i_phalange}.megplanar,i_phalange);
+    megplanar_mne.avg{i_phalange}.fahm = FullAreaHalfMax(megplanar_mne,latency{i_phalange}.squidgrad,i_phalange);
 
     cfg = [];
     cfg.method          = 'surface';
     cfg.funparameter    = 'pow';
     cfg.funcolormap     = 'jet';    
     cfg.colorbar        = 'no';
-    cfg.latency         = latency{i_phalange}.megplanar;
+    cfg.latency         = latency{i_phalange}.squidgrad;
     h = figure;
     ft_sourceplot(cfg, tmp)
-    title(['MEG-GRAD (FAHM=' num2str(megplanar_mne.avg{i_phalange}.fahm,3) ')'])
-    saveas(h, fullfile(save_path,'figs', ['megplanar_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
+    title(['SQUID-GRAD (FAHM=' num2str(megplanar_mne.avg{i_phalange}.fahm,3) ')'])
+    saveas(h, fullfile(save_path,'figs', [params.sub '_squidgrad_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
 end
 megplanar_mne.time = tmp.time;
@@ -143,7 +141,7 @@ for i_phalange = 1:5
         tmp = ft_sourceanalysis(cfg, megeeg_timelocked{i_phalange});
         megeeg_mne.avg{i_phalange}.pow = tmp.avg.pow;
         megeeg_mne.avg{i_phalange}.mom = tmp.avg.mom;
-        megeeg_mne.avg{i_phalange}.fahm = FullAreaHalfMax(megeeg_mne,latency{i_phalange}.megeeg,i_phalange);
+        megeeg_mne.avg{i_phalange}.fahm = FullAreaHalfMax(megeeg_mne,latency{i_phalange}.squideeg,i_phalange);
         megeeg_mne.time = tmp.time;
         megeeg_mne.cfg = tmp.cfg;
         megeeg_mne.method = tmp.method;
@@ -155,11 +153,11 @@ for i_phalange = 1:5
         cfg.funparameter    = 'pow';
         cfg.funcolormap     = 'jet';    
         cfg.colorbar        = 'no';
-        cfg.latency         = latency{i_phalange}.megeeg;
+        cfg.latency         = latency{i_phalange}.squideeg;
         h = figure;
         ft_sourceplot(cfg, tmp)
-        title(['MEG-EEG (FAHM=' num2str(megeeg_mne.avg{i_phalange}.fahm,3) ')'])
-        saveas(h, fullfile(save_path,'figs', ['megeeg_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
+        title(['SQUID-EEG (FAHM=' num2str(megeeg_mne.avg{i_phalange}.fahm,3) ')'])
+        saveas(h, fullfile(save_path,'figs', [params.sub '_megeeg_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
         close all
     end
 end
@@ -197,7 +195,7 @@ for i_phalange = 1:5
     h = figure;
     ft_sourceplot(cfg, tmp)
     title(['OPM (FAHM=' num2str(opm_mne.avg{i_phalange}.fahm,3) ')'])
-    saveas(h, fullfile(save_path,'figs', ['opm_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
+    saveas(h, fullfile(save_path,'figs', [params.sub '_opm_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
 end
 opm_mne.time = tmp.time;
@@ -239,7 +237,7 @@ for i_phalange = 1:5
         h = figure;
         ft_sourceplot(cfg, tmp)
         title(['OPM-EEG (FAHM=' num2str(opmeeg_mne.avg{i_phalange}.fahm,3) ')'])
-        saveas(h, fullfile(save_path,'figs', ['opmeeg_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
+        saveas(h, fullfile(save_path,'figs', [params.sub '_opmeeg_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
         close all
     end
 end

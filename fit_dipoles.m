@@ -1,4 +1,4 @@
-function [megmag_dipole, megplanar_dipole, opm_dipole, megeeg_dipole, opmeeg_dipole] = fit_dipoles(save_path,megmag_timelocked,megplanar_timelocked,megeeg_timelocked,opm_timelocked,opmeeg_timelocked,headmodels,mri,latency,params)
+function [squidmag_dipole, squidgrad_dipole, opm_dipole, squideeg_dipole, opmeeg_dipole] = fit_dipoles(save_path,squidmag_timelocked,squidgrad_timelocked,squideeg_timelocked,opm_timelocked,opmeeg_timelocked,headmodels,mri,latency,params)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -27,23 +27,23 @@ for i_phalange = 1:5
     cfg.senstype        = 'meg';            
     cfg.channel         = 'megmag';         
     cfg.nonlinear       = 'yes';           
-    cfg.latency         = latency{i_phalange}.megmag + [-0.01 0.01];
+    cfg.latency         = latency{i_phalange}.squidmag + [-0.01 0.01];
     cfg.dipfit.checkinside = 'yes';
     %cfg.dipfit.noisecov = meg_timelocked{i_phalange}.cov;
-    megmag_dipole{i_phalange} = ft_dipolefitting(cfg, megmag_timelocked{i_phalange});
+    squidmag_dipole{i_phalange} = ft_dipolefitting(cfg, squidmag_timelocked{i_phalange});
     
-    cfg.latency         = latency{i_phalange}.megplanar + [-0.01 0.01];   
+    cfg.latency         = latency{i_phalange}.squidgrad + [-0.01 0.01];   
     cfg.channel         = 'megplanar';           
-    megplanar_dipole{i_phalange} = ft_dipolefitting(cfg, megplanar_timelocked{i_phalange});
+    squidgrad_dipole{i_phalange} = ft_dipolefitting(cfg, squidgrad_timelocked{i_phalange});
 
     if ~isempty(headmodels.headmodel_eeg)
         cfg.headmodel       = headmodels.headmodel_eeg;    
         cfg.senstype        = 'eeg';            
         cfg.channel         = 'eeg';   
-        cfg.latency         = latency{i_phalange}.megeeg + [-0.01 0.01];   
-        megeeg_dipole{i_phalange} = ft_dipolefitting(cfg, megeeg_timelocked{i_phalange});
+        cfg.latency         = latency{i_phalange}.squideeg + [-0.01 0.01];   
+        squideeg_dipole{i_phalange} = ft_dipolefitting(cfg, squideeg_timelocked{i_phalange});
     else 
-        megeeg_dipole = [];
+        squideeg_dipole = [];
     end
 
     % OPM
@@ -71,13 +71,13 @@ for i_phalange = 1:5
     end
 
     % Plot OPM vs SQUID
-    pos_mag = megmag_dipole{i_phalange}.dip.pos;
-    [~,idx] = max(vecnorm(megmag_dipole{i_phalange}.dip.mom,2,1));
-    ori_mag = megmag_dipole{i_phalange}.dip.mom(:,idx);
+    pos_mag = squidmag_dipole{i_phalange}.dip.pos;
+    [~,idx] = max(vecnorm(squidmag_dipole{i_phalange}.dip.mom,2,1));
+    ori_mag = squidmag_dipole{i_phalange}.dip.mom(:,idx);
 
-    pos_planar = megplanar_dipole{i_phalange}.dip.pos;
-    [~,idx] = max(vecnorm(megplanar_dipole{i_phalange}.dip.mom,2,1));
-    ori_planar = megplanar_dipole{i_phalange}.dip.mom(:,idx);
+    pos_gad = squidgrad_dipole{i_phalange}.dip.pos;
+    [~,idx] = max(vecnorm(squidgrad_dipole{i_phalange}.dip.mom,2,1));
+    ori_grad = squidgrad_dipole{i_phalange}.dip.mom(:,idx);
     
     pos_opm = opm_dipole{i_phalange}.dip.pos;
     %pos_opm = opm_trans.transformPointsInverse(pos_opm);
@@ -85,9 +85,9 @@ for i_phalange = 1:5
     ori_opm = -opm_dipole{i_phalange}.dip.mom(:,idx);
 
     if ~isempty(headmodels.headmodel_eeg)
-        pos_eeg = megeeg_dipole{i_phalange}.dip.pos;
-        [~,idx] = max(vecnorm(megeeg_dipole{i_phalange}.dip.mom,2,1));
-        ori_eeg = megeeg_dipole{i_phalange}.dip.mom(:,idx);
+        pos_eeg = squideeg_dipole{i_phalange}.dip.pos;
+        [~,idx] = max(vecnorm(squideeg_dipole{i_phalange}.dip.mom,2,1));
+        ori_eeg = squideeg_dipole{i_phalange}.dip.mom(:,idx);
     
         pos_opmeeg = opmeeg_dipole{i_phalange}.dip.pos;
         %pos_opmeeg = opm_trans.transformPointsInverse(pos_opmeeg);
@@ -100,9 +100,9 @@ for i_phalange = 1:5
         ft_plot_dipole(pos_opmeeg,ori_opmeeg,'color',colors(2,:))
         ft_plot_headmodel(headmodels.headmodel_meg,'EdgeAlpha',0,'FaceAlpha',0.3,'FaceColor',[229 194 152]/256,'unit','cm') 
         hold off
-        title([params.phalange_labels{i_phalange} ' (SqEEG-OpmEEG = ' num2str(norm((pos_eeg-pos_opmeeg))*10,'%.1f') 'mm)'])
+        title([params.phalange_labels{i_phalange} ' (SQEEG-OPMEEG = ' num2str(norm((pos_eeg-pos_opmeeg))*10,'%.1f') 'mm)'])
         legend('SQUIDEEG','OPMEEG','brain')
-        saveas(h, fullfile(save_path, 'figs', ['dipfit_EEGvOPMEEG_ph-' params.phalange_labels{i_phalange} '.jpg']))
+        saveas(h, fullfile(save_path, 'figs', [params.sub '_dipfit_SQUIDEEGvOPMEEG_ph-' params.phalange_labels{i_phalange} '.jpg']))
         close
     end
 
@@ -110,24 +110,25 @@ for i_phalange = 1:5
     ft_plot_dipole(pos_mag,ori_mag,'color',colors(1,:))
     hold on;
     ft_plot_dipole(pos_opm,ori_opm,'color',colors(2,:))
-    ft_plot_dipole(pos_planar,ori_planar,'color',colors(3,:))
+    ft_plot_dipole(pos_gad,ori_grad,'color',colors(3,:))
     ft_plot_headmodel(headmodels.headmodel_meg,'EdgeAlpha',0,'FaceAlpha',0.3,'FaceColor',[229 194 152]/256,'unit','cm') 
     hold off
-    title([params.phalange_labels{i_phalange} ' (SqMAG-OPM = ' num2str(norm(pos_mag-pos_opm)*10,'%.1f') 'mm / SqGRAD-OPM = ' num2str(norm(pos_planar-pos_opm)*10,'%.1f') 'mm)'])
+    title([params.phalange_labels{i_phalange} ' (SQMAG-OPM = ' num2str(norm(pos_mag-pos_opm)*10,'%.1f') 'mm / SQGRAD-OPM = ' num2str(norm(pos_gad-pos_opm)*10,'%.1f') 'mm)'])
     legend('SQUIDMAG','OPM','SQUIDPLANAR','brain')
-    saveas(h, fullfile(save_path, 'figs', ['dipfit_SQUIDvOPM_ph-' params.phalange_labels{i_phalange} '.jpg']))
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_dipfit_SQUIDvOPM_ph-' params.phalange_labels{i_phalange} '.jpg']))
     close
 end
 close all
 
 %% Plot phalanges jointly
 % SQUID
+params.modality = 'squidmag';
 pos_mag = zeros(5,3);
 ori_mag = zeros(5,3);
 for i = 1:5
-    pos_mag(i,:) = megmag_dipole{i}.dip.pos;
-    [~,idx] = max(vecnorm(megmag_dipole{i}.dip.mom,2,1));
-    ori_mag(i,:) = megmag_dipole{i}.dip.mom(:,idx);
+    pos_mag(i,:) = squidmag_dipole{i}.dip.pos;
+    [~,idx] = max(vecnorm(squidmag_dipole{i}.dip.mom,2,1));
+    ori_mag(i,:) = squidmag_dipole{i}.dip.mom(:,idx);
 end
 mean_pos = mean(pos_mag,1);
 tmp = pos_mag;
@@ -142,7 +143,7 @@ end
 hold off
 view(-90,0)
 title('SQUID-MAG')
-saveas(h, fullfile(save_path, 'figs', 'dipfit-SQUIDMAG_100.jpg'))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_dipfit-100.jpg']))
 %010
 h=figure;
 hold on
@@ -155,7 +156,7 @@ end
 hold off
 view(0,0)
 title('SQUID-MAG')
-saveas(h, fullfile(save_path, 'figs', 'dipfit-SQUIDMAG_010.jpg'))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_dipfit-010.jpg']))
 %001
 h=figure;
 hold on
@@ -167,10 +168,11 @@ for i = 1:5
 end
 hold off
 title('SQUID-MAG')
-saveas(h, fullfile(save_path, 'figs', 'dipfit-SQUIDMAG_001.jpg'))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_dipfit-001.jpg']))
 close all
 
 % OPM
+params.modality = 'opm';
 pos_opm = zeros(5,3);
 ori_opm = zeros(5,3);
 for i = 1:5
@@ -191,7 +193,7 @@ end
 hold off
 view(-90,0)
 title('OPM')
-saveas(h, fullfile(save_path, 'figs', 'dipfit-OPM_100.jpg'))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_dipfit-100.jpg']))
 %010
 h=figure;
 hold on
@@ -204,7 +206,7 @@ end
 hold off
 view(0,0)
 title('OPM')
-saveas(h, fullfile(save_path, 'figs', 'dipfit-OPM_010.jpg'))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_dipfit-010.jpg']))
 %001
 h=figure;
 hold on
@@ -216,9 +218,59 @@ for i = 1:5
 end
 hold off
 title('OPM')
-saveas(h, fullfile(save_path, 'figs', 'dipfit-OPM_001.jpg'))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_dipfit-001.jpg']))
+close all
+
+% SQUID-GRAD
+params.modality = 'squidgrad';
+pos_grad = zeros(5,3);
+ori_grad = zeros(5,3);
+for i = 1:5
+    pos_grad(i,:) = squidgrad_dipole{i}.dip.pos;
+    [~,idx] = max(vecnorm(squidgrad_dipole{i}.dip.mom,2,1));
+    ori_grad(i,:) = squidgrad_dipole{i}.dip.mom(:,idx);
+end
+mean_pos = mean(pos_grad,1);
+tmp = pos_grad;
+tmp(:,1) = mean_pos(1)-1;
+%100
+h=figure;
+hold on
+ft_plot_slice(mri.anatomy, 'transform', mri.transform, 'location', mean_pos, 'orientation', [1 0 0], 'resolution', 0.1)
+for i = 1:5
+    ft_plot_dipole(tmp(i,:),ori_grad(i,:),'color',colors(i,:))
+end
+hold off
+view(-90,0)
+title('SQUID-MAG')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_dipfit-100.jpg']))
+%010
+h=figure;
+hold on
+tmp = pos_grad;
+tmp(:,2) = mean_pos(2)-1;
+ft_plot_slice(mri.anatomy, 'transform', mri.transform, 'location', mean_pos, 'orientation', [0 1 0], 'resolution', 0.1)
+for i = 1:5
+    ft_plot_dipole(tmp(i,:),ori_grad(i,:),'color',colors(i,:))
+end
+hold off
+view(0,0)
+title('SQUID-MAG')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_dipfit-010.jpg']))
+%001
+h=figure;
+hold on
+tmp = pos_mag;
+tmp(:,3) = mean_pos(3)+1;
+ft_plot_slice(mri.anatomy, 'transform', mri.transform, 'location', mean_pos, 'orientation', [0 0 1], 'resolution', 0.1)       
+for i = 1:5
+    ft_plot_dipole(tmp(i,:),ori_grad(i,:),'color',colors(i,:))
+end
+hold off
+title('SQUID-MAG')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_dipfit-001.jpg']))
 close all
 %% Save 
-save(fullfile(save_path, 'dipoles'), 'megmag_dipole', 'megplanar_dipole', 'opm_dipole', 'megeeg_dipole', 'opmeeg_dipole'); disp('done');
+save(fullfile(save_path, 'dipoles'), 'squidmag_dipole', 'squidgrad_dipole', 'opm_dipole', 'squideeg_dipole', 'opmeeg_dipole'); disp('done');
 
 end

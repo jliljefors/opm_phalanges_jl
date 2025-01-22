@@ -28,16 +28,16 @@ for i_sub = subs
     opm_chs = find(contains(opm_timelocked{1}.label,'bz'));
 
     for i_phalange = 1:length(params.phalange_labels)
-        peak_ratio.meg(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_megmag{i_sub}{i_phalange}.max_amplitude;
-        peak_ratio.eeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.max_amplitude/M100_megeeg{i_sub}{i_phalange}.max_amplitude;
-        snr.error_opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_opm{i_sub}{i_phalange}.std_error;
-        snr.error_meg(i_sub,i_phalange) = M100_megmag{i_sub}{i_phalange}.max_amplitude/M100_megmag{i_sub}{i_phalange}.std_error;
-        snr.error_megeeg(i_sub,i_phalange) = M100_megeeg{i_sub}{i_phalange}.max_amplitude/M100_megeeg{i_sub}{i_phalange}.std_error;
-        snr.error_opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.max_amplitude/M100_opmeeg{i_sub}{i_phalange}.std_error;
-        snr.prestim_opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.max_amplitude/M100_opm{i_sub}{i_phalange}.prestim_std;
-        snr.prestim_meg(i_sub,i_phalange) = M100_megmag{i_sub}{i_phalange}.max_amplitude/M100_megmag{i_sub}{i_phalange}.prestim_std;
-        snr.prestim_opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.max_amplitude/M100_opmeeg{i_sub}{i_phalange}.prestim_std;
-        snr.prestim_megeeg(i_sub,i_phalange) = M100_megeeg{i_sub}{i_phalange}.max_amplitude/M100_megeeg{i_sub}{i_phalange}.prestim_std;
+        peak_ratio.meg(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude/M100_megmag{i_sub}{i_phalange}.peak_amplitude;
+        peak_ratio.eeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude/M100_megeeg{i_sub}{i_phalange}.peak_amplitude;
+        snr.error_opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude/M100_opm{i_sub}{i_phalange}.std_error;
+        snr.error_meg(i_sub,i_phalange) = M100_megmag{i_sub}{i_phalange}.peak_amplitude/M100_megmag{i_sub}{i_phalange}.std_error;
+        snr.error_megeeg(i_sub,i_phalange) = M100_megeeg{i_sub}{i_phalange}.peak_amplitude/M100_megeeg{i_sub}{i_phalange}.std_error;
+        snr.error_opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude/M100_opmeeg{i_sub}{i_phalange}.std_error;
+        snr.prestim_opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude/M100_opm{i_sub}{i_phalange}.prestim_std;
+        snr.prestim_meg(i_sub,i_phalange) = M100_megmag{i_sub}{i_phalange}.peak_amplitude/M100_megmag{i_sub}{i_phalange}.prestim_std;
+        snr.prestim_opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude/M100_opmeeg{i_sub}{i_phalange}.prestim_std;
+        snr.prestim_megeeg(i_sub,i_phalange) = M100_megeeg{i_sub}{i_phalange}.peak_amplitude/M100_megeeg{i_sub}{i_phalange}.prestim_std;
         snr.ratio_error(i_sub,i_phalange) = snr.error_opm(i_sub,i_phalange)/snr.error_meg(i_sub,i_phalange);
         snr.ratio_prestim(i_sub,i_phalange) = snr.prestim_opm(i_sub,i_phalange)/snr.prestim_meg(i_sub,i_phalange);
         latency.opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_latency;
@@ -45,6 +45,11 @@ for i_sub = subs
         latency.megplanar(i_sub,i_phalange) = M100_megplanar{i_sub}{i_phalange}.peak_latency;
         latency.opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_latency;
         latency.megeeg(i_sub,i_phalange) = M100_megeeg{i_sub}{i_phalange}.peak_latency;
+        amp.opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude*1e15;
+        amp.megmag(i_sub,i_phalange) = M100_megmag{i_sub}{i_phalange}.peak_amplitude*1e15;
+        amp.megplanar(i_sub,i_phalange) = M100_megplanar{i_sub}{i_phalange}.peak_amplitude;
+        amp.opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude;
+        amp.megeeg(i_sub,i_phalange) = M100_megeeg{i_sub}{i_phalange}.peak_amplitude;
 
         h = figure;
         subplot(2,1,1)
@@ -64,7 +69,7 @@ end
 
 %% Save
 save_path = base_save_path;
-save(fullfile(save_path, 'group_sensor'),"peak_ratio","snr","latency","-v7.3");
+save(fullfile(save_path, 'group_sensor'),"peak_ratio","snr","latency","amp","-v7.3");
 
 %% Plot ratio
 h = figure('DefaultAxesFontSize',16);
@@ -129,6 +134,71 @@ xlabel('Phalange')
 xticklabels(params.phalange_labels)
 saveas(h, fullfile(save_path, 'figs', 'SNR_ratios_prestim.jpg'))
 
+%% Plot peak amp
+% MEG
+data1 = 1e15*amp.megmag;
+data2 = 1e15*amp.opm;
+mean1 = mean(data1,1);
+mean2 = mean(data2,1);
+min1 = min(data1,[],1);
+min2 = min(data2,[],1);
+max1 = max(data1,[],1);
+max2 = max(data2,[],1);
+err1 = [mean1-min1; max1-mean1];
+err2 = [mean2-min2; max2-mean2];
+
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
+hold on
+for k=1:length(params.phalange_labels)
+    errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+    errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+end
+p_values = zeros(1, 5);
+for i = 1:5
+    [~, p_values(i)] = ttest(data1(:, i), data2(:, i));
+end
+sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
+hold off
+title('Group level M100 amplitude')
+ylabel('Peak amplitude [fT]')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+legend({'squidmag','opm'});
+saveas(h, fullfile(save_path, 'figs', 'Amplitude_meg.jpg'))
+
+% EEG
+data1 = 1e6*amp.megeeg;
+data2 = 1e6*amp.opmeeg;
+mean1 = mean(data1,1);
+mean2 = mean(data2,1);
+min1 = min(data1,[],1);
+min2 = min(data2,[],1);
+max1 = max(data1,[],1);
+max2 = max(data2,[],1);
+err1 = [mean1-min1; max1-mean1];
+err2 = [mean2-min2; max2-mean2];
+
+h = figure('DefaultAxesFontSize',16);
+bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
+hold on
+for k=1:length(params.phalange_labels)
+    errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+    errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+end
+p_values = zeros(1, 5);
+for i = 1:5
+    [~, p_values(i)] = ttest(data1(:, i), data2(:, i));
+end
+sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
+hold off
+title('Group level M100 amplitude')
+ylabel('Peak amplitude [uV]')
+xlabel('Phalange')
+xticklabels(params.phalange_labels)
+legend({'squideeg','opmeeg'});
+saveas(h, fullfile(save_path, 'figs', 'Amplitude_eeg.jpg'))
+
 %% Plot peak latency
 data1 = 1e3*latency.megmag;
 data2 = 1e3*latency.opm;
@@ -148,17 +218,22 @@ for k=1:length(params.phalange_labels)
     errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
     errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
 end
+p_values = zeros(1, 5);
+for i = 1:5
+    [~, p_values(i)] = ttest(data1(:, i), data2(:, i));
+end
+sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
 hold off
 title('Group level M100 latency')
 ylabel('Latency [ms]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
-legend({'megmag','opm'});
+legend({'squidmag','opm'});
 saveas(h, fullfile(save_path, 'figs', 'Latency.jpg'))
 
 %% Plot SNR - error
-data1 = snr.error_opm;
-data2 = snr.error_meg;
+data1 = snr.error_meg;
+data2 = snr.error_opm;
 mean1 = mean(data1,1);
 mean2 = mean(data2,1);
 min1 = min(data1,[],1);
@@ -175,16 +250,22 @@ for k=1:length(params.phalange_labels)
     errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
     errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
 end
+p_values = zeros(1, 5);
+for i = 1:5
+    [~, p_values(i)] = ttest(data1(:, i), data2(:, i));
+end
+sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
 hold off
 title('Group level SNR_{m100,stderror}')
 ylabel('SNR')
 xlabel('Phalange')
+legend({'squidmag','opm'});
 xticklabels(params.phalange_labels)
 saveas(h, fullfile(save_path, 'figs', 'SNR_error.jpg'))
 
 %% Plot SNR - prestim
-data1 = snr.prestim_opm;
-data2 = snr.prestim_meg;
+data1 = snr.prestim_meg;
+data2 = snr.prestim_opm;
 mean1 = mean(data1,1);
 mean2 = mean(data2,1);
 min1 = min(data1,[],1);
@@ -201,10 +282,16 @@ for k=1:length(params.phalange_labels)
     errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
     errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
 end
+p_values = zeros(1, 5);
+for i = 1:5
+    [~, p_values(i)] = ttest(data1(:, i), data2(:, i));
+end
+sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
 hold off
 title('Group level SNR_{m100,prestim}')
 ylabel('SNR')
 xlabel('Phalange')
+legend({'squidmag','opm'});
 xticklabels(params.phalange_labels)
 saveas(h, fullfile(save_path, 'figs', 'SNR_prestim.jpg'))
 

@@ -58,6 +58,7 @@ for subNumber = subs
                 else
                     varLength = max(size(varData));
                     varList = num2str(varData(:)');
+                    varList = regexprep(varList, '\s+', ', ');
                 end
                 totalLength = totalLength + varLength;
                 para = Paragraph([fields{j},' (n=', num2str(varLength), '): ', varList]);
@@ -91,7 +92,8 @@ for subNumber = subs
                     varList = strjoin(varData, ', ');
                 else
                     varLength = max(size(varData));
-                    varList = strjoin(arrayfun(@(x) sprintf('%d %d', varData(x, 1), varData(x, 2)), 1:size(varData, 1), 'UniformOutput', false), '; ');
+                    varList = num2str(varData(:)');
+                    varList = regexprep(varList, '\s+', ', ');
                 end
                 totalLength = totalLength + varLength;
                 para = Paragraph([fields{j},' (n=', num2str(varLength), '): ', varList]);
@@ -205,10 +207,12 @@ for subNumber = subs
         
         for i_phalange = 1:num_phalanges
             phalange_data = M100{i_phalange};
-            T{['peak_amplitude ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.max_amplitude;
+            T{['peak_amplitude ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.peak_amplitude;
+            T{['max_amplitude ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.max_amplitude;
+            T{['min_amplitude ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.min_amplitude;
             T{'peak_latency [ms]', params.phalange_labels{i_phalange}} = 1e3*phalange_data.peak_latency;
-            T{'SNR_prestim', params.phalange_labels{i_phalange}} = phalange_data.max_amplitude / phalange_data.prestim_std;
-            T{'SNR_stderr', params.phalange_labels{i_phalange}} = phalange_data.max_amplitude / phalange_data.std_error;
+            T{'SNR_prestim', params.phalange_labels{i_phalange}} = phalange_data.peak_amplitude / phalange_data.prestim_std;
+            T{'SNR_stderr', params.phalange_labels{i_phalange}} = phalange_data.peak_amplitude / phalange_data.std_error;
             T{['std_prestim ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.prestim_std;
             T{['stderr ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.std_error;
         end
@@ -258,7 +262,7 @@ for subNumber = subs
             row = TableRow();
             for j = 1:2
                 imgIndex = (j-1)*2 + i;
-                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_evoked_maxchannel_ph' num2str(i_phalange) '.jpg']));
+                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_evoked_peakchannel_ph' num2str(i_phalange) '.jpg']));
                 img.Style = {Width('8cm'), ScaleToFit};
                 entry = TableEntry();
                 append(entry, img);

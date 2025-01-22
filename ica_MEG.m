@@ -257,7 +257,7 @@ if length(eog2_comp_idx)>=1
         plot(timelock.time, timelock.avg(eog2_comp_idx(i)+2,:));  
         title(['Comp: ' num2str(eog2_comp_idx(i)) '; R_{eog2} = ' num2str(R(eog2_comp_idx(i),2))])
     end
-    saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eo2g_cor.jpg'])) 
+    saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog2_cor.jpg'])) 
 end
 % Plot coherence spectrum between all components and the EOG
 h = figure;
