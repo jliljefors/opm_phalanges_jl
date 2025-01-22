@@ -75,7 +75,7 @@ mri_files = {'00000001.dcm'
     '/nifti/anat/sub-15985_T1w.nii.gz'};
 
 %% Loop over subjects
-for i_sub = 1%:size(subses,1)
+for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
 
     %% Paths

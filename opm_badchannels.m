@@ -45,7 +45,7 @@ z_max = z_max./repmat(median(trial_std,2),[1 n_trls]);
 % Bad channels (flat, low neighbor correlation, large number of jumps)
 badchs_flat = find(any(trial_std<1e-15,2));
 badchs_neighbors = find(~any(trimmean(neighborscorr,0.1,3)>cfg.corr_threshold,2)); % bad if no neighbors exceed correlation threshold
-badchs_zmax = find(sum(z_max(setdiff(1:end,[badchs_flat; badchs_neighbors]),:)>cfg.z_threshold,2)>(n_trls*cfg.njump_threshold));
+badchs_zmax = find(sum(z_max>cfg.z_threshold,2)>(n_trls*cfg.njump_threshold));
 badchs = [badchs_flat; badchs_neighbors; badchs_zmax];
 
 % Bad trials (jumps)
