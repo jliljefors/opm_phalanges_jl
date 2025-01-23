@@ -36,7 +36,7 @@ for i_phalange = 1:length(params.trigger_code)
         tmp.peak_amplitude = abs(tmp.max_amplitude);
         i_peakch = i_maxch;
     else
-        mp.peak_channel = tmp.min_channel;
+        tmp.peak_channel = tmp.min_channel;
         tmp.peak_amplitude = abs(tmp.min_amplitude);
         i_peakch = i_minch;
     end

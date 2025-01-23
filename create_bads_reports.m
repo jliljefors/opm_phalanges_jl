@@ -292,9 +292,10 @@ function processStruct(s, parentName, chapter)
         if isstruct(fieldValue)
             % If the field is a struct, process it recursively
             processStruct(fieldValue, fullName, chapter);
-        elseif isvector(fieldValue) && isnumeric(fieldValue)
+        elseif ismatrix(fieldValue) && isnumeric(fieldValue)
             % If the field is a 1-D array, convert it to a comma-separated string
-            valueStr = strjoin(arrayfun(@num2str, fieldValue, 'UniformOutput', false), ', ');
+            rowStrs = arrayfun(@(i) strjoin(arrayfun(@num2str, fieldValue(i,:), 'UniformOutput', false), ', '), 1:size(fieldValue,1), 'UniformOutput',false);
+            valueStr = strjoin(rowStrs, '; ');
             append(chapter, Paragraph([fullName, ': ', valueStr]));
         elseif iscell(fieldValue) && all(cellfun(@ischar, fieldValue))
             % If the field is a cell array of strings, convert it to a comma-separated string
@@ -305,6 +306,9 @@ function processStruct(s, parentName, chapter)
             append(chapter, Paragraph([fullName, ': []']));
         else
             % Otherwise, convert the value to a string and append it
+            if size(fieldValue,1) > size(fieldValue,2)
+                fieldValue = fieldValue';
+            end
             valueStr = num2str(fieldValue);
             append(chapter, Paragraph([fullName, ': ', valueStr]));
         end

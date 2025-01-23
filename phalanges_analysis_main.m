@@ -206,6 +206,8 @@ for i_sub = 1:size(subses,1)
         meegeeg_timelocked = timelock_MEG(megeeg_ica, save_path, params);
         close all
     end
+
+    params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality
     create_bads_reports(base_save_path, i_sub, params);
 end
 
