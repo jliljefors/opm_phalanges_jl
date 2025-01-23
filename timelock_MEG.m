@@ -50,8 +50,8 @@ for i_phalange = 1:length(params.trigger_code)
     %tmp.std_error = tmp.std_error/length(find(data.trialinfo==params.trigger_code(i_phalange)));
     M100{i_phalange} = tmp;
     
-    plot(dat.time.*1e3, dat.avg(i_maxch,:).*params.amp_scaler)
-    leg = [leg; [num2str(i_phalange) ': ' strrep(tmp.max_channel,'_','-')]];
+    plot(dat.time*1e3, dat.avg(i_peakch,:)*params.amp_scaler)
+    leg = [leg; [num2str(i_phalange) ': ' strrep(tmp.peak_channel,'_','-')]];
 
 end
 hold off
@@ -72,7 +72,7 @@ for i_phalange = 1:length(params.trigger_code)
     for i_trl = find(data.trialinfo==params.trigger_code(i_phalange))'
         plot(data.time{i_trl}*1e3, data.trial{i_trl}(i_peakch,:)*params.amp_scaler,'Color',[211 211 211]/255)
     end
-    plot(dat.time*1e3, dat.avg(i_peakch,:)*1e15,'Color',[0 0 0]/255)
+    plot(dat.time*1e3, dat.avg(i_peakch,:)*params.amp_scaler,'Color',[0 0 0]/255)
     ylimits = ylim;
     latency = 1e3*M100{i_phalange}.peak_latency;
     plot([latency latency],ylimits,'r--')
@@ -88,11 +88,13 @@ for i_phalange = 1:length(params.trigger_code)
     chs = find(contains(timelocked{i_phalange}.label,ft_channelselection(params.chs,timelocked{i_phalange}.label)));
     h = figure;
     plot(timelocked{i_phalange}.time*1e3,timelocked{i_phalange}.avg(chs,:)*params.amp_scaler)
-    xlabel('t [msec]')
-    ylabel(params.amp_label)
+    hold on
     ylimits = ylim;
     latency = 1e3*M100{i_phalange}.peak_latency;
-    plot([latency latency],ylimits,'r--')
+    plot([latency latency],ylimits,'k--')
+    hold off
+    xlabel('t [msec]')
+    ylabel(params.amp_label)
     title(['Evoked ' params.modality ' - phalange ' params.phalange_labels{i_phalange} ' (n_{trls}=' num2str(length(timelocked{i_phalange}.cfg.trials)) ')'])
     saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']))
 
@@ -106,4 +108,5 @@ for i_phalange = 1:length(params.trigger_code)
     colorbar
     saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_M100_topo_ph-' params.phalange_labels{i_phalange} '.jpg']))
 end
+close all
 end

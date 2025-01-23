@@ -27,8 +27,8 @@ for subNumber = subs
     add(rpt, toc);
 
     % Define sections
-    sections = {'opm', 'meg', 'opmeeg', 'megeeg'};
-    sections2 = {'opm', 'megmag', 'opmeeg', 'megeeg'};
+    sections = {'opm', 'squid', 'opmeeg', 'squideeg'};
+    sections2 = {'opm', 'squidmag', 'opmeeg', 'squideeg'};
 
     %%
     chapter = Chapter('Parameters');
@@ -166,7 +166,7 @@ for subNumber = subs
             row = TableRow();
             for j = 1:2
                 imgIndex = (j-1)*2 + i;
-                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections{imgIndex} '_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']));
+                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']));
                 img.Style = {Width('8cm'), ScaleToFit};
                 entry = TableEntry();
                 append(entry, img);
@@ -197,13 +197,13 @@ for subNumber = subs
         end
 
         % Load the .mat file
-        data = load(fullfile(subjectFolderPath,['sub_' subStr '_' sections{i_section} '_M100.mat']));
+        data = load(fullfile(subjectFolderPath,['sub_' subStr '_' sections2{i_section} '_M100.mat']));
         M100 = data.M100;
         
         % Create the table with the required data
         num_phalanges = length(params.phalange_labels);
-        T = table('Size', [6, num_phalanges], 'VariableTypes', repmat({'double'}, 1, num_phalanges), 'VariableNames', params.phalange_labels);
-        T.Properties.RowNames = {['peak_amplitude ' fieldUnit], 'peak_latency [ms]', 'SNR_prestim', 'SNR_stderr', ['std_prestim ' fieldUnit], ['stderr ' fieldUnit]};
+        T = table('Size', [8, num_phalanges], 'VariableTypes', repmat({'double'}, 1, num_phalanges), 'VariableNames', params.phalange_labels);
+        T.Properties.RowNames = {['peak_amplitude ' fieldUnit], ['max_amplitude ' fieldUnit], ['min_amplitude ' fieldUnit], 'peak_latency [ms]', 'SNR_prestim', 'SNR_stderr', ['std_prestim ' fieldUnit], ['stderr ' fieldUnit]};
         
         for i_phalange = 1:num_phalanges
             phalange_data = M100{i_phalange};
@@ -231,7 +231,7 @@ for subNumber = subs
         end
         append(domTable, headerRow);
         
-        formatString = {'%.1f','%.f','%.1f','%.2f','%.1f','%.1f'};
+        formatString = {'%.1f','%.1f','%.1f','%.f','%.1f','%.2f','%.1f','%.1f'};
 
         % Add data rows
         for i_row = 1:height(T)

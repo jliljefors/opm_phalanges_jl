@@ -49,8 +49,8 @@ params.z_threshold = 20;
 params.corr_threshold = 0.7; % correlation threshold for badchannel neighbors
 params.opm_std_threshold = 2.5e-12;
 params.eeg_std_threshold = 1e-4;
-params.megmag_std_threshold = 5e-12;
-params.megplanar_std_threshold = 5e-11;
+params.squidmag_std_threshold = 5e-12;
+params.squidgrad_std_threshold = 5e-11;
 params.hpi_freq = 33;
 
 params.trigger_code = [2 4 8 16 32];
@@ -155,30 +155,30 @@ for i_sub = 1:size(subses,1)
         load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat']))
         megmag_timelocked = timelocked;
         load(fullfile(save_path, [params.sub '_squidgrad_timelocked.mat']))
-        megplanar_timelocked = timelocked;
+        squidgrad_timelocked = timelocked;
         load(fullfile(save_path, [params.sub '_squideeg_timelocked.mat']))
-        megeeg_timelocked = timelocked;
+        squideeg_timelocked = timelocked;
         clear timelocked
     else
         ft_hastoolbox('mne', 1);
 
         % Read data
-        [meg_cleaned, megeeg_cleaned] = read_cvMEG(meg_file, save_path, params); % Read data
+        [squid_cleaned, squideeg_cleaned] = read_cvMEG(meg_file, save_path, params); % Read data
         
         % ICA
         params.modality = 'squid';
         params.layout = 'neuromag306mag.lay';
         params.chs = 'MEG*';
-        meg_ica = ica_MEG(meg_cleaned, save_path, params);
+        squid_ica = ica_MEG(squid_cleaned, save_path, params);
 
         cfg = [];
-        cfg.elec = megeeg_cleaned.elec;
+        cfg.elec = squideeg_cleaned.elec;
         cfg.output = fullfile(save_path, [params.sub '_megeeg_layout.mat']);
         megeeg_layout = ft_prepare_layout(cfg);
         params.layout = megeeg_layout;
         params.chs = 'EEG*';
         params.modality = 'squideeg';
-        megeeg_ica = ica_MEG(megeeg_cleaned, save_path, params);
+        squideeg_ica = ica_MEG(squideeg_cleaned, save_path, params);
         close all
 
         % Average
@@ -187,7 +187,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'megmag';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        meg_timelocked = timelock_MEG(meg_ica, save_path, params);
+        squid_timelocked = timelock_MEG(squid_ica, save_path, params);
         close all
 
         params.modality = 'squidgrad';
@@ -195,7 +195,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'megplanar';
         params.amp_scaler = 1e15/100;
         params.amp_label = 'B [fT/cm]';
-        megplanar_timelocked = timelock_MEG(meg_ica, save_path, params);
+        squidgrad_timelocked = timelock_MEG(squid_ica, save_path, params);
         close all
 
         params.modality = 'squideeg';
@@ -203,7 +203,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
-        meegeeg_timelocked = timelock_MEG(megeeg_ica, save_path, params);
+        meegeeg_timelocked = timelock_MEG(squideeg_ica, save_path, params);
         close all
     end
 
@@ -347,7 +347,7 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, 'dipoles.mat'));
     else
         clear headmodels mri_resliced
-        clear squidmag_timelocked squidplanar_timelocked squideeg_timelocked
+        clear squidmag_timelocked squidgrad_timelocked squideeg_timelocked
         clear opm_timelockedT opmeeg_timelockedT
         load(fullfile(save_path, [params.sub '_opm_timelockedT.mat']))
         load(fullfile(save_path, [params.sub '_opmeeg_timelockedT.mat']))
@@ -471,7 +471,7 @@ for i_sub = 2:size(subses,1)
         clear headmodels sourcemodelT
         load(fullfile(save_path, [params.sub '_sourcemodelT']));
         load(fullfile(save_path,'headmodels.mat'));
-        clear megmag_timelocked magplanar_timelocked megeeg_timelocked
+        clear megmag_timelocked magplanar_timelocked squideeg_timelocked
         clear opm_timelockedT opmeeg_timelockedT
         load(fullfile(save_path, [params.sub '_opm_timelockedT.mat']))
         load(fullfile(save_path, [params.sub '_opmeeg_timelockedT.mat']))

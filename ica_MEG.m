@@ -325,4 +325,5 @@ cfg.resamplefs = 512;
 data_ica_ds = ft_resampledata(cfg, data_ica_ds);
 save(fullfile(save_path, [params.sub '_' params.modality '_ica_ds']), 'data_ica_ds',"-v7.3"); disp('done');
 
+close all
 end
