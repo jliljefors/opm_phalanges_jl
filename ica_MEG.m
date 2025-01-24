@@ -52,6 +52,7 @@ else
     ft_topoplotIC(cfg, comp);   
     saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_comps.jpg'])) 
 end
+close all
 
 %% --- ECG ----
 % Find ECG artifacts
@@ -151,6 +152,7 @@ set(bp(foo),'facecolor','w'); set(bp(ecg_comp_idx),'facecolor','r')
 axis([0.5, length(maxcoh)+0.5, 0, 1]); xlabel('comp'); ylabel('coh');
 
 saveas(h, fullfile(save_path, 'figs',[params.sub '_' params.modality '_ica_ecg_coh.jpg'])) 
+close all
 
 %% --- EOG ---
 % Find EOG artifacts
@@ -285,6 +287,7 @@ set(bp(foo),'facecolor','w'); set(bp(eog2_comp_idx),'facecolor','r');
 axis([0.5, length(maxcoh)+0.5, 0, 1]);
 
 saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog_coh.jpg'])) 
+close all
 
 %% Remove components
 % Make a list of all "bad" components

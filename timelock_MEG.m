@@ -24,8 +24,8 @@ for i_phalange = 1:length(params.trigger_code)
     tmp = [];
     [~, i_peak_latency] = findpeaks(mean(abs(dat.avg(:,(interval_M100(1):interval_M100(2)))),1),'SortStr','descend');
     disp(i_peak_latency);
-    i_peak_latency = i_peak_latency(1); % if multiple peaks found pick strongest
-    tmp.peak_latency = dat.time(interval_M100(1)-1+i_peak_latency);
+    i_peak_latency = interval_M100(1)-1+i_peak_latency(1); % adjust for interval and pick first (=strongest) peak
+    tmp.peak_latency = dat.time(i_peak_latency);
     disp(tmp.peak_latency);
     [tmp.max_amplitude, i_maxch] = max(dat.avg(:,i_peak_latency));
     [tmp.min_amplitude, i_minch] = min(dat.avg(:,i_peak_latency));
@@ -43,7 +43,7 @@ for i_phalange = 1:length(params.trigger_code)
     %[~,i_peak_latency] = max(abs(dat.avg(i_maxch,interval_M100(1):interval_M100(2))));
     %tmp.peak_latency = dat.time(interval_M100(1)-1+i_peak_latency);
     tmp.prestim_std = std(dat.avg(i_peakch,1:interval_M100(3)));
-    tmp.std_error = sqrt(dat.var(i_peakch,interval_M100(1)-1+i_peak_latency));
+    tmp.std_error = sqrt(dat.var(i_peakch,i_peak_latency));
     %for i_trl = find(data.trialinfo==params.trigger_code(i_phalange))'
     %    tmp.std_error = tmp.std_error + abs(tmp.max_amplitude - data.trial{i_trl}(i_maxch,interval_M100(1)-1+i_peak_latency));
     %end

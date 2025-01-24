@@ -209,6 +209,7 @@ for i_sub = 1:size(subses,1)
 
     params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality
     create_bads_reports(base_save_path, i_sub, params);
+    close all
 end
 
 %% --- Group sensor level -------------------------------------------------
