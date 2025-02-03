@@ -27,14 +27,15 @@ ft_defaults
 global ft_default
 ft_default.showcallinfo = 'no';
 
-%% Params
+%% Overwrite
 overwrite = [];
-overwrite.preproc = true;
+overwrite.preproc = false;
 overwrite.coreg = false;
 overwrite.mri = false;
 overwrite.dip = true;
 overwrite.mne = true;
 
+%% Params
 params = [];
 params.pre = 0.1; %sec
 params.post = 0.4; %sec
@@ -75,7 +76,7 @@ mri_files = {'00000001.dcm'
     '/nifti/anat/sub-15985_T1w.nii.gz'};
 
 %% Loop over subjects
-for i_sub = 1%:size(subses,1)
+for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
 
     %% Paths
@@ -98,11 +99,7 @@ for i_sub = 1%:size(subses,1)
 
     %% OPM-MEG 
     if exist(fullfile(save_path, [params.sub '_opmeeg_timelocked.mat']),'file') && overwrite.preproc==false
-        load(fullfile(save_path, [params.sub '_opm_timelocked.mat']))
-        opm_timelocked = timelocked;
-        load(fullfile(save_path, [params.sub '_opmeeg_timelocked.mat']))
-        opmeeg_timelocked = timelocked;
-        clear timelocked
+        disp(['Not overwriting OPM preproc for ' params.sub]);
     else
         ft_hastoolbox('mne', 1);
 
@@ -121,6 +118,7 @@ for i_sub = 1%:size(subses,1)
         params.layout = 'fieldlinebeta2bz_helmet.mat';
         params.chs = '*bz';
         opm_ica = ica_MEG(opm_cleaned, save_path, params);
+        clear opm_cleaned
 
         cfg = [];
         cfg.elec = opmeeg_cleaned.elec;
@@ -131,6 +129,7 @@ for i_sub = 1%:size(subses,1)
         params.modality = 'opmeeg';
         opmeeg_ica = ica_MEG(opmeeg_cleaned, save_path, params);
         close all
+        clear opmeeg_cleaned
 
         % Average
         params.modality = 'opm';
@@ -140,6 +139,7 @@ for i_sub = 1%:size(subses,1)
         params.amp_label = 'B [fT]';
         opm_timelocked = timelock_MEG(opm_ica, save_path, params);
         close all
+        clear opm_ica
 
         params.modality = 'opmeeg';
         params.layout = opmeeg_layout;
@@ -148,17 +148,15 @@ for i_sub = 1%:size(subses,1)
         params.amp_label = 'V [nV]';
         opmeeg_timelocked = timelock_MEG(opmeeg_ica, save_path, params);
         close all
+        clear opmeeg_ica
+        clear opm_timelocked opmeeg_timelocked
+
+        params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality
     end
 
     %% SQUID-MEG 
     if exist(fullfile(save_path, [params.sub '_squideeg_timelocked.mat']),'file') && overwrite.preproc==false
-        load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat']))
-        megmag_timelocked = timelocked;
-        load(fullfile(save_path, [params.sub '_squidgrad_timelocked.mat']))
-        squidgrad_timelocked = timelocked;
-        load(fullfile(save_path, [params.sub '_squideeg_timelocked.mat']))
-        squideeg_timelocked = timelocked;
-        clear timelocked
+        disp(['Not overwriting SQUID preproc for ' params.sub]);
     else
         ft_hastoolbox('mne', 1);
 
@@ -170,6 +168,7 @@ for i_sub = 1%:size(subses,1)
         params.layout = 'neuromag306mag.lay';
         params.chs = 'MEG*';
         squid_ica = ica_MEG(squid_cleaned, save_path, params);
+        clear squid_cleaned
 
         cfg = [];
         cfg.elec = squideeg_cleaned.elec;
@@ -180,6 +179,7 @@ for i_sub = 1%:size(subses,1)
         params.modality = 'squideeg';
         squideeg_ica = ica_MEG(squideeg_cleaned, save_path, params);
         close all
+        clear squideeg_cleaned
 
         % Average
         params.modality = 'squidmag';
@@ -195,20 +195,26 @@ for i_sub = 1%:size(subses,1)
         params.chs = 'megplanar';
         params.amp_scaler = 1e15/100;
         params.amp_label = 'B [fT/cm]';
-        squidgrad_timelocked = timelock_MEG(meg_ica, save_path, params);
+        squidgrad_timelocked = timelock_MEG(squid_ica, save_path, params);
         close all
+        clear squid_ica
 
         params.modality = 'squideeg';
         params.layout = megeeg_layout;
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
-        meegeeg_timelocked = timelock_MEG(megeeg_ica, save_path, params);
+        squideeg_timelocked = timelock_MEG(squideeg_ica, save_path, params);
         close all
+        clear squideeg_íca
+        clear squid_timelocked squidgrad_timelocked squideeg_timelocked
+
+        params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality    
     end
 
-    params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality
     create_bads_reports(base_save_path, i_sub, params);
+    close all
+
 end
 
 %% --- Group sensor level -------------------------------------------------
@@ -217,6 +223,7 @@ if ~exist(fullfile(base_save_path,'figs'), 'dir')
 end
 subs = 1:13;
 sensor_results_goup(base_save_path,subs, params)
+close all
 
 %% Prepare MRIs
 for i_sub = 6%7:size(subses,1)
@@ -226,9 +233,7 @@ for i_sub = 6%7:size(subses,1)
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}],'mri');
     if exist(fullfile(save_path, 'headmodels.mat'),'file') && overwrite.mri==false
-        load(fullfile(save_path, 'headmodels.mat'));
-        load(fullfile(save_path, 'meshes.mat'));
-        load(fullfile(save_path, 'mri_resliced.mat'));
+        disp(['Not overwriting MRI for ' params.sub]);
     else
         meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
         if i_sub == 9
@@ -249,8 +254,7 @@ for i_sub = 2:size(subses,1)
     hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
 
     if exist(fullfile(save_path, 'opm_trans.mat'),'file') && overwrite.coreg==false
-        load(fullfile(save_path, 'hpi_fit.mat'));
-        load(fullfile(save_path, 'opm_trans.mat'));
+        disp(['Not overwriting OPM transform for ' params.sub]);
     else
         meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
         if i_sub == 9
@@ -265,17 +269,20 @@ for i_sub = 2:size(subses,1)
     end
 end
 
-% Transform for OPM data
+%% Transform for OPM data
 for i_sub = 2:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
-    if exist(fullfile(save_path, 'headmodels.mat'),'file') && exist(fullfile(save_path, 'opm_trans.mat'),'file') && overwrite.coreg==true
+    if exist(fullfile(save_path, 'headmodels.mat'),'file') && exist(fullfile(save_path, 'opm_trans.mat'),'file') && or(overwrite.preproc,or(overwrite.coreg,overwrite.mri))
+        clear squidmag_timelocked opm_timelocked opmeeg_timelocked
+        clear headmodels meshes filename
+        load(fullfile(save_path,'headmodels.mat'));
+        load(fullfile(save_path,'meshes.mat'));    
+        load(fullfile(save_path, 'mri_resliced.mat'));
         load(fullfile(save_path, 'opm_trans.mat'));
-        load(fullfile(save_path, 'headmodels.mat'));
-        load(fullfile(save_path, 'meshes.mat'));
         load(fullfile(save_path, [params.sub '_opm_timelocked.mat']))
         opm_timelocked = timelocked;
         opm_timelockedT = opm_timelocked;
@@ -287,6 +294,8 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat']))
         squidmag_timelocked = timelocked;
         clear timelocked;
+
+        % Transform opm & opmeeg data 
         meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
         if i_sub == 9
             meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98.fif');
@@ -298,40 +307,58 @@ for i_sub = 2:size(subses,1)
             opmeeg_timelockedT{i}.elec.chanpos = squideeg_timelocked{i}.elec.chanpos;
             opmeeg_timelockedT{i}.elec.elecpos = squideeg_timelocked{i}.elec.elecpos;
         end
+
+        % Read and transform cortical restrained source model
+        files = dir(fullfile(mri_path,'workbench'));
+        if i_sub ==5
+            files = dir(fullfile(save_path,'wb'));
+        end
+        for i = 1:length(files)
+            if endsWith(files(i).name,'.L.midthickness.8k_fs_LR.surf.gii')
+                filename = fullfile(mri_path,'workbench',files(i).name);
+            end
+        end
+        sourcemodel = ft_read_headshape({filename, strrep(filename, '.L.', '.R.')});
+        T = mri_resliced.transform/mri_resliced.hdr.vox2ras;
+        sourcemodelT = ft_transform_geometry(T, sourcemodel);
+        sourcemodelT.inside = true(size(sourcemodelT.pos,1),1);
         
-        h = figure; 
+        % Plot source and head models
+        h=figure; 
+        ft_plot_mesh(sourcemodelT, 'maskstyle', 'opacity', 'facecolor', 'black', 'facealpha', 0.25, 'edgecolor', 'red',   'edgeopacity', 0.5,'unit','cm');
         hold on; 
+        ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.2,'FaceColor',[229 194 152]/256,'unit','cm')
+        ft_plot_headmodel(headmodels.headmodel_meg, 'facealpha', 0.25, 'edgealpha', 0.25)
         ft_plot_sens(opm_timelockedT{1}.grad,'unit','cm')
         ft_plot_sens(opmeeg_timelockedT{1}.elec,'unit','cm', 'style', '.r','elecsize',20)
-        ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.7,'FaceColor',[229 194 152]/256,'unit','cm')
-        ft_plot_headmodel(headmodels.headmodel_meg)
-        ft_plot_headshape(headshape)
         hold off;
         title('OPM-MEG')
         view([-140 10])
-        savefig(h, fullfile(save_path, 'figs', 'opm_layout.fig'))
-        saveas(h, fullfile(save_path, 'figs', 'opm_layout.jpg'))
+        savefig(h, fullfile(save_path, 'figs', 'opm_layout2.fig'))
+        saveas(h, fullfile(save_path, 'figs', 'opm_layout2.jpg'))
     
-        h = figure; 
-        hold on
+        h=figure; 
+        ft_plot_mesh(sourcemodelT, 'maskstyle', 'opacity', 'facecolor', 'black', 'facealpha', 0.25, 'edgecolor', 'red',   'edgeopacity', 0.5,'unit','cm');
+        hold on; 
+        ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.2,'FaceColor',[229 194 152]/256,'unit','cm')
+        ft_plot_headmodel(headmodels.headmodel_meg, 'facealpha', 0.25, 'edgealpha', 0.25)
         ft_plot_sens(squidmag_timelocked{1}.grad,'unit','cm')
         ft_plot_sens(squideeg_timelocked{1}.elec,'unit','cm', 'style', '.r','elecsize',20)
-        ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.7,'FaceColor',[229 194 152]/256,'unit','cm')
-        ft_plot_headmodel(headmodels.headmodel_meg)
-        ft_plot_headshape(headshape)
         hold off;
         title('SQUID-MEG')
         view([-140 10])
-        savefig(h, fullfile(save_path, 'figs', 'squid_layout.fig'))
-        saveas(h, fullfile(save_path, 'figs', 'squid_layout.jpg'))
+        savefig(h, fullfile(save_path, 'figs', 'meg_layout2.fig'))
+        saveas(h, fullfile(save_path, 'figs', 'meg_layout2.jpg'))
+
         close all
 
         %% Save
         save(fullfile(save_path, [params.sub '_opm_timelockedT']), 'opm_timelockedT', '-v7.3');
         save(fullfile(save_path, [params.sub '_opmeeg_timelockedT']), 'opmeeg_timelockedT', '-v7.3');
+        save(fullfile(save_path, [params.sub '_sourcemodelT']), 'sourcemodelT', '-v7.3');
 
     else
-        disp('Required files not found. No transformed OPM data was saved.')
+        disp(['Required files not found. No transformed OPM/sourcemodel data was saved for ' params.sub])
     end
 end
 
@@ -344,7 +371,7 @@ for i_sub = 2:size(subses,1)
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
 
     if exist(fullfile(save_path, 'dipoles.mat'),'file') && overwrite.dip==false
-        load(fullfile(save_path, 'dipoles.mat'));
+        disp(['Not overwriting dipole source reconstruction for ' params.sub]);
     else
         clear headmodels mri_resliced
         clear squidmag_timelocked squidgrad_timelocked squideeg_timelocked
@@ -386,75 +413,75 @@ subs = 2:13;
 dipole_results_goup(base_save_path,subs, params)
 
 %% Prepare MNE sourcemodel 
-for i_sub = 2:size(subses,1)
-    ft_hastoolbox('mne',1);
-    params.sub = ['sub_' num2str(i_sub,'%02d')];
-    raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
-    save_path = fullfile(base_save_path,params.sub);
-    mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
-
-    clear headmodels megmag_timelocked opm_timelockedT meshes filename
-    clear headmodels meshes filename
-    load(fullfile(save_path,'headmodels.mat'));
-    load(fullfile(save_path,'meshes.mat'));    
-    load(fullfile(save_path, 'mri_resliced.mat'));
-    load(fullfile(save_path, [params.sub '_opm_timelockedT.mat']))
-    load(fullfile(save_path, [params.sub '_opmeeg_timelockedT.mat']))
-    load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat']))
-    squidmag_timelocked = timelocked;
-    load(fullfile(save_path, [params.sub '_squideeg_timelocked.mat']))
-    squideeg_timelocked = timelocked;
-    clear timelocked
-
-    % Read and transform cortical restrained source model
-    files = dir(fullfile(mri_path,'workbench'));
-    if i_sub ==5
-        files = dir(fullfile(save_path,'wb'));
-    end
-    for i = 1:length(files)
-        if endsWith(files(i).name,'.L.midthickness.8k_fs_LR.surf.gii')
-            filename = fullfile(mri_path,'workbench',files(i).name);
-            %return;
-        end
-    end
-    sourcemodel = ft_read_headshape({filename, strrep(filename, '.L.', '.R.')});
-    T = mri_resliced.transform/mri_resliced.hdr.vox2ras;
-    sourcemodelT = ft_transform_geometry(T, sourcemodel);
-    sourcemodelT.inside = true(size(sourcemodelT.pos,1),1);
-    %sourcemodelOPM = sourcemodelT;
-    %sourcemodelOPM.pos = opm_trans.transformPointsForward(sourcemodelOPM.pos);
-
-    % Plot source and head models
-    h=figure; 
-    ft_plot_mesh(sourcemodelT, 'maskstyle', 'opacity', 'facecolor', 'black', 'facealpha', 0.25, 'edgecolor', 'red',   'edgeopacity', 0.5,'unit','cm');
-    hold on; 
-    ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.2,'FaceColor',[229 194 152]/256,'unit','cm')
-    ft_plot_headmodel(headmodels.headmodel_meg, 'facealpha', 0.25, 'edgealpha', 0.25)
-    ft_plot_sens(opm_timelockedT{1}.grad,'unit','cm')
-    ft_plot_sens(opm_timelockedT{1}.elec,'unit','cm', 'style', '.r','elecsize',20)
-    hold off;
-    title('OPM-MEG')
-    view([-140 10])
-    savefig(h, fullfile(save_path, 'figs', 'opm_layout2.fig'))
-    saveas(h, fullfile(save_path, 'figs', 'opm_layout2.jpg'))
-
-    h=figure; 
-    ft_plot_mesh(sourcemodelT, 'maskstyle', 'opacity', 'facecolor', 'black', 'facealpha', 0.25, 'edgecolor', 'red',   'edgeopacity', 0.5,'unit','cm');
-    hold on; 
-    ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.2,'FaceColor',[229 194 152]/256,'unit','cm')
-    ft_plot_headmodel(headmodels.headmodel_meg, 'facealpha', 0.25, 'edgealpha', 0.25)
-    ft_plot_sens(squidmag_timelocked{1}.grad,'unit','cm')
-    ft_plot_sens(squideeg_timelocked{1}.elec,'unit','cm', 'style', '.r','elecsize',20)
-    hold off;
-    title('SQUID-MEG')
-    view([-140 10])
-    savefig(h, fullfile(save_path, 'figs', 'meg_layout2.fig'))
-    saveas(h, fullfile(save_path, 'figs', 'meg_layout2.jpg'))
-    
-    close all
-    % Save
-    save(fullfile(save_path, [params.sub '_sourcemodelT']), 'sourcemodelT', '-v7.3');
-end
+% for i_sub = 2:size(subses,1)
+%     ft_hastoolbox('mne',1);
+%     params.sub = ['sub_' num2str(i_sub,'%02d')];
+%     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+%     save_path = fullfile(base_save_path,params.sub);
+%     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
+% 
+%     clear headmodels megmag_timelocked opm_timelockedT meshes filename
+%     clear headmodels meshes filename
+%     load(fullfile(save_path,'headmodels.mat'));
+%     load(fullfile(save_path,'meshes.mat'));    
+%     load(fullfile(save_path, 'mri_resliced.mat'));
+%     load(fullfile(save_path, [params.sub '_opm_timelockedT.mat']))
+%     load(fullfile(save_path, [params.sub '_opmeeg_timelockedT.mat']))
+%     load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat']))
+%     squidmag_timelocked = timelocked;
+%     load(fullfile(save_path, [params.sub '_squideeg_timelocked.mat']))
+%     squideeg_timelocked = timelocked;
+%     clear timelocked
+% 
+%     % Read and transform cortical restrained source model
+%     files = dir(fullfile(mri_path,'workbench'));
+%     if i_sub ==5
+%         files = dir(fullfile(save_path,'wb'));
+%     end
+%     for i = 1:length(files)
+%         if endsWith(files(i).name,'.L.midthickness.8k_fs_LR.surf.gii')
+%             filename = fullfile(mri_path,'workbench',files(i).name);
+%             %return;
+%         end
+%     end
+%     sourcemodel = ft_read_headshape({filename, strrep(filename, '.L.', '.R.')});
+%     T = mri_resliced.transform/mri_resliced.hdr.vox2ras;
+%     sourcemodelT = ft_transform_geometry(T, sourcemodel);
+%     sourcemodelT.inside = true(size(sourcemodelT.pos,1),1);
+%     %sourcemodelOPM = sourcemodelT;
+%     %sourcemodelOPM.pos = opm_trans.transformPointsForward(sourcemodelOPM.pos);
+% 
+%     % Plot source and head models
+%     h=figure; 
+%     ft_plot_mesh(sourcemodelT, 'maskstyle', 'opacity', 'facecolor', 'black', 'facealpha', 0.25, 'edgecolor', 'red',   'edgeopacity', 0.5,'unit','cm');
+%     hold on; 
+%     ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.2,'FaceColor',[229 194 152]/256,'unit','cm')
+%     ft_plot_headmodel(headmodels.headmodel_meg, 'facealpha', 0.25, 'edgealpha', 0.25)
+%     ft_plot_sens(opm_timelockedT{1}.grad,'unit','cm')
+%     ft_plot_sens(opm_timelockedT{1}.elec,'unit','cm', 'style', '.r','elecsize',20)
+%     hold off;
+%     title('OPM-MEG')
+%     view([-140 10])
+%     savefig(h, fullfile(save_path, 'figs', 'opm_layout2.fig'))
+%     saveas(h, fullfile(save_path, 'figs', 'opm_layout2.jpg'))
+% 
+%     h=figure; 
+%     ft_plot_mesh(sourcemodelT, 'maskstyle', 'opacity', 'facecolor', 'black', 'facealpha', 0.25, 'edgecolor', 'red',   'edgeopacity', 0.5,'unit','cm');
+%     hold on; 
+%     ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.2,'FaceColor',[229 194 152]/256,'unit','cm')
+%     ft_plot_headmodel(headmodels.headmodel_meg, 'facealpha', 0.25, 'edgealpha', 0.25)
+%     ft_plot_sens(squidmag_timelocked{1}.grad,'unit','cm')
+%     ft_plot_sens(squideeg_timelocked{1}.elec,'unit','cm', 'style', '.r','elecsize',20)
+%     hold off;
+%     title('SQUID-MEG')
+%     view([-140 10])
+%     savefig(h, fullfile(save_path, 'figs', 'meg_layout2.fig'))
+%     saveas(h, fullfile(save_path, 'figs', 'meg_layout2.jpg'))
+%     
+%     close all
+%     % Save
+%     save(fullfile(save_path, [params.sub '_sourcemodelT']), 'sourcemodelT', '-v7.3');
+% end
 
 %% MNE
 for i_sub = 2:size(subses,1)
@@ -466,7 +493,7 @@ for i_sub = 2:size(subses,1)
 
     %% MNE fit
     if exist(fullfile(save_path, 'mne_fits.mat'),'file') && overwrite.mne==false
-        load(fullfile(save_path, 'mne_fits.mat'));
+        disp(['Not overwriting MNE source reconstruction for ' params.sub]);
     else
         clear headmodels sourcemodelT
         load(fullfile(save_path, [params.sub '_sourcemodelT']));

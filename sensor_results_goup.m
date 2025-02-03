@@ -13,56 +13,56 @@ for i_sub = subs
     M100_opm{i_sub} = M100;
     load(fullfile(save_path, [params.sub '_opmeeg_M100'])); 
     M100_opmeeg{i_sub} = M100;
-    load(fullfile(save_path, [params.sub '_megmag_M100'])); 
-    M100_megmag{i_sub} = M100;
-    load(fullfile(save_path, [params.sub '_megplanar_M100'])); 
-    M100_megplanar{i_sub} = M100;
-    load(fullfile(save_path, [params.sub '_megeeg_M100']));
-    M100_megeeg{i_sub} = M100;
+    load(fullfile(save_path, [params.sub '_squidmag_M100'])); 
+    M100_squidmag{i_sub} = M100;
+    load(fullfile(save_path, [params.sub '_squidgrad_M100'])); 
+    M100_squidgrad{i_sub} = M100;
+    load(fullfile(save_path, [params.sub '_squideeg_M100']));
+    M100_squideeg{i_sub} = M100;
     
-    load(fullfile(save_path, [params.sub '_meg_timelocked'])); 
-    meg_timelocked = timelocked;
+    load(fullfile(save_path, [params.sub '_squidmag_timelocked'])); 
+    squidmag_timelocked = timelocked;
     load(fullfile(save_path, [params.sub '_opm_timelocked'])); 
-    meg_chs = find(contains(meg_timelocked{1}.label,'MEG'));
+    meg_chs = find(contains(squidmag_timelocked{1}.label,'MEG'));
     opm_timelocked = timelocked;
     opm_chs = find(contains(opm_timelocked{1}.label,'bz'));
 
     for i_phalange = 1:length(params.phalange_labels)
-        peak_ratio.meg(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude/M100_megmag{i_sub}{i_phalange}.peak_amplitude;
-        peak_ratio.eeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude/M100_megeeg{i_sub}{i_phalange}.peak_amplitude;
+        peak_ratio.meg(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude/M100_squidmag{i_sub}{i_phalange}.peak_amplitude;
+        peak_ratio.eeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude/M100_squideeg{i_sub}{i_phalange}.peak_amplitude;
         snr.error_opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude/M100_opm{i_sub}{i_phalange}.std_error;
-        snr.error_meg(i_sub,i_phalange) = M100_megmag{i_sub}{i_phalange}.peak_amplitude/M100_megmag{i_sub}{i_phalange}.std_error;
-        snr.error_megeeg(i_sub,i_phalange) = M100_megeeg{i_sub}{i_phalange}.peak_amplitude/M100_megeeg{i_sub}{i_phalange}.std_error;
+        snr.error_squid(i_sub,i_phalange) = M100_squidmag{i_sub}{i_phalange}.peak_amplitude/M100_squidmag{i_sub}{i_phalange}.std_error;
+        snr.error_squideeg(i_sub,i_phalange) = M100_squideeg{i_sub}{i_phalange}.peak_amplitude/M100_squideeg{i_sub}{i_phalange}.std_error;
         snr.error_opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude/M100_opmeeg{i_sub}{i_phalange}.std_error;
         snr.prestim_opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude/M100_opm{i_sub}{i_phalange}.prestim_std;
-        snr.prestim_meg(i_sub,i_phalange) = M100_megmag{i_sub}{i_phalange}.peak_amplitude/M100_megmag{i_sub}{i_phalange}.prestim_std;
+        snr.prestim_squid(i_sub,i_phalange) = M100_squidmag{i_sub}{i_phalange}.peak_amplitude/M100_squidmag{i_sub}{i_phalange}.prestim_std;
         snr.prestim_opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude/M100_opmeeg{i_sub}{i_phalange}.prestim_std;
-        snr.prestim_megeeg(i_sub,i_phalange) = M100_megeeg{i_sub}{i_phalange}.peak_amplitude/M100_megeeg{i_sub}{i_phalange}.prestim_std;
-        snr.ratio_error(i_sub,i_phalange) = snr.error_opm(i_sub,i_phalange)/snr.error_meg(i_sub,i_phalange);
-        snr.ratio_prestim(i_sub,i_phalange) = snr.prestim_opm(i_sub,i_phalange)/snr.prestim_meg(i_sub,i_phalange);
+        snr.prestim_squideeg(i_sub,i_phalange) = M100_squideeg{i_sub}{i_phalange}.peak_amplitude/M100_squideeg{i_sub}{i_phalange}.prestim_std;
+        snr.ratio_error(i_sub,i_phalange) = snr.error_opm(i_sub,i_phalange)/snr.error_squid(i_sub,i_phalange);
+        snr.ratio_prestim(i_sub,i_phalange) = snr.prestim_opm(i_sub,i_phalange)/snr.prestim_squid(i_sub,i_phalange);
         latency.opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_latency;
-        latency.megmag(i_sub,i_phalange) = M100_megmag{i_sub}{i_phalange}.peak_latency;
-        latency.megplanar(i_sub,i_phalange) = M100_megplanar{i_sub}{i_phalange}.peak_latency;
+        latency.squidmag(i_sub,i_phalange) = M100_squidmag{i_sub}{i_phalange}.peak_latency;
+        latency.squidgrad(i_sub,i_phalange) = M100_squidgrad{i_sub}{i_phalange}.peak_latency;
         latency.opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_latency;
-        latency.megeeg(i_sub,i_phalange) = M100_megeeg{i_sub}{i_phalange}.peak_latency;
-        amp.opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude*1e15;
-        amp.megmag(i_sub,i_phalange) = M100_megmag{i_sub}{i_phalange}.peak_amplitude*1e15;
-        amp.megplanar(i_sub,i_phalange) = M100_megplanar{i_sub}{i_phalange}.peak_amplitude;
+        latency.squideeg(i_sub,i_phalange) = M100_squideeg{i_sub}{i_phalange}.peak_latency;
+        amp.opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude;
+        amp.squidmag(i_sub,i_phalange) = M100_squidmag{i_sub}{i_phalange}.peak_amplitude;
+        amp.squidgrad(i_sub,i_phalange) = M100_squidgrad{i_sub}{i_phalange}.peak_amplitude;
         amp.opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude;
-        amp.megeeg(i_sub,i_phalange) = M100_megeeg{i_sub}{i_phalange}.peak_amplitude;
+        amp.squideeg(i_sub,i_phalange) = M100_squideeg{i_sub}{i_phalange}.peak_amplitude;
 
         h = figure;
         subplot(2,1,1)
-        plot(meg_timelocked{i_phalange}.time*1e3,meg_timelocked{i_phalange}.avg(meg_chs(1:3:end),:)*1e15)
+        plot(squidmag_timelocked{i_phalange}.time*1e3,squidmag_timelocked{i_phalange}.avg(meg_chs(1:3:end),:)*1e15)
         xlabel('t [msec]')
         ylabel('B [fT]')
-        title(['Evoked SQUID MAG - phalange ' params.phalange_labels{i_phalange} ' (n_{trls}=' num2str(length(meg_timelocked{i_phalange}.cfg.trials)) ')'])
+        title(['Evoked SQUID MAG - phalange ' params.phalange_labels{i_phalange} ' (n_{trls}=' num2str(length(squidmag_timelocked{i_phalange}.cfg.trials)) ')'])
         subplot(2,1,2)
-        plot(opm_timelocked{i_phalange}.time*1e3,meg_timelocked{i_phalange}.avg(opm_chs,:)*1e15)
+        plot(opm_timelocked{i_phalange}.time*1e3,opm_timelocked{i_phalange}.avg(opm_chs,:)*1e15)
         xlabel('t [msec]')
         ylabel('B [fT]')
         title(['Evoked OPM MAG - phalange ' params.phalange_labels{i_phalange} ' (n_{trls}=' num2str(length(opm_timelocked{i_phalange}.cfg.trials)) ')'])
-        saveas(h, fullfile(save_path, 'figs', [params.sub '_megopm_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']))
+        saveas(h, fullfile(save_path, 'figs', [params.sub '_squidopm_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']))
     end
     close all
 end
@@ -136,7 +136,7 @@ saveas(h, fullfile(save_path, 'figs', 'SNR_ratios_prestim.jpg'))
 
 %% Plot peak amp
 % MEG
-data1 = 1e15*amp.megmag;
+data1 = 1e15*amp.squidmag;
 data2 = 1e15*amp.opm;
 mean1 = mean(data1,1);
 mean2 = mean(data2,1);
@@ -168,7 +168,7 @@ legend({'squidmag','opm'});
 saveas(h, fullfile(save_path, 'figs', 'Amplitude_meg.jpg'))
 
 % EEG
-data1 = 1e6*amp.megeeg;
+data1 = 1e6*amp.squideeg;
 data2 = 1e6*amp.opmeeg;
 mean1 = mean(data1,1);
 mean2 = mean(data2,1);
@@ -200,7 +200,7 @@ legend({'squideeg','opmeeg'});
 saveas(h, fullfile(save_path, 'figs', 'Amplitude_eeg.jpg'))
 
 %% Plot peak latency
-data1 = 1e3*latency.megmag;
+data1 = 1e3*latency.squidmag;
 data2 = 1e3*latency.opm;
 mean1 = mean(data1,1);
 mean2 = mean(data2,1);
@@ -232,7 +232,7 @@ legend({'squidmag','opm'});
 saveas(h, fullfile(save_path, 'figs', 'Latency.jpg'))
 
 %% Plot SNR - error
-data1 = snr.error_meg;
+data1 = snr.error_squid;
 data2 = snr.error_opm;
 mean1 = mean(data1,1);
 mean2 = mean(data2,1);
@@ -264,7 +264,7 @@ xticklabels(params.phalange_labels)
 saveas(h, fullfile(save_path, 'figs', 'SNR_error.jpg'))
 
 %% Plot SNR - prestim
-data1 = snr.prestim_meg;
+data1 = snr.prestim_squid;
 data2 = snr.prestim_opm;
 mean1 = mean(data1,1);
 mean2 = mean(data2,1);
