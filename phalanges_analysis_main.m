@@ -32,7 +32,7 @@ overwrite = [];
 overwrite.preproc = false;
 overwrite.coreg = false;
 overwrite.mri = false;
-overwrite.dip = true;
+overwrite.dip = false;
 overwrite.mne = true;
 
 %% Params
