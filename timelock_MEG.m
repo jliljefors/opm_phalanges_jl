@@ -17,6 +17,7 @@ for i_phalange = 1:length(params.trigger_code)
     cfg.covariancewindow    = 'prestim';
     cfg.trials = find(data.trialinfo==params.trigger_code(i_phalange));
     timelocked{i_phalange} = ft_timelockanalysis(cfg, data);
+    
     dat = timelocked{i_phalange};
     [~, interval_M100(1)] = min(abs(dat.time-0.08)); % find closest time sample
     [~, interval_M100(2)] = min(abs(dat.time-0.125)); % find closest time sample

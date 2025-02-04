@@ -1,25 +1,25 @@
-function [megmag_mne, megplanar_mne, opm_mne, megeeg_mne, opmeeg_mne] = fit_mne(save_path,megmag_timelocked,megplanar_timelocked,megeeg_timelocked,opm_timelocked, opmeeg_timelocked,headmodels,sourcemodel,latency,params)
+function [squidmag_mne, squidgrad_mne, opm_mne, squideeg_mne, opmeeg_mne] = fit_mne(save_path,squidmag_timelocked,squidgrad_timelocked,squideeg_timelocked,opm_timelocked, opmeeg_timelocked,headmodels,sourcemodel,latency,params)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
 %% Prepare leadfields
 cfg = [];
-cfg.grad             = megmag_timelocked{1}.grad;              % sensor positions
-cfg.channel          = 'megmag';                  % the used channels
+cfg.grad             = squidmag_timelocked{1}.grad;              % sensor positions
+cfg.channel          = 'squidmag';                  % the used channels
 cfg.senstype         = 'meg';            % sensor type
 cfg.grid.pos         = sourcemodel.pos;           % source points
 cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
 cfg.headmodel        = headmodels.headmodel_meg;          % volume conduction model
-leadfield_megmag = ft_prepare_leadfield(cfg,megmag_timelocked{1});
+leadfield_squidmag = ft_prepare_leadfield(cfg,squidmag_timelocked{1});
 
 cfg = [];
-cfg.grad             = megplanar_timelocked{1}.grad;              % sensor positions
-cfg.channel          = 'megplanar';                  % the used channels
+cfg.grad             = squidgrad_timelocked{1}.grad;              % sensor positions
+cfg.channel          = 'squidgrad';                  % the used channels
 cfg.senstype         = 'meg';            % sensor type
 cfg.grid.pos         = sourcemodel.pos;           % source points
 cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
 cfg.headmodel        = headmodels.headmodel_meg;          % volume conduction model
-leadfield_megplanar = ft_prepare_leadfield(cfg,megplanar_timelocked{1});
+leadfield_squidgrad = ft_prepare_leadfield(cfg,squidgrad_timelocked{1});
 
 cfg = [];
 cfg.grad             = opm_timelocked{1}.grad;              % sensor positions
@@ -32,13 +32,13 @@ leadfield_opm = ft_prepare_leadfield(cfg,opm_timelocked{1});
 
 if ~isempty(headmodels.headmodel_eeg)
     cfg = [];
-    cfg.elec             = megeeg_timelocked{1}.elec;              % sensor positions
+    cfg.elec             = squideeg_timelocked{1}.elec;              % sensor positions
     cfg.channel          = 'eeg';                  % the used channels
     cfg.senstype         = 'eeg';            % sensor type
     cfg.grid.pos         = sourcemodel.pos;           % source points
     cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
     cfg.headmodel        = headmodels.headmodel_eeg;          % volume conduction model
-    leadfield_megeeg = ft_prepare_leadfield(cfg,megeeg_timelocked{1});
+    leadfield_squideeg = ft_prepare_leadfield(cfg,squideeg_timelocked{1});
     
     cfg = [];
     cfg.elec             = opmeeg_timelocked{1}.elec;              % sensor positions
@@ -52,8 +52,9 @@ end
 
 %% MNE invserse
 % MEG-MAG
-megmag_mne = [];
-megmag_mne.avg = cell(5,1);
+squidmag_mne = [];
+squidmag_mne.avg = cell(5,1);
+squidmag_mne_M100 = cell(5,1);
 for i_phalange = 1:5
     cfg = [];
     cfg.method              = 'mne';
@@ -62,15 +63,16 @@ for i_phalange = 1:5
     cfg.mne.scalesourcecov  = 'yes';
     cfg.headmodel           = headmodels.headmodel_meg;    % supply the headmodel
     %cfg.sourcemodel         = sourcemodel;
-    %cfg.sourcemodel.leadfield = leadfield_megmag.leadfield;
-    cfg.sourcemodel         = leadfield_megmag;
+    %cfg.sourcemodel.leadfield = leadfield_squidmag.leadfield;
+    cfg.sourcemodel         = leadfield_squidmag;
     cfg.senstype            = 'meg';            % sensor type
-    cfg.channel             = 'megmag';         % which channels to use
-    tmp = ft_sourceanalysis(cfg, megmag_timelocked{i_phalange});
-    megmag_mne.avg{i_phalange} = [];
-    megmag_mne.avg{i_phalange}.pow = tmp.avg.pow;
-    megmag_mne.avg{i_phalange}.mom = tmp.avg.mom;
-    megmag_mne.avg{i_phalange}.fahm = FullAreaHalfMax(tmp,sourcemodel,latency{i_phalange}.squidmag);
+    cfg.channel             = 'squidmag';         % which channels to use
+    tmp = ft_sourceanalysis(cfg, squidmag_timelocked{i_phalange});
+    squidmag_mne.avg{i_phalange} = [];
+    squidmag_mne.avg{i_phalange}.pow = tmp.avg.pow;
+    squidmag_mne.avg{i_phalange}.mom = tmp.avg.mom;
+    squidmag_mne.avg{i_phalange} = [];
+    [squidmag_mne_M100{i_phalange}.fahm, squidmag_mne_M100{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,latency{i_phalange}.squidmag);
 
     cfg = [];
     cfg.method          = 'surface';
@@ -80,31 +82,32 @@ for i_phalange = 1:5
     cfg.latency         = latency{i_phalange}.squidmag;
     h = figure;
     ft_sourceplot(cfg, tmp)
-    title(['SQUID-MAG (FAHM=' num2str(megmag_mne.avg{i_phalange}.fahm,3) ')'])
+    title(['SQUID-MAG (FAHM=' num2str(squidmag_mne.avg{i_phalange}.fahm,3) ')'])
     saveas(h, fullfile(save_path,'figs', [params.sub '_squidmag_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
 end
-megmag_mne.time = tmp.time;
-megmag_mne.cfg = tmp.cfg;
-megmag_mne.method = tmp.method;
-megmag_mne.pos = tmp.pos;
-megmag_mne.tri = sourcemodel.tri;
+squidmag_mne.time = tmp.time;
+squidmag_mne.cfg = tmp.cfg;
+squidmag_mne.method = tmp.method;
+squidmag_mne.pos = tmp.pos;
+squidmag_mne.tri = sourcemodel.tri;
 
-save(fullfile(save_path, 'megmag_mne'), 'megmag_mne'); 
-clear tmp megmag_mne leadfield_megmag
+save(fullfile(save_path, 'squidmag_mne'), 'squidmag_mne'); 
+save(fullfile(save_path, 'squidmag_mne'), 'squidmag_mne'); 
+clear tmp squidmag_mne leadfield_squidmag
 
 % MEG-GRAD
-megplanar_mne = [];
-megplanar_mne.avg = cell(5,1);
+squidgrad_mne = [];
+squidgrad_mne.avg = cell(5,1);
 for i_phalange = 1:5
     cfg.channel             = 'meggrad';            % which channels to use
-    %cfg.sourcemodel.leadfield = leadfield_megplanar.leadfield;
-    cfg.sourcemodel         = leadfield_megplanar;
-    tmp = ft_sourceanalysis(cfg, megplanar_timelocked{i_phalange});
-    megplanar_mne.avg{i_phalange} = [];
-    megplanar_mne.avg{i_phalange}.pow = tmp.avg.pow;
-    megplanar_mne.avg{i_phalange}.mom = tmp.avg.mom;
-    megplanar_mne.avg{i_phalange}.fahm = FullAreaHalfMax(tmp,latency{i_phalange}.squidgrad);
+    %cfg.sourcemodel.leadfield = leadfield_squidgrad.leadfield;
+    cfg.sourcemodel         = leadfield_squidgrad;
+    tmp = ft_sourceanalysis(cfg, squidgrad_timelocked{i_phalange});
+    squidgrad_mne.avg{i_phalange} = [];
+    squidgrad_mne.avg{i_phalange}.pow = tmp.avg.pow;
+    squidgrad_mne.avg{i_phalange}.mom = tmp.avg.mom;
+    [squidgrad_mne.avg{i_phalange}.fahm, squidgrad_mne.avg{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,latency{i_phalange}.squidgrad);
 
     cfg = [];
     cfg.method          = 'surface';
@@ -114,39 +117,39 @@ for i_phalange = 1:5
     cfg.latency         = latency{i_phalange}.squidgrad;
     h = figure;
     ft_sourceplot(cfg, tmp)
-    title(['SQUID-GRAD (FAHM=' num2str(megplanar_mne.avg{i_phalange}.fahm,3) ')'])
+    title(['SQUID-GRAD (FAHM=' num2str(squidgrad_mne.avg{i_phalange}.fahm,3) ')'])
     saveas(h, fullfile(save_path,'figs', [params.sub '_squidgrad_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
 end
-megplanar_mne.time = tmp.time;
-megplanar_mne.cfg = tmp.cfg;
-megplanar_mne.method = tmp.method;
-megplanar_mne.pos = tmp.pos;
-megplanar_mne.tri = sourcemodel.tri;
+squidgrad_mne.time = tmp.time;
+squidgrad_mne.cfg = tmp.cfg;
+squidgrad_mne.method = tmp.method;
+squidgrad_mne.pos = tmp.pos;
+squidgrad_mne.tri = sourcemodel.tri;
 
-save(fullfile(save_path, 'megplanar_mne'), 'megplanar_mne'); 
-clear tmp megplanar_mne leadfield_megplanar
+save(fullfile(save_path, 'squidgrad_mne'), 'squidgrad_mne'); 
+clear tmp squidgrad_mne leadfield_squidgrad
 
 % MEG-EEG
-megeeg_mne = [];
-megeeg_mne.avg = cell(5,1);
+squideeg_mne = [];
+squideeg_mne.avg = cell(5,1);
 for i_phalange = 1:5
-    megeeg_mne.avg{i_phalange} = [];
+    squideeg_mne.avg{i_phalange} = [];
     if ~isempty(headmodels.headmodel_eeg)
         cfg.headmodel           = headmodels.headmodel_eeg;    % supply the headmodel
         cfg.senstype            = 'eeg';            % sensor type
         cfg.channel             = 'eeg';         % which channels to use
-        %cfg.sourcemodel.leaddield = leadfield_megeeg.leadfield;
-        cfg.sourcemodel         = leadfield_megeeg;
-        tmp = ft_sourceanalysis(cfg, megeeg_timelocked{i_phalange});
-        megeeg_mne.avg{i_phalange}.pow = tmp.avg.pow;
-        megeeg_mne.avg{i_phalange}.mom = tmp.avg.mom;
-        megeeg_mne.avg{i_phalange}.fahm = FullAreaHalfMax(tmp,latency{i_phalange}.squideeg);
-        megeeg_mne.time = tmp.time;
-        megeeg_mne.cfg = tmp.cfg;
-        megeeg_mne.method = tmp.method;
-        megeeg_mne.pos = tmp.pos;
-        megeeg_mne.tri = sourcemodel.tri;
+        %cfg.sourcemodel.leaddield = leadfield_squideeg.leadfield;
+        cfg.sourcemodel         = leadfield_squideeg;
+        tmp = ft_sourceanalysis(cfg, squideeg_timelocked{i_phalange});
+        squideeg_mne.avg{i_phalange}.pow = tmp.avg.pow;
+        squideeg_mne.avg{i_phalange}.mom = tmp.avg.mom;
+        [squideeg_mne.avg{i_phalange}.fahm, squideeg_mne.avg{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,latency{i_phalange}.squideeg);
+        squideeg_mne.time = tmp.time;
+        squideeg_mne.cfg = tmp.cfg;
+        squideeg_mne.method = tmp.method;
+        squideeg_mne.pos = tmp.pos;
+        squideeg_mne.tri = sourcemodel.tri;
 
         cfg = [];
         cfg.method          = 'surface';
@@ -156,14 +159,14 @@ for i_phalange = 1:5
         cfg.latency         = latency{i_phalange}.squideeg;
         h = figure;
         ft_sourceplot(cfg, tmp)
-        title(['SQUID-EEG (FAHM=' num2str(megeeg_mne.avg{i_phalange}.fahm,3) ')'])
-        saveas(h, fullfile(save_path,'figs', [params.sub '_megeeg_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
+        title(['SQUID-EEG (FAHM=' num2str(squideeg_mne.avg{i_phalange}.fahm,3) ')'])
+        saveas(h, fullfile(save_path,'figs', [params.sub '_squideeg_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
         close all
     end
 end
 
-save(fullfile(save_path, 'megeeg_mne'), 'megeeg_mne'); 
-clear tmp megeeg_mne leadfield_megeeg
+save(fullfile(save_path, 'squideeg_mne'), 'squideeg_mne'); 
+clear tmp squideeg_mne leadfield_squideeg
 
 % OPM
 opm_mne = [];
@@ -184,7 +187,7 @@ for i_phalange = 1:5
     opm_mne.avg{i_phalange} = [];
     opm_mne.avg{i_phalange}.pow = tmp.avg.pow;
     opm_mne.avg{i_phalange}.mom = tmp.avg.mom;
-    opm_mne.avg{i_phalange}.fahm = FullAreaHalfMax(tmp,latency{i_phalange}.opm);
+    [opm_mne.avg{i_phalange}.fahm, opm_mne.avg{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,latency{i_phalange}.opm);
 
     cfg = [];
     cfg.method          = 'surface';
@@ -221,7 +224,7 @@ for i_phalange = 1:5
         tmp = ft_sourceanalysis(cfg, opmeeg_timelocked{i_phalange});
         opmeeg_mne.avg{i_phalange}.pow = tmp.avg.pow;
         opmeeg_mne.avg{i_phalange}.mom = tmp.avg.mom;
-        opmeeg_mne.avg{i_phalange}.fahm = FullAreaHalfMax(tmp,latency{i_phalange}.opmeeg);
+        [opmeeg_mne.avg{i_phalange}.fahm, opmeeg_mne.avg{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,latency{i_phalange}.opmeeg);
         opmeeg_mne.time = tmp.time;
         opmeeg_mne.cfg = tmp.cfg;
         opmeeg_mne.method = tmp.method;
