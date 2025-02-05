@@ -1,4 +1,4 @@
-function [squidmag_mne, squidgrad_mne, opm_mne, squideeg_mne, opmeeg_mne] = fit_mne(save_path,squidmag_timelocked,squidgrad_timelocked,squideeg_timelocked,opm_timelocked, opmeeg_timelocked,headmodels,sourcemodel,latency,params)
+function [squidmag_mne, squidgrad_mne, opm_mne, squideeg_mne, opmeeg_mne] = fit_mne(save_path,squidmag_timelocked,squidgrad_timelocked,squideeg_timelocked,opm_timelocked,opmeeg_timelocked,headmodels,sourcemodel,latency,params)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -66,7 +66,7 @@ for i_phalange = 1:5
     %cfg.sourcemodel.leadfield = leadfield_squidmag.leadfield;
     cfg.sourcemodel         = leadfield_squidmag;
     cfg.senstype            = 'meg';            % sensor type
-    cfg.channel             = 'squidmag';         % which channels to use
+    cfg.channel             = 'megmag';         % which channels to use
     tmp = ft_sourceanalysis(cfg, squidmag_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
     squidmag_mne.avg{i_phalange} = [];
@@ -102,7 +102,7 @@ squidgrad_mne = [];
 squidgrad_mne.avg = cell(5,1);
 squidgrad_mne_M100 = cell(5,1);
 for i_phalange = 1:5
-    cfg.channel             = 'meggrad';            % which channels to use
+    cfg.channel             = 'megplanar';            % which channels to use
     %cfg.sourcemodel.leadfield = leadfield_squidgrad.leadfield;
     cfg.sourcemodel         = leadfield_squidgrad;
     tmp = ft_sourceanalysis(cfg, squidgrad_timelocked{i_phalange});
