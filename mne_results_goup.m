@@ -214,4 +214,5 @@ legend({'squidgrad','squidmag'});
 xticklabels(params.phalange_labels)
 saveas(h, fullfile(save_path, 'figs', 'mne_fahm_squidgrad_squidmag.jpg'))
 
+close all
 end

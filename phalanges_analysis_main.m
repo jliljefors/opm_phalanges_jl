@@ -405,7 +405,7 @@ for i_sub = 2:size(subses,1)
     end
 end
 
-%% --- Group source level -------------------------------------------------
+%% --- Group dipole -------------------------------------------------
 if ~exist(fullfile(base_save_path,'figs'), 'dir')
        mkdir(fullfile(base_save_path,'figs'))
 end

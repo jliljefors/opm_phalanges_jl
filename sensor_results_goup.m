@@ -68,8 +68,7 @@ for i_sub = subs
 end
 
 %% Save
-save_path = base_save_path;
-save(fullfile(save_path, 'group_sensor'),"peak_ratio","snr","latency","amp","-v7.3");
+save(fullfile(base_save_path, 'group_sensor'),"peak_ratio","snr","latency","amp","-v7.3");
 
 %% Plot ratio
 h = figure('DefaultAxesFontSize',16);
@@ -85,7 +84,7 @@ title(['M100 peak amp ratio (mean = ' num2str(mean(mean(peak_ratio.meg)),'%.2f')
 ylabel('OPM/SQUID')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
-saveas(h, fullfile(save_path, 'figs', 'Peak_amplitude_ratios_meg.jpg'))
+saveas(h, fullfile(base_save_path, 'figs', 'Peak_amplitude_ratios_meg.jpg'))
 
 h = figure('DefaultAxesFontSize',16);
 bar(1:length(params.phalange_labels),mean(peak_ratio.eeg,1));
@@ -100,7 +99,7 @@ title(['M100 peak amp ratio (mean = ' num2str(mean(mean(peak_ratio.eeg)),'%.2f')
 ylabel('OPMEEG/SQUIDEEG')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
-saveas(h, fullfile(save_path, 'figs', 'Peak_amplitude_ratios_eeg.jpg'))
+saveas(h, fullfile(base_save_path, 'figs', 'Peak_amplitude_ratios_eeg.jpg'))
 
 %% Plot SNR - error
 h = figure('DefaultAxesFontSize',16);
@@ -116,7 +115,7 @@ title(['M100 SNR_{stderror} ratio (mean = ' num2str(mean(mean(snr.ratio_error)),
 ylabel('OPM/SQUID')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
-saveas(h, fullfile(save_path, 'figs', 'SNR_ratios_error.jpg'))
+saveas(h, fullfile(base_save_path, 'figs', 'SNR_ratios_error.jpg'))
 
 %% Plot SNR - prestim
 h = figure('DefaultAxesFontSize',16);
@@ -132,7 +131,7 @@ title(['M100 SNR_{prestim} ratio (mean = ' num2str(mean(mean(snr.ratio_prestim))
 ylabel('OPM/SQUID')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
-saveas(h, fullfile(save_path, 'figs', 'SNR_ratios_prestim.jpg'))
+saveas(h, fullfile(base_save_path, 'figs', 'SNR_ratios_prestim.jpg'))
 
 %% Plot peak amp
 % MEG
@@ -165,7 +164,7 @@ ylabel('Peak amplitude [fT]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
 legend({'squidmag','opm'});
-saveas(h, fullfile(save_path, 'figs', 'Amplitude_meg.jpg'))
+saveas(h, fullfile(base_save_path, 'figs', 'Amplitude_meg.jpg'))
 
 % EEG
 data1 = 1e6*amp.squideeg;
@@ -197,7 +196,7 @@ ylabel('Peak amplitude [uV]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
 legend({'squideeg','opmeeg'});
-saveas(h, fullfile(save_path, 'figs', 'Amplitude_eeg.jpg'))
+saveas(h, fullfile(base_save_path, 'figs', 'Amplitude_eeg.jpg'))
 
 %% Plot peak latency
 data1 = 1e3*latency.squidmag;
@@ -229,7 +228,7 @@ ylabel('Latency [ms]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
 legend({'squidmag','opm'});
-saveas(h, fullfile(save_path, 'figs', 'Latency.jpg'))
+saveas(h, fullfile(base_save_path, 'figs', 'Latency.jpg'))
 
 %% Plot SNR - error
 data1 = snr.error_squid;
@@ -261,7 +260,7 @@ ylabel('SNR')
 xlabel('Phalange')
 legend({'squidmag','opm'});
 xticklabels(params.phalange_labels)
-saveas(h, fullfile(save_path, 'figs', 'SNR_error.jpg'))
+saveas(h, fullfile(base_save_path, 'figs', 'SNR_error.jpg'))
 
 %% Plot SNR - prestim
 data1 = snr.prestim_squid;
@@ -293,6 +292,7 @@ ylabel('SNR')
 xlabel('Phalange')
 legend({'squidmag','opm'});
 xticklabels(params.phalange_labels)
-saveas(h, fullfile(save_path, 'figs', 'SNR_prestim.jpg'))
+saveas(h, fullfile(base_save_path, 'figs', 'SNR_prestim.jpg'))
 
+close all
 end
