@@ -3,15 +3,13 @@ function fit_mne(save_path,squidmag_timelocked,squidgrad_timelocked,squideeg_tim
 %   Detailed explanation goes here
 
 %% Prepare leadfields
-headmodel = headmodels.headmodel_meg;
-headmodel.order = 20;
 cfg = [];
 cfg.grad             = squidmag_timelocked{1}.grad;              % sensor positions
 cfg.channel          = 'squidmag';                  % the used channels
 cfg.senstype         = 'meg';            % sensor type
 cfg.grid.pos         = sourcemodel.pos;           % source points
 cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
-cfg.headmodel        = headmodel;          % volume conduction model
+cfg.headmodel        = headmodels.headmodel_meg;          % volume conduction model
 leadfield_squidmag = ft_prepare_leadfield(cfg,squidmag_timelocked{1});
 
 cfg = [];
@@ -20,7 +18,7 @@ cfg.channel          = 'squidgrad';                  % the used channels
 cfg.senstype         = 'meg';            % sensor type
 cfg.grid.pos         = sourcemodel.pos;           % source points
 cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
-cfg.headmodel        = headmodel;          % volume conduction model
+cfg.headmodel        = headmodels.headmodel_meg;          % volume conduction model
 leadfield_squidgrad = ft_prepare_leadfield(cfg,squidgrad_timelocked{1});
 
 cfg = [];
@@ -29,7 +27,7 @@ cfg.channel          = '*bz';                  % the used channels
 cfg.senstype         = 'meg';            % sensor type
 cfg.grid.pos         = sourcemodel.pos;           % source points
 cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
-cfg.headmodel        = headmodel;          % volume conduction model
+cfg.headmodel        = headmodels.headmodel_meg;          % volume conduction model
 leadfield_opm = ft_prepare_leadfield(cfg,opm_timelocked{1});
 
 % if ~isempty(headmodels.headmodel_eeg)
@@ -116,9 +114,6 @@ for i_phalange = 1:5
     cfg.sourcemodel         = leadfield_squidgrad;
     tmp = ft_sourceanalysis(cfg, squidgrad_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
-    cfg = [];
-    cfg.projectmom = 'yes';
-    tmp = ft_sourcedescriptives(cfg,tmp);
     squidgrad_mne.avg{i_phalange} = [];
     squidgrad_mne.avg{i_phalange}.pow = tmp.avg.pow;
     squidgrad_mne.avg{i_phalange}.mom = tmp.avg.mom;
@@ -215,9 +210,6 @@ for i_phalange = 1:5
     cfg.channel             = '*bz';         % which channels to use
     tmp = ft_sourceanalysis(cfg, opm_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
-    cfg = [];
-    cfg.projectmom = 'yes';
-    tmp = ft_sourcedescriptives(cfg,tmp);
     opm_mne.avg{i_phalange} = [];
     opm_mne.avg{i_phalange}.pow = tmp.avg.pow;
     opm_mne.avg{i_phalange}.mom = tmp.avg.mom;

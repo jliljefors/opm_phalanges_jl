@@ -68,7 +68,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['Dist SQ-MAG to OPM (mean = ' num2str(mean(mean(dist_sqmag_opm,'omitnan'),'omitnan'),'%.1f') 'mm)'])
+title(['Dist SQUID-MAG to OPM (mean = ' num2str(mean(mean(dist_sqmag_opm,'omitnan'),'omitnan'),'%.1f') 'mm)'])
 ylabel('Distance [mm]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -83,7 +83,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['Dist SQ-GRAD to OPM (mean = ' num2str(mean(mean(dist_sqgrad_opm,'omitnan'),'omitnan'),'%.1f') 'mm)'])
+title(['Dist SQUID-GRAD to OPM (mean = ' num2str(mean(mean(dist_sqgrad_opm,'omitnan'),'omitnan'),'%.1f') 'mm)'])
 ylabel('Distance [mm]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -99,7 +99,7 @@ er.LineStyle = 'none';
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['Dist SQ-MAG to SQ-GRAD (mean = ' num2str(mean(mean(dist_sqmag_sqgrad,'omitnan'),'omitnan'),'%.1f') 'mm)'])
+title(['Dist SQUID-MAG to SQUID-GRAD (mean = ' num2str(mean(mean(dist_sqmag_sqgrad,'omitnan'),'omitnan'),'%.1f') 'mm)'])
 ylabel('Distance [mm]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -148,7 +148,7 @@ end
 sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
 hold off
 title('MNE: Group level M100 FAHM')
-ylabel('M100 FAHM [cm^2]')
+ylabel('M100 FAHM [m^2]')
 xlabel('Phalange')
 legend({'squidmag','opm'});
 xticklabels(params.phalange_labels)
@@ -180,7 +180,7 @@ end
 sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
 hold off
 title('MNE: Group level M100 FAHM')
-ylabel('M100 FAHM [cm^2]')
+ylabel('M100 FAHM [m^2]')
 xlabel('Phalange')
 legend({'squidgrad','opm'});
 xticklabels(params.phalange_labels)
@@ -212,7 +212,7 @@ end
 sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
 hold off
 title('MNE: Group level M100 FAHM')
-ylabel('M100 FAHM [cm^2]')
+ylabel('M100 FAHM [m^2]')
 xlabel('Phalange')
 legend({'squidgrad','squidmag'});
 xticklabels(params.phalange_labels)

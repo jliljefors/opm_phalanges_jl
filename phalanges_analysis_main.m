@@ -523,7 +523,12 @@ for i_sub = 2:size(subses,1)
             load(fullfile(save_path, [params.sub '_squideeg_M100']));
             m100_latency{i_ph}.squideeg = M100{i_ph}.peak_latency;
         end
-        [megmag_mne, megplanaer_mne, opm_mne, eeg_mne] = fit_mne(save_path,squidmag_timelocked,squidgrad_timelocked,squideeg_timelocked,opm_timelockedT,opmeeg_timelockedT,headmodels,sourcemodelT,m100_latency,params);
+        fit_mne(save_path,squidmag_timelocked,squidgrad_timelocked,squideeg_timelocked,opm_timelockedT,opmeeg_timelockedT,headmodels,sourcemodelT,m100_latency,params);
     end
 end
 close all
+
+% MNE group analysis
+subs = 2:13;
+mne_results_goup(base_save_path, subs, params);
+
