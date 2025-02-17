@@ -137,9 +137,11 @@ for coil = 1:length(hpi_chs)
         hpi_fit{coil}.dip.gof = 1-hpi_fit{coil}.dip.rv;
     
         dip_pos(coil,:) = hpi_fit{coil}.dip.pos*1e2;
-        dip_ori(coil,:) = hpi_fit{coil}.dip.ori;
-        dip_include(coil) = true;
+        dip_ori(coil,:) = hpi_fit{coil}.dip.ori;    
         dip_gof(coil) = hpi_fit{coil}.dip.gof;
+        if dip_gof(coil) > params.hpi_gof
+            dip_include(coil) = true;
+        end
     else
         disp(['Looks like no coil found. Max amp: ' num2str(max(timelocked.avg(find(contains(timelocked.label,'bz')))))])
     end

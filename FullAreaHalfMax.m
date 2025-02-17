@@ -15,4 +15,5 @@ triangles = sourcemodel.tri(triangles,:);
 
 % Sum area of triangles and divide by 3 (since its a triangle per point). 
 FAHM = sum(calculateTriangleAreas(sourcemodel.pos, triangles))/3;
+
 end

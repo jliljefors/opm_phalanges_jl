@@ -21,25 +21,19 @@ trl_meg(:,4) = squid_raw.trial{1}(squid_trig,smpl(trig));
 
 %% MEG data filter & epoch
 cfg = [];
+cfg.trl             = trl_meg;
 cfg.lpfilter        = 'yes';         
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
 cfg.hpfreq          = params.filter.hp_freq;
-cfg.hpinstabilityfix  = 'reduce';
-cfg.padding         = 1;
-cfg.padtype         = 'data';
-squid_epo = ft_preprocessing(cfg,squid_raw);
-
-% Epoch
-cfg = [];
-cfg.trl             = trl_meg;
-squid_epo = ft_redefinetrial(cfg,squid_epo);
-
-% Notch filter
-cfg = [];
 cfg.dftfilter    = 'yes';        
 cfg.dftfreq      = params.filter.notch;
-squid_epo = ft_preprocessing(cfg,squid_epo);
+cfg.hpinstabilityfix  = 'reduce';
+cfg.padding         = params.pre + params.post + 1;
+cfg.paddingtype     = 'data';
+cfg.demean          = 'yes';
+cfg.baselinewindow  = [-inf 0];
+squid_epo = ft_preprocessing(cfg,squid_raw);
 
 %% MEG 
 cfg = [];

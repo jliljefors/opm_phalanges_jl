@@ -1,4 +1,4 @@
-function [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path,squidmag_timelocked,squidgrad_timelocked,opm_timelocked,headmodels,mri,M100_squidmag, M100_squidgrad, M100_opm, params)
+function [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path,squidmag_timelocked,squidgrad_timelocked,opm_timelocked,headmodels,mri,latency,params)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -29,9 +29,10 @@ for i_phalange = 1:5
     cfg.nonlinear       = 'yes';           
     cfg.latency         = M100_squidmag{i_phalange}.peak_latency + [-0.005 0.005];
     cfg.dipfit.checkinside = 'yes';
+    %cfg.dipfit.noisecov = meg_timelocked{i_phalange}.cov;
     squidmag_dipole{i_phalange} = ft_dipolefitting(cfg, squidmag_timelocked{i_phalange});
     
-    cfg.latency         = M100_squidgrad{i_phalange}.peak_latency + [-0.005 0.005];   
+    cfg.latency         = M100_squidmag{i_phalange}.peak_latency + [-0.005 0.005];   
     cfg.channel         = 'megplanar';           
     squidgrad_dipole{i_phalange} = ft_dipolefitting(cfg, squidgrad_timelocked{i_phalange});
 
@@ -44,8 +45,9 @@ for i_phalange = 1:5
     cfg.senstype        = 'meg';            
     cfg.channel         = '*bz';        
     cfg.nonlinear       = 'yes';            
-    cfg.latency         = M100_opm{i_phalange}.peak_latency + [-0.005 0.005];   
+    cfg.latency         = latency{i_phalange}.opm + [-0.005 0.005];   
     cfg.dipfit.checkinside = 'yes';
+    %cfg.dipfit.noisecov = opm_timelocked{i_phalange}.cov;
     opm_dipole{i_phalange} = ft_dipolefitting(cfg, opm_timelocked{i_phalange});
 
     % Plot OPM vs SQUID

@@ -121,7 +121,7 @@ fdcomp = ft_connectivityanalysis(cfg, freq);
 
 % Pick ECG components
 maxcoh = max(fdcomp.cohspctrm, [], 2);
-ecg_comp_idx = unique([find(abs(R) > params.ica_threshold); find(maxcoh > params.ica_threshold)]);
+ecg_comp_idx = unique([find(abs(R) > params.ica_cor); find(maxcoh > params.ica_coh)]);
 
 % Plot correlations
 if length(ecg_comp_idx)>=1
@@ -140,13 +140,13 @@ end
 % Plot coherence spectrum between all components and the ECG
 h = figure;
 subplot(3,1,1); plot(fdcomp.freq, abs(fdcomp.cohspctrm)); hold on
-plot([min(fdcomp.freq),max(fdcomp.freq)],[params.ica_threshold, params.ica_threshold], 'k--')
+plot([min(fdcomp.freq),max(fdcomp.freq)],[params.ica_coh, params.ica_coh], 'k--')
 title('ECG'); xlabel('freq'); ylabel('coh');
 subplot(3,1,2); imagesc(abs(fdcomp.cohspctrm));
 xlabel('freq'); ylabel('comp');
 subplot(3,1,3);
 maxcoh = max(fdcomp.cohspctrm, [], 2);
-foo = find(~(maxcoh > params.ica_threshold));
+foo = find(~(maxcoh > params.ica_coh));
 bp = bar(1:length(maxcoh), diag(maxcoh), 'stacked');
 set(bp(foo),'facecolor','w'); set(bp(ecg_comp_idx),'facecolor','r')
 axis([0.5, length(maxcoh)+0.5, 0, 1]); xlabel('comp'); ylabel('coh');
@@ -232,9 +232,9 @@ fdcomp_eog2 = ft_connectivityanalysis(cfg, freq);
 
 % Find EOG components
 maxcoh = max(fdcomp_eog1.cohspctrm, [], 2);
-eog1_comp_idx = unique([find(abs(R(:,1)) > params.ica_threshold); find(maxcoh > params.ica_threshold)]);
+eog1_comp_idx = unique([find(abs(R(:,1)) > params.ica_cor); find(maxcoh > params.ica_coh)]);
 maxcoh = max(fdcomp_eog2.cohspctrm, [], 2);
-eog2_comp_idx = unique([find(abs(R(:,2)) > params.ica_threshold); find(maxcoh > params.ica_threshold)]);
+eog2_comp_idx = unique([find(abs(R(:,2)) > params.ica_cor); find(maxcoh > params.ica_coh)]);
 
 if length(eog1_comp_idx)>=1
     h = figure;
@@ -265,23 +265,23 @@ end
 h = figure;
 subplot(3,2,1); title('EOG001'); xlabel('freq'); ylabel('coh');
 plot(fdcomp_eog1.freq, abs(fdcomp_eog1.cohspctrm)); hold on
-plot([min(fdcomp_eog1.freq),max(fdcomp_eog1.freq)],[params.ica_threshold, params.ica_threshold], 'k--');
+plot([min(fdcomp_eog1.freq),max(fdcomp_eog1.freq)],[params.ica_coh, params.ica_coh], 'k--');
 subplot(3,2,2); title('EOG002'); xlabel('freq'); ylabel('coh');
 plot(fdcomp_eog2.freq, abs(fdcomp_eog2.cohspctrm)); hold on
-plot([min(fdcomp_eog2.freq),max(fdcomp_eog2.freq)],[params.ica_threshold, params.ica_threshold], 'k--');
+plot([min(fdcomp_eog2.freq),max(fdcomp_eog2.freq)],[params.ica_coh, params.ica_coh], 'k--');
 subplot(3,2,3); xlabel('freq'); ylabel('comp');
 imagesc(abs(fdcomp_eog1.cohspctrm));
 subplot(3,2,4); xlabel('freq'); ylabel('comp');
 imagesc(abs(fdcomp_eog2.cohspctrm));
 subplot(3,2,5); xlabel('comp'); ylabel('coh');
 maxcoh = max(fdcomp_eog1.cohspctrm, [], 2);
-foo = find(~(maxcoh > params.ica_threshold));
+foo = find(~(maxcoh > params.ica_coh));
 bp = bar(1:length(maxcoh), diag(maxcoh), 'stacked');
 set(bp(foo),'facecolor','w'); set(bp(eog1_comp_idx),'facecolor','r');
 axis([0.5, length(maxcoh)+0.5, 0, 1]);
 subplot(3,2,6); xlabel('comp'); ylabel('coh');
 maxcoh = max(fdcomp_eog2.cohspctrm, [], 2);
-foo = find(~(maxcoh > params.ica_threshold));
+foo = find(~(maxcoh > params.ica_coh));
 bp = bar(1:length(maxcoh), diag(maxcoh), 'stacked');
 set(bp(foo),'facecolor','w'); set(bp(eog2_comp_idx),'facecolor','r'); 
 axis([0.5, length(maxcoh)+0.5, 0, 1]);

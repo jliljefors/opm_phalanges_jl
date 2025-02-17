@@ -50,48 +50,35 @@ end
 
 %% AUX data filter & epoch
 cfg = [];
+cfg.trl             = trl_aux;
 cfg.lpfilter        = 'yes';         
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
 cfg.hpfreq          = params.filter.hp_freq;
-cfg.hpinstabilityfix  = 'reduce';
-cfg.padding         = 1;
-cfg.padtype         = 'data';
-aux_epo = ft_preprocessing(cfg,aux_raw);
-
-% Epoch
-cfg = [];
-cfg.trl             = trl_aux;
-aux_epo = ft_redefinetrial(cfg,aux_epo);
-
-% Notch
-cfg = [];
 cfg.dftfilter    = 'yes';        
 cfg.dftfreq      = params.filter.notch;
-aux_epo = ft_preprocessing(cfg,aux_epo);
+cfg.hpinstabilityfix  = 'reduce';
+cfg.padding         = params.pre + params.post + 1;
+cfg.paddingtype     = 'data';
+cfg.demean          = 'yes';
+cfg.baselinewindow  = [-inf 0];
+aux_epo = ft_preprocessing(cfg,aux_raw);
 
 %% OPM data filter & epoch
 cfg = [];
+cfg.trl             = trl_opm;
 cfg.lpfilter        = 'yes';         
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
 cfg.hpfreq          = params.filter.hp_freq;
-%cfg.hpfilttype      = 'firws';
-cfg.hpinstabilityfix  = 'reduce';
-cfg.padding         = 1;
-cfg.padtype         = 'data';
-opm_epo = ft_preprocessing(cfg,opm_raw);
-
-% Epoch
-cfg = [];
-cfg.trl             = trl_opm;
-opm_epo = ft_redefinetrial(cfg,opm_epo);
-
-% Notch
-cfg = [];
 cfg.dftfilter    = 'yes';        
 cfg.dftfreq      = params.filter.notch;
-opm_epo = ft_preprocessing(cfg,opm_epo);
+cfg.hpinstabilityfix  = 'reduce';
+cfg.padding         = params.pre + params.post + 1;
+cfg.paddingtype     = 'data';
+cfg.demean          = 'yes';
+cfg.baselinewindow  = [-inf 0];
+opm_epo = ft_preprocessing(cfg,opm_raw);
 
 %% --- Resample --- 
 cfg            = [];

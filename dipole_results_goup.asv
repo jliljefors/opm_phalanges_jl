@@ -190,11 +190,9 @@ k=1;
 errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
 errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
 errorbar(k+0.15,mean3(k),err3(1,k),err3(2,k),'k','linestyle','none');
-[~, p_values12] = ttest(data1(:, 1), data2(:, 1));
-[~, p_values13] = ttest(data1(:, 1), data3(:, 1));
-[~, p_values23] = ttest(data2(:, 1), data3(:, 1));
+[~, p_values] = ttest(data1(:, 1), data2(:, 1));
 
-sigstar({[1, 1]}, [p_values12, p_values13, p_values23]);
+sigstar({[1, 1]}, p_values);
 hold off
 title('Group level M100 dipole spread')
 ylabel('Dipoles spread [mm]')
