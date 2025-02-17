@@ -50,35 +50,39 @@ end
 
 %% AUX data filter & epoch
 cfg = [];
+cfg.datafile        = aux_file;
 cfg.trl             = trl_aux;
 cfg.lpfilter        = 'yes';         
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
 cfg.hpfreq          = params.filter.hp_freq;
-cfg.dftfilter    = 'yes';        
-cfg.dftfreq      = params.filter.notch;
 cfg.hpinstabilityfix  = 'reduce';
-cfg.padding         = params.pre + params.post + 1;
+cfg.dftfilter       = 'yes';        
+cfg.dftfreq         = params.filter.notch;
+cfg.padding         = params.pre + params.post + 2;
 cfg.paddingtype     = 'data';
 cfg.demean          = 'yes';
 cfg.baselinewindow  = [-inf 0];
-aux_epo = ft_preprocessing(cfg,aux_raw);
+aux_epo = ft_preprocessing(cfg);
 
 %% OPM data filter & epoch
 cfg = [];
+cfg.datafile        = opm_file;
+cfg.coordsys        = 'dewar';
+cfg.coilaccuracy    = 0;
 cfg.trl             = trl_opm;
 cfg.lpfilter        = 'yes';         
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
 cfg.hpfreq          = params.filter.hp_freq;
-cfg.dftfilter    = 'yes';        
-cfg.dftfreq      = params.filter.notch;
 cfg.hpinstabilityfix  = 'reduce';
-cfg.padding         = params.pre + params.post + 1;
+cfg.dftfilter       = 'yes';        
+cfg.dftfreq         = params.filter.notch;
+cfg.padding         = params.pre + params.post + 2;
 cfg.paddingtype     = 'data';
 cfg.demean          = 'yes';
 cfg.baselinewindow  = [-inf 0];
-opm_epo = ft_preprocessing(cfg,opm_raw);
+opm_epo = ft_preprocessing(cfg);
 
 %% --- Resample --- 
 cfg            = [];
