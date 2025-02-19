@@ -6,7 +6,7 @@ function [squid_cleaned, squideeg_cleaned] = read_cvMEG(squid_file, save_path, p
 % Params: containing pre, post (pre- and poststim).
 
 %% --- Read triggers ---
-trl_meg = [];
+trl_squid = [];
 cfg             = [];
 cfg.datafile    = squid_file;
 squid_raw         = ft_preprocessing(cfg);
@@ -14,27 +14,46 @@ squid_trig = find(contains(squid_raw.label,'STI101'));
 trig = squid_raw.trial{1}(squid_trig,:)>0.5;
 trig = [false trig(2:end)&~trig(1:end-1)];
 smpl = 1:squid_raw.sampleinfo(2);
-trl_meg(:,1) = smpl(trig)-params.pre*squid_raw.fsample;
-trl_meg(:,2) = smpl(trig)+params.post*squid_raw.fsample;
-trl_meg(:,3) = -params.pre*squid_raw.fsample;
-trl_meg(:,4) = squid_raw.trial{1}(squid_trig,smpl(trig));
+trl_squid(:,1) = smpl(trig)-params.pre*squid_raw.fsample;
+trl_squid(:,2) = smpl(trig)+params.post*squid_raw.fsample;
+trl_squid(:,3) = -params.pre*squid_raw.fsample;
+trl_squid(:,4) = squid_raw.trial{1}(squid_trig,smpl(trig));
+trl_squid(:,1:2) = trl_squid(:,1:2) + floor(0.041*squid_raw.fsample); % adjust for stim delay
 
 %% MEG data filter & epoch
 cfg = [];
-cfg.datafile        = squid_file;
-cfg.trl             = trl_meg;
+%cfg.datafile        = squid_file;
+%cfg.trl             = trl_meg;
 cfg.lpfilter        = 'yes';         
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
 cfg.hpfreq          = params.filter.hp_freq;
+cfg.hpinstabilityfix  = 'reduce';
+%cfg.padding         = params.pre + params.post + 3;
+%cfg.paddingtype     = 'data';
+squid_epo = ft_preprocessing(cfg,squid_raw);
+
+cfg = [];
+cfg.trl             = trl_squid;
+squid_epo = ft_redefinetrial(cfg,squid_epo);
+
+cfg = [];
 cfg.dftfilter    = 'yes';        
 cfg.dftfreq      = params.filter.notch;
-cfg.hpinstabilityfix  = 'reduce';
-cfg.padding         = params.pre + params.post + 2;
-cfg.paddingtype     = 'data';
 cfg.demean          = 'yes';
-cfg.baselinewindow  = [-inf 0];
-squid_epo = ft_preprocessing(cfg);
+cfg.baselinewindow  = [-params.pre 0];
+squid_epo = ft_preprocessing(cfg,squid_epo);
+
+% Find bad channels
+cfg = [];
+cfg.trl = trl_squid;
+cfg.trl(:,2) = cfg.trl(:,2) + squid_raw.fsample; % use 1sec longer trials for better neighborscorr
+squid_raw = ft_redefinetrial(cfg,squid_raw);
+cfg = [];
+cfg.z_threshold = params.z_threshold;
+cfg.corr_threshold = params.corr_threshold;
+[badchs_opmeeg, badchs_squideeg_flat, badchs_squideeg_neighbors, badchs_squideeg_zmax, badtrl_squideeg_zmax] = eeg_badchannels(cfg,squid_raw);
+clear squid_raw
 
 %% MEG 
 cfg = [];
@@ -74,14 +93,6 @@ cfg = [];
 cfg.channel = squid_epo.label(find(~contains(squid_epo.label,'MEG')));
 squideeg_cleaned = ft_selectdata(cfg, squid_epo);
 
-% Reject bad channels
-cfg = [];
-cfg.trl = trl_meg;
-squid_raw_epo = ft_redefinetrial(cfg,squid_raw);
-cfg = [];
-cfg.z_threshold = params.z_threshold;
-cfg.corr_threshold = params.corr_threshold;
-[badchs_opmeeg, badchs_squideeg_flat, badchs_squideeg_neighbors, badchs_squideeg_zmax, badtrl_squideeg_zmax] = eeg_badchannels(cfg,squid_raw_epo);
 cfg = [];
 cfg.channel = setdiff(squideeg_cleaned.label,badchs_opmeeg);
 cfg.trials  = setdiff(1:length(squideeg_cleaned.trial),badtrl_squideeg_zmax); % remove bad trials

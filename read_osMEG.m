@@ -22,7 +22,7 @@ trl_opm(:,1) = smpl(trig)-params.pre*opm_raw.fsample;
 trl_opm(:,2) = smpl(trig)+params.post*opm_raw.fsample;
 trl_opm(:,3) = -params.pre*opm_raw.fsample;
 trl_opm(:,4) = opm_raw.trial{1}(opm_trig,smpl(trig));
-%clear opm_raw
+trl_opm(:,1:2) = trl_opm(:,1:2) + floor(0.041*opm_raw.fsample); % adjust for stim delay
 
 % AUX
 trl_aux=[];
@@ -37,6 +37,7 @@ trl_aux(:,1) = smpl(trig)-params.pre*aux_raw.fsample;
 trl_aux(:,2) = smpl(trig)+params.post*aux_raw.fsample;
 trl_aux(:,3) = -params.pre*aux_raw.fsample;
 trl_aux(:,4) = aux_raw.trial{1}(aux_trig,smpl(trig));
+trl_aux(:,1:2) = trl_aux(:,1:2) + floor(0.041*aux_raw.fsample); % adjust for stim delay
 
 % Check if uneven amount of trial. If so assume error in beginning.
 if size(trl_aux,1) > size(trl_opm,1)
@@ -50,39 +51,75 @@ end
 
 %% AUX data filter & epoch
 cfg = [];
-cfg.datafile        = aux_file;
-cfg.trl             = trl_aux;
+%cfg.datafile        = aux_file;
+%cfg.trl             = trl_aux;
 cfg.lpfilter        = 'yes';         
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
 cfg.hpfreq          = params.filter.hp_freq;
 cfg.hpinstabilityfix  = 'reduce';
+%cfg.padding         = params.pre + params.post + 1;
+%cfg.paddingtype     = 'data';
+aux_epo = ft_preprocessing(cfg,aux_raw);
+
+cfg = [];
+cfg.trl             = trl_aux;
+aux_epo = ft_redefinetrial(cfg,aux_epo);
+
+cfg = [];
 cfg.dftfilter       = 'yes';        
 cfg.dftfreq         = params.filter.notch;
-cfg.padding         = params.pre + params.post + 2;
-cfg.paddingtype     = 'data';
 cfg.demean          = 'yes';
-cfg.baselinewindow  = [-inf 0];
-aux_epo = ft_preprocessing(cfg);
+cfg.baselinewindow  = [-params.pre 0];
+aux_epo = ft_preprocessing(cfg,aux_epo);
+
+% Find bad channels
+cfg = [];
+cfg.trl = trl_aux;
+cfg.trl(:,2) = cfg.trl(:,2) + aux_raw.fsample; % use 1sec longer trials for better neighborscorr
+aux_raw = ft_redefinetrial(cfg,aux_raw);
+cfg = [];
+cfg.z_threshold = params.z_threshold;
+cfg.corr_threshold = params.corr_threshold;
+[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors, badchs_opmeeg_zmax, badtrl_opmeeg_zmax] = eeg_badchannels(cfg,aux_raw);
+clear aux_raw
 
 %% OPM data filter & epoch
 cfg = [];
-cfg.datafile        = opm_file;
-cfg.coordsys        = 'dewar';
-cfg.coilaccuracy    = 0;
-cfg.trl             = trl_opm;
+%cfg.datafile        = opm_file;
+%cfg.coordsys        = 'dewar';
+%cfg.coilaccuracy    = 0;
+%cfg.trl             = trl_opm;
 cfg.lpfilter        = 'yes';         
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
 cfg.hpfreq          = params.filter.hp_freq;
 cfg.hpinstabilityfix  = 'reduce';
+%cfg.padding         = params.pre + params.post + 3;
+%cfg.paddingtype     = 'data';
+opm_epo = ft_preprocessing(cfg, opm_raw);
+
+cfg = [];
+cfg.trl             = trl_opm;
+opm_epo = ft_redefinetrial(cfg,opm_epo);
+
+cfg = [];
 cfg.dftfilter       = 'yes';        
 cfg.dftfreq         = params.filter.notch;
-cfg.padding         = params.pre + params.post + 2;
-cfg.paddingtype     = 'data';
 cfg.demean          = 'yes';
-cfg.baselinewindow  = [-inf 0];
-opm_epo = ft_preprocessing(cfg);
+cfg.baselinewindow  = [-params.pre 0];
+opm_epo = ft_preprocessing(cfg, opm_epo);
+
+% Find bad opm channels
+cfg = [];
+cfg.trl = trl_opm;
+cfg.trl(:,2) = cfg.trl(:,2) + opm_raw.fsample; % use 1sec longer trials for better neighborscorr
+opm_raw = ft_redefinetrial(cfg,opm_raw);
+cfg = [];
+cfg.z_threshold = params.z_threshold;
+cfg.corr_threshold = params.corr_threshold;
+[badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw);
+clear opm_raw
 
 %% --- Resample --- 
 cfg            = [];
@@ -117,14 +154,6 @@ cfg = [];
 cfg.channel = comb.label(find(~contains(comb.label,'eeg')));
 opm_cleaned = ft_selectdata(cfg, comb);
 
-% Reject bad channels
-cfg = [];
-cfg.trl = trl_opm;
-opm_raw_epo = ft_redefinetrial(cfg,opm_raw);
-cfg = [];
-cfg.z_threshold = params.z_threshold;
-cfg.corr_threshold = params.corr_threshold;
-[badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw_epo);
 cfg = [];
 cfg.channel = setdiff(opm_cleaned.label,badchs_opm);
 cfg.trials  = setdiff(1:length(opm_cleaned.trial),badtrl_opm_zmax); % remove bad trials
@@ -166,14 +195,6 @@ cfg = [];
 cfg.channel = comb.label(find(~contains(comb.label,'bz')));
 opmeeg_cleaned = ft_selectdata(cfg, comb);
 
-% Reject bad channels
-cfg = [];
-cfg.trl = trl_aux;
-aux_raw_epo = ft_redefinetrial(cfg,aux_raw);
-cfg = [];
-cfg.z_threshold = params.z_threshold;
-cfg.corr_threshold = params.corr_threshold;
-[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors, badchs_opmeeg_zmax, badtrl_opmeeg_zmax] = eeg_badchannels(cfg,aux_raw_epo);
 cfg = [];
 cfg.channel = setdiff(opmeeg_cleaned.label,badchs_opmeeg);
 cfg.trials  = setdiff(1:length(opmeeg_cleaned.trial),badtrl_opmeeg_zmax); % remove bad trials

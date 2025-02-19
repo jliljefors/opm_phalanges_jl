@@ -31,7 +31,7 @@ for trial = 1:n_trls
     for i = 1:n_chs
         for j = 1:cfg.n_neighbors
                 tmp2 = corrcoef(dat(i,:),dat(int32(neighbors(i,j)),:));
-                neighborscorr(i,j,trial) = tmp2(1,2);
+                neighborscorr(i,j,trial) = abs(tmp2(1,2));
         end
     end
     dat = diff(movmedian(dat,9*data.fsample/1000,2),1,2);

@@ -182,7 +182,7 @@ for subNumber = subs
     add(rpt, chapter);
 
     %% M100 chapter
-    chapter = Chapter('M100');
+    chapter = Chapter('M60');
     chapter.Numbered = false; % Remove chapter numbering
     for i_section = 1:length(sections)
         section = Section(sections(i_section));
@@ -197,8 +197,8 @@ for subNumber = subs
         end
 
         % Load the .mat file
-        data = load(fullfile(subjectFolderPath,['sub_' subStr '_' sections2{i_section} '_M100.mat']));
-        M100 = data.M100;
+        data = load(fullfile(subjectFolderPath,['sub_' subStr '_' sections2{i_section} '_M60.mat']));
+        M60 = data.M60;
         
         % Create the table with the required data
         num_phalanges = length(params.phalange_labels);
@@ -206,7 +206,7 @@ for subNumber = subs
         T.Properties.RowNames = {['peak_amplitude ' fieldUnit], ['max_amplitude ' fieldUnit], ['min_amplitude ' fieldUnit], 'peak_latency [ms]', 'SNR_prestim', 'SNR_stderr', ['std_prestim ' fieldUnit], ['stderr ' fieldUnit]};
         
         for i_phalange = 1:num_phalanges
-            phalange_data = M100{i_phalange};
+            phalange_data = M60{i_phalange};
             T{['peak_amplitude ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.peak_amplitude;
             T{['max_amplitude ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.max_amplitude;
             T{['min_amplitude ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.min_amplitude;

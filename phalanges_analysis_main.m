@@ -30,7 +30,7 @@ ft_default.showcallinfo = 'no';
 %% Overwrite
 overwrite = [];
 overwrite.preproc = true;
-overwrite.coreg = true;
+overwrite.coreg = false;
 overwrite.mri = false;
 overwrite.dip = true;
 overwrite.mne = true;
@@ -55,6 +55,7 @@ params.squidmag_std_threshold = 5e-12;
 params.squidgrad_std_threshold = 5e-11;
 params.hpi_freq = 33;
 params.hpi_gof = 0.9;
+params.M60 = [0.04 0.08];
 
 params.trigger_code = [2 4 8 16 32];
 params.phalange_labels = {'I3' 'I2' 'I1' 'T1' 'I2b'};
@@ -396,17 +397,17 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, [params.sub '_squidgrad_timelocked.mat']));
         squidgrad_timelocked = timelocked;
         clear timelocked
-        clear M100
-        load(fullfile(save_path, [params.sub '_opm_M100'])); 
-        M100_opm = M100;
-        clear M100
-        load(fullfile(save_path, [params.sub '_squidmag_M100'])); 
-        M100_squidmag = M100;
-        clear M100
-        load(fullfile(save_path, [params.sub '_squidgrad_M100'])); 
-        M100_squidgrad = M100;
-        clear M100
-        [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelockedT, headmodels, mri_resliced, M100_squidmag, M100_squidgrad, M100_opm, params);
+        clear M60
+        load(fullfile(save_path, [params.sub '_opm_M60'])); 
+        M60_opm = M60;
+        clear M60
+        load(fullfile(save_path, [params.sub '_squidmag_M60'])); 
+        M60_squidmag = M60;
+        clear M60
+        load(fullfile(save_path, [params.sub '_squidgrad_M60'])); 
+        M60_squidgrad = M60;
+        clear M60
+        [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelockedT, headmodels, mri_resliced, M60_squidmag, M60_squidgrad, M60_opm, params);
     end
 end
 
@@ -440,17 +441,17 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, [params.sub '_squidgrad_timelocked.mat']));
         squidgrad_timelocked = timelocked;
         clear timelocked
-        clear M100
-        load(fullfile(save_path, [params.sub '_opm_M100'])); 
-        M100_opm = M100;
-        clear M100
-        load(fullfile(save_path, [params.sub '_squidmag_M100'])); 
-        M100_squidmag = M100;
-        clear M100
-        load(fullfile(save_path, [params.sub '_squidgrad_M100'])); 
-        M100_squidgrad = M100;
-        clear M100
-        fit_mne(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelockedT, headmodels, sourcemodel, M100_squidmag, M100_squidgrad, M100_opm ,params);
+        clear M60
+        load(fullfile(save_path, [params.sub '_opm_M60'])); 
+        M60_opm = M60;
+        clear M60
+        load(fullfile(save_path, [params.sub '_squidmag_M60'])); 
+        M60_squidmag = M60;
+        clear M60
+        load(fullfile(save_path, [params.sub '_squidgrad_M60'])); 
+        M60_squidgrad = M60;
+        clear M60
+        fit_mne(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelockedT, headmodels, sourcemodel, M60_squidmag, M60_squidgrad, M60_opm ,params);
     end
 end
 close all
