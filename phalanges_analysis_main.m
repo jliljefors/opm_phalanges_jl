@@ -37,8 +37,9 @@ overwrite.mne = true;
 
 %% Params
 params = [];
-params.pre = 0.1; %sec
-params.post = 0.4; %sec
+params.pre = 0.05; %sec
+params.post = 0.3; %sec
+params.pad = 0.1; %sec
 params.filter = [];
 params.filter.hp_freq = 3;
 params.filter.lp_freq = 70;

@@ -14,9 +14,9 @@ squid_trig = find(contains(squid_raw.label,'STI101'));
 trig = squid_raw.trial{1}(squid_trig,:)>0.5;
 trig = [false trig(2:end)&~trig(1:end-1)];
 smpl = 1:squid_raw.sampleinfo(2);
-trl_squid(:,1) = smpl(trig)-(params.pre+params.pad)*squid_raw.fsample;
-trl_squid(:,2) = smpl(trig)+(params.post+params.pad)*squid_raw.fsample;
-trl_squid(:,3) = -(params.pre+params.pad)*squid_raw.fsample;
+trl_squid(:,1) = smpl(trig)-(params.pre+0.05)*squid_raw.fsample;
+trl_squid(:,2) = smpl(trig)+(params.post+0.2)*squid_raw.fsample;
+trl_squid(:,3) = -params.pre*squid_raw.fsample;
 trl_squid(:,4) = squid_raw.trial{1}(squid_trig,smpl(trig));
 trl_squid(:,1:2) = trl_squid(:,1:2) + floor(0.041*squid_raw.fsample); % adjust for stim delay
 

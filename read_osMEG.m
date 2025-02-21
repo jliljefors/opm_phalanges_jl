@@ -18,9 +18,9 @@ opm_trig = find(contains(opm_raw.label,'di'));
 trig = opm_raw.trial{1}(opm_trig,:)>0.5;
 trig = [false trig(2:end)&~trig(1:end-1)];
 smpl = 1:opm_raw.sampleinfo(2);
-trl_opm(:,1) = smpl(trig)-params.pre*opm_raw.fsample;
-trl_opm(:,2) = smpl(trig)+params.post*opm_raw.fsample;
-trl_opm(:,3) = -params.pre*opm_raw.fsample;
+trl_opm(:,1) = smpl(trig)-(params.pre+params.pad)*opm_raw.fsample;
+trl_opm(:,2) = smpl(trig)+(params.post+params.pad)*opm_raw.fsample;
+trl_opm(:,3) = -(params.pre+params.pad)*opm_raw.fsample;
 trl_opm(:,4) = opm_raw.trial{1}(opm_trig,smpl(trig));
 trl_opm(:,1:2) = trl_opm(:,1:2) + floor(0.041*opm_raw.fsample); % adjust for stim delay
 
@@ -33,9 +33,9 @@ aux_trig = find(contains(aux_raw.label,'STI101'));
 trig = aux_raw.trial{1}(aux_trig,:)>0.5;
 trig = [false trig(2:end)&~trig(1:end-1)];
 smpl = 1:aux_raw.sampleinfo(2);
-trl_aux(:,1) = smpl(trig)-params.pre*aux_raw.fsample;
-trl_aux(:,2) = smpl(trig)+params.post*aux_raw.fsample;
-trl_aux(:,3) = -params.pre*aux_raw.fsample;
+trl_aux(:,1) = smpl(trig)-(params.pre+params.pad)*aux_raw.fsample;
+trl_aux(:,2) = smpl(trig)+(params.post+params.pad)*aux_raw.fsample;
+trl_aux(:,3) = -(params.pre+params.pad)*aux_raw.fsample;
 trl_aux(:,4) = aux_raw.trial{1}(aux_trig,smpl(trig));
 trl_aux(:,1:2) = trl_aux(:,1:2) + floor(0.041*aux_raw.fsample); % adjust for stim delay
 

@@ -17,9 +17,8 @@ cfg.toilim = [-params.pre params.post];
 data = ft_redefinetrial(cfg,data);
 
 cfg = [];
-cfg.demean = 'yes';
-cfg.baselinewindow = [-params.pre 0];
-data = ft_preprocessing(cfg,data);
+cfg.toilim = [-params.pre params.post];
+data = ft_preprocessin(cfg,data);
 
 %cfg = [];
 %cfg.toilim = [-params.pre params.post];
@@ -28,7 +27,7 @@ data = ft_preprocessing(cfg,data);
 for i_phalange = 1:length(params.trigger_code)
     cfg = [];
     cfg.covariance          = 'yes';
-    cfg.covariancewindow    = [-params.pre 0];
+    cfg.covariancewindow    = 'prestim';
     cfg.trials = find(data.trialinfo==params.trigger_code(i_phalange));
     timelocked{i_phalange} = ft_timelockanalysis(cfg, data);
     
@@ -73,7 +72,6 @@ hold off
 title([params.modality ' - Max channel'])
 ylabel(params.amp_label)
 xlabel('time [ms]')
-xlim([-params.pre params.post]*1e3);
 legend(leg)
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_evoked_maxchannels.jpg']))
 
@@ -96,7 +94,6 @@ for i_phalange = 1:length(params.trigger_code)
     title(['Peak ' params.modality ' channel: ' M60{i_phalange}.peak_channel])
     ylabel(params.amp_label)
     xlabel('time [ms]')
-    xlim([-params.pre params.post]*1e3);
     saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_evoked_peakchannel_ph' num2str(i_phalange) '.jpg']))
 end
 
@@ -112,7 +109,6 @@ for i_phalange = 1:length(params.trigger_code)
     hold off
     xlabel('t [msec]')
     ylabel(params.amp_label)
-    xlim([-params.pre params.post]*1e3);
     title(['Evoked ' params.modality ' - phalange ' params.phalange_labels{i_phalange} ' (n_{trls}=' num2str(length(timelocked{i_phalange}.cfg.trials)) ')'])
     saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']))
 
