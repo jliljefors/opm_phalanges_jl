@@ -86,6 +86,21 @@ xticklabels(params.phalange_labels)
 saveas(h, fullfile(base_save_path, 'figs', 'dipole_squidmag_to_squidgrad_dist.jpg'))
 close
 
+for i_ph = 1:5
+    h = figure('DefaultAxesFontSize',16);
+    plot(subs,dist_sqmag_opm(subs,i_ph));
+    hold on
+    plot(subs,dist_sqgrad_opm(subs,i_ph));
+    plot(subs,dist_sqmag_sqgrad(subs,i_ph));
+    hold off
+    title([params.phalange_labels{i_ph} ' - dipole distances over subjects'])
+    ylabel('Distance [mm]')
+    xlabel('Subjects')
+    legend(['SQMAG-OPM   '; 'SQGRAD-OPM  '; 'SQMAG-SQGRAD'])
+    saveas(h, fullfile(base_save_path, 'figs', ['dipole_dist_vs_sub-' params.phalange_labels{i_ph} '.jpg']))
+    close
+end
+
 %% Plot spread
 % h = figure('DefaultAxesFontSize',16);
 % bar(1,mean(spread_opm,1,'omitnan'));
@@ -184,17 +199,18 @@ err2 = [mean2-min2; max2-mean2];
 err3 = [mean3-min3; max3-mean3];
 
 h = figure('DefaultAxesFontSize',16);
-bar(1,[mean1; mean2; mean3]','grouped');
+bar(1,[mean1; mean2]','grouped');
 hold on
 k=1;
 errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
 errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
-errorbar(k+0.15,mean3(k),err3(1,k),err3(2,k),'k','linestyle','none');
+%errorbar(k+0.15,mean3(k),err3(1,k),err3(2,k),'k','linestyle','none');
 [~, p_values12] = ttest(data1(:, 1), data2(:, 1));
 [~, p_values13] = ttest(data1(:, 1), data3(:, 1));
 [~, p_values23] = ttest(data2(:, 1), data3(:, 1));
 
-sigstar({[1, 1]}, [p_values12, p_values13, p_values23]);
+sigstar({[1, 1]}, [p_values12]);
+%sigstar({[1, 1]}, [p_values12, p_values13, p_values23]);
 hold off
 title('Group level M100 dipole spread')
 ylabel('Dipoles spread [mm]')

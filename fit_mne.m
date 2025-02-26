@@ -36,7 +36,7 @@ leadfield_opm = ft_prepare_leadfield(cfg,opm_timelocked{1});
 % MEG-MAG
 squidmag_mne = [];
 squidmag_mne.avg = cell(5,1);
-squidmag_mne_M100 = cell(5,1);
+squidmag_mne_M60 = cell(5,1);
 for i_phalange = 1:5
     cfg = [];
     cfg.method              = 'mne';
@@ -55,8 +55,8 @@ for i_phalange = 1:5
     squidmag_mne.avg{i_phalange} = [];
     squidmag_mne.avg{i_phalange}.pow = tmp.avg.pow;
     squidmag_mne.avg{i_phalange}.mom = tmp.avg.mom;
-    squidmag_mne_M100{i_phalange} = [];
-    [squidmag_mne_M100{i_phalange}.fahm, squidmag_mne_M100{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,M100_squidmag{i_phalange}.peak_latency);
+    squidmag_mne_M60{i_phalange} = [];
+    [squidmag_mne_M60{i_phalange}.fahm, squidmag_mne_M60{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,M100_squidmag{i_phalange}.peak_latency);
 
     cfg = [];
     cfg.method          = 'surface';
@@ -66,7 +66,7 @@ for i_phalange = 1:5
     cfg.latency         = M100_squidmag{i_phalange}.peak_latency;
     h = figure;
     ft_sourceplot(cfg, tmp)
-    title(['SQUID-MAG (FAHM=' num2str(squidmag_mne_M100{i_phalange}.fahm,3) ')'])
+    title(['SQUID-MAG (FAHM=' num2str(squidmag_mne_M60{i_phalange}.fahm,3) ')'])
     saveas(h, fullfile(save_path,'figs', [params.sub '_squidmag_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
 end
@@ -77,13 +77,13 @@ squidmag_mne.pos = tmp.pos;
 squidmag_mne.tri = sourcemodel.tri;
 
 save(fullfile(save_path, 'squidmag_mne'), 'squidmag_mne'); 
-save(fullfile(save_path, 'squidmag_mne_M100'), 'squidmag_mne_M100'); 
+save(fullfile(save_path, 'squidmag_mne_M60'), 'squidmag_mne_M60'); 
 clear tmp squidmag_mne leadfield_squidmag
 
 % MEG-GRAD
 squidgrad_mne = [];
 squidgrad_mne.avg = cell(5,1);
-squidgrad_mne_M100 = cell(5,1);
+squidgrad_mne_M60 = cell(5,1);
 for i_phalange = 1:5
     cfg = [];
     cfg.method              = 'mne';
@@ -102,8 +102,8 @@ for i_phalange = 1:5
     squidgrad_mne.avg{i_phalange} = [];
     squidgrad_mne.avg{i_phalange}.pow = tmp.avg.pow;
     squidgrad_mne.avg{i_phalange}.mom = tmp.avg.mom;
-    squidgrad_mne_M100{i_phalange} = [];
-    [squidgrad_mne_M100{i_phalange}.fahm, squidgrad_mne_M100{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,M100_squidgrad{i_phalange}.peak_latency);
+    squidgrad_mne_M60{i_phalange} = [];
+    [squidgrad_mne_M60{i_phalange}.fahm, squidgrad_mne_M60{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,M100_squidgrad{i_phalange}.peak_latency);
 
     cfg = [];
     cfg.method          = 'surface';
@@ -113,7 +113,7 @@ for i_phalange = 1:5
     cfg.latency         = M100_squidgrad{i_phalange}.peak_latency;
     h = figure;
     ft_sourceplot(cfg, tmp)
-    title(['SQUID-GRAD (FAHM=' num2str(squidgrad_mne_M100{i_phalange}.fahm,3) ')'])
+    title(['SQUID-GRAD (FAHM=' num2str(squidgrad_mne_M60{i_phalange}.fahm,3) ')'])
     saveas(h, fullfile(save_path,'figs', [params.sub '_squidgrad_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
 end
@@ -124,13 +124,13 @@ squidgrad_mne.pos = tmp.pos;
 squidgrad_mne.tri = sourcemodel.tri;
 
 save(fullfile(save_path, 'squidgrad_mne'), 'squidgrad_mne'); 
-save(fullfile(save_path, 'squidgrad_mne_M100'), 'squidgrad_mne_M100'); 
+save(fullfile(save_path, 'squidgrad_mne_M60'), 'squidgrad_mne_M60'); 
 clear tmp squidgrad_mne leadfield_squidgrad
 
 % OPM
 opm_mne = [];
 opm_mne.avg = cell(5,1);
-opm_mne_M100 = cell(5,1);
+opm_mne_M60 = cell(5,1);
 for i_phalange = 1:5
     cfg = [];
     cfg.method              = 'mne';
@@ -149,8 +149,8 @@ for i_phalange = 1:5
     opm_mne.avg{i_phalange} = [];
     opm_mne.avg{i_phalange}.pow = tmp.avg.pow;
     opm_mne.avg{i_phalange}.mom = tmp.avg.mom;
-    opm_mne_M100{i_phalange} = [];
-    [opm_mne_M100{i_phalange}.fahm, opm_mne_M100{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,M100_opm{i_phalange}.peak_latency);
+    opm_mne_M60{i_phalange} = [];
+    [opm_mne_M60{i_phalange}.fahm, opm_mne_M60{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,M100_opm{i_phalange}.peak_latency);
 
     cfg = [];
     cfg.method          = 'surface';
@@ -160,7 +160,7 @@ for i_phalange = 1:5
     cfg.latency         = M100_opm{i_phalange}.peak_latency;
     h = figure;
     ft_sourceplot(cfg, tmp)
-    title(['OPM (FAHM=' num2str(opm_mne_M100{i_phalange}.fahm,3) ')'])
+    title(['OPM (FAHM=' num2str(opm_mne_M60{i_phalange}.fahm,3) ')'])
     saveas(h, fullfile(save_path,'figs', [params.sub '_opm_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
 end
@@ -171,7 +171,7 @@ opm_mne.pos = tmp.pos;
 opm_mne.tri = sourcemodel.tri;
 
 save(fullfile(save_path, 'opm_mne'), 'opm_mne'); 
-save(fullfile(save_path, 'opm_mne_M100'), 'opm_mne_M100'); 
+save(fullfile(save_path, 'opm_mne_M60'), 'opm_mne_M60'); 
 clear tmp opm_mne leadfield_opm
 
 end

@@ -37,7 +37,7 @@ trl_aux(:,2) = find(trig)+(params.post+params.pad)*aux_raw.fsample;
 trl_aux(:,3) = -(params.pre+params.pad)*aux_raw.fsample;
 trl_aux(:,4) = aux_raw.trial{1}(aux_trig,trig);
 trl_aux(:,1:2) = trl_aux(:,1:2) + floor(0.041*aux_raw.fsample); % adjust for stim delay
-trl_aux = round(trl_aux);
+trl_aux = int32(trl_aux);
 
 % Check if uneven amount of trial. If so assume error in beginning.
 if size(trl_aux,1) > size(trl_opm,1)

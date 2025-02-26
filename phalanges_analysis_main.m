@@ -29,17 +29,17 @@ ft_default.showcallinfo = 'no';
 
 %% Overwrite
 overwrite = [];
-overwrite.preproc = true;
-overwrite.coreg = false;
+overwrite.preproc = false;
+overwrite.coreg = true;
 overwrite.mri = false;
 overwrite.dip = true;
 overwrite.mne = true;
 
 %% Params
 params = [];
-params.pre = 0.05; %sec
+params.pre = 0.1; %sec
 params.post = 0.3; %sec
-params.pad = 0.1; %sec
+params.pad = 0.2; %sec
 params.filter = [];
 params.filter.hp_freq = 3;
 params.filter.lp_freq = 70;
@@ -255,7 +255,7 @@ for i_sub = 2:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
-    hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
+    hpi_path = fullfile(raw_path, 'osmeg'); %hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
 
     if exist(fullfile(save_path, 'opm_trans.mat'),'file') && overwrite.coreg==false
         disp(['Not overwriting OPM transform for ' params.sub]);
@@ -268,7 +268,7 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, [params.sub '_opm_ica_ds']));
         params.include_chs = data_ica_ds.label(find(contains(data_ica_ds.label,'bz')));
         params.include_chs = params.include_chs([1:75 77:end]);
-        [hpi_fit, opm_trans, hpi_fit_tf] = fit_hpi(hpi_file, meg_file, save_path, params);
+        fit_hpi(hpi_path, meg_file, save_path, params);
         close all
     end
 end

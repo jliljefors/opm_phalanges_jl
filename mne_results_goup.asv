@@ -6,9 +6,12 @@ n_ph = length(params.phalange_labels);
 dist_sqmag_opm = nan(n_subs,n_ph);
 dist_sqgrad_opm = nan(n_subs,n_ph);
 dist_sqmag_sqgrad = nan(n_subs,n_ph);
+dist_sqeeg_opmeeg = nan(n_subs,n_ph);
 fahm_opm = nan(n_subs,n_ph);
 fahm_squidmag = nan(n_subs,n_ph);
 fahm_squidgrad = nan(n_subs,n_ph);
+fahm_squideeg = nan(n_subs,n_ph);
+fahm_opmeeg = nan(n_subs,n_ph);
 for i_sub = subs
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
@@ -18,7 +21,11 @@ for i_sub = subs
     load(fullfile(save_path, 'squidgrad_mne_M60'));
     mne_squidgrad{i_sub} = squidgrad_mne_M60;
     load(fullfile(save_path, 'opm_mne_M60'));
-    mne_opm{i_sub} = opm_mne_M60;
+    mne_opm{i_sub} = opm_mne_M100;
+    load(fullfile(save_path, 'squideeg_mne_M100'));
+    mne_squideeg{i_sub} = squideeg_mne_M100;
+    load(fullfile(save_path, 'opmeeg_mne_M100'));
+    mne_opmeeg{i_sub} = opmeeg_mne_M100;
   
     % Metrics: 
     % - distance between mnes for same phalange different systems
@@ -26,6 +33,8 @@ for i_sub = subs
     pos_squidmag = zeros(n_ph,3);
     pos_squidgrad = zeros(n_ph,3);
     pos_opm = zeros(n_ph,3);
+    pos_squideeg = zeros(n_ph,3);
+    pos_opmeeg = zeros(n_ph,3);
     for i_phalange = 1:n_ph
         pos_squidmag(i_phalange,:) = mne_squidmag{i_sub}{i_phalange}.peakloc;
         pos_squidgrad(i_phalange,:) = mne_squidgrad{i_sub}{i_phalange}.peakloc;
@@ -34,10 +43,18 @@ for i_sub = subs
         dist_sqmag_opm(i_sub,i_phalange) = 1e1*norm(pos_squidmag(i_phalange,:)-pos_opm(i_phalange,:));
         dist_sqgrad_opm(i_sub,i_phalange) = 1e1*norm(pos_squidgrad(i_phalange,:)-pos_opm(i_phalange,:));
         dist_sqmag_sqgrad(i_sub,i_phalange) = 1e1*norm(pos_squidmag(i_phalange,:)-pos_squidgrad(i_phalange,:));
-
+        if ~isempty(mne_squideeg{i_sub}{i_phalange})
+            pos_squideeg(i_phalange,:) = 1e1*mne_squideeg{i_sub}{i_phalange}.peakloc;
+            pos_opmeeg(i_phalange,:) = 1e1*mne_opmeeg{i_sub}{i_phalange}.peakloc;
+            dist_sqeeg_opmeeg(i_sub,i_phalange) = 1e1*norm(pos_squideeg(i_phalange,:)-pos_opmeeg(i_phalange,:));
+        end
         fahm_opm(i_sub,i_phalange) = mne_opm{i_sub}{i_phalange}.fahm; % mean distance from center of phalanges
         fahm_squidmag(i_sub,i_phalange) = mne_squidmag{i_sub}{i_phalange}.fahm; % mean distance from center of phalanges
         fahm_squidgrad(i_sub,i_phalange) = mne_squidgrad{i_sub}{i_phalange}.fahm; % mean distance from center of phalanges
+        if ~isempty(mne_squideeg{i_sub}{i_phalange})
+            fahm_squideeg(i_sub,i_phalange) = mne_squideeg{i_sub}{i_phalange}.fahm; % mean distance from center of phalanges
+            fahm_opmeeg(i_sub,i_phalange) = mne_opmeeg{i_sub}{i_phalange}.fahm; % mean distance from center of phalanges
+        end
     end
 end
 
