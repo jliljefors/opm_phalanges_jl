@@ -117,6 +117,50 @@ cfg.threshold = params.eeg_std_threshold;
 [cfg, badtrl_squideeg_std] = ft_badsegment(cfg, squideeg_cleaned);
 squideeg_cleaned = ft_rejectartifact(cfg,squideeg_cleaned);
 
+%% Spectra
+cfg = [];
+cfg.channel = 'EEG*';
+cfg.output = 'pow';
+cfg.method = 'mtmfft';
+cfg.taper = 'hanning';
+cfg.foi = 1:1:100;
+freq = ft_freqanalysis(cfg, squideeg_cleaned);
+h = figure;
+semilogy(freq.freq,freq.powspctrm)
+xlabel('Frequency (Hz)')
+ylabel('Power (T^2)')
+title('SQUID-EEG spectrum - preICA')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_squideeg_spectrum.jpg']))
+
+cfg = [];
+cfg.channel = 'megmag';
+cfg.output = 'pow';
+cfg.method = 'mtmfft';
+cfg.taper = 'hanning';
+cfg.foi = 1:1:100;
+freq = ft_freqanalysis(cfg, squid_cleaned);
+h = figure;
+semilogy(freq.freq,freq.powspctrm)
+xlabel('Frequency (Hz)')
+ylabel('Power (T^2)')
+title('SQUID-MAG spectrum - preICA')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_squidmag_spectrum1.jpg']))
+
+cfg = [];
+cfg.channel = 'meggrad';
+cfg.output = 'pow';
+cfg.method = 'mtmfft';
+cfg.taper = 'hanning';
+cfg.foi = 1:1:100;
+freq = ft_freqanalysis(cfg, squid_cleaned);
+h = figure;
+semilogy(freq.freq,freq.powspctrm)
+xlabel('Frequency (Hz)')
+ylabel('Power (T^2)')
+title('SQUID-MAG spectrum - preICA')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_squidgrad_spectrum1.jpg']))
+
+
 %% Save 
 save(fullfile(save_path, [params.sub '_squideeg_badchs']), ...
     'badchs_squideeg_flat', ...

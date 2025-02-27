@@ -17,10 +17,10 @@ for i_file = 1:length(hpi_files)
     cfg.datafile        = fullfile(hpi_path,hpi_files(i_file).name);
     cfg.coordsys        = 'dewar';
     cfg.coilaccuracy    = 0;
-    cfg.lpfilter        = 'yes';         
-    cfg.lpfreq          = params.hpi_freq+10;
-    cfg.hpfilter        = 'yes';         
-    cfg.hpfreq          = params.hpi_freq-10;
+    cfg.bpfilter        = 'yes';         
+    cfg.bpfreq          = [params.hpi_freq-5 params.hpi_freq+5];
+    %cfg.hpfilter        = 'yes';         
+    %cfg.hpfreq          = params.hpi_freq-5;
     raw = ft_preprocessing(cfg);
     
     %% Epoch

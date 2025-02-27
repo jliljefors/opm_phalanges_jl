@@ -118,7 +118,7 @@ opm_raw = ft_redefinetrial(cfg,opm_raw);
 cfg = [];
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
-[badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw);
+[badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badchs_outlier, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw);
 clear opm_raw
 
 %% --- Resample --- 
@@ -158,6 +158,20 @@ cfg = [];
 cfg.channel = setdiff(opm_cleaned.label,badchs_opm);
 cfg.trials  = setdiff(1:length(opm_cleaned.trial),badtrl_opm_zmax); % remove bad trials
 opm_cleaned = ft_selectdata(cfg, opm_cleaned);
+
+cfg = [];
+cfg.channel = '*bz';
+cfg.output = 'pow';
+cfg.method = 'mtmfft';
+cfg.taper = 'hanning';
+cfg.foi = 1:1:100;
+freq = ft_freqanalysis(cfg, opm_cleaned);
+h = figure;
+semilogy(freq.freq,freq.powspctrm)
+xlabel('Frequency (Hz)')
+ylabel('Power (T^2)')
+title('OPM spectrum - preHFC')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_opm_spectrum0.jpg']))
 
 % HFC
 i_chs = find(contains(opm_cleaned.label,'bz'));
@@ -219,12 +233,42 @@ cfg.threshold = params.eeg_std_threshold;
 [cfg, badtrl_opmeeg_std] = ft_badsegment(cfg, opmeeg_cleaned);
 opmeeg_cleaned = ft_rejectartifact(cfg,opmeeg_cleaned);
 
+%% Spectra
+cfg = [];
+cfg.channel = 'EEG*';
+cfg.output = 'pow';
+cfg.method = 'mtmfft';
+cfg.taper = 'hanning';
+cfg.foi = 1:1:100;
+freq = ft_freqanalysis(cfg, opmeeg_cleaned);
+h = figure;
+semilogy(freq.freq,freq.powspctrm)
+xlabel('Frequency (Hz)')
+ylabel('Power (T^2)')
+title('OPM-EEG spectrum - preICA')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_opmeeg_spectrum1.jpg']))
+
+cfg = [];
+cfg.channel = '*bz';
+cfg.output = 'pow';
+cfg.method = 'mtmfft';
+cfg.taper = 'hanning';
+cfg.foi = 1:1:100;
+freq = ft_freqanalysis(cfg, opm_cleaned);
+h = figure;
+semilogy(freq.freq,freq.powspctrm)
+xlabel('Frequency (Hz)')
+ylabel('Power (T^2)')
+title('OPM spectrum - preICA')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_opm_spectrum1.jpg']))
+
 
 %% Save 
 save(fullfile(save_path, [params.sub '_opm_badchs']), ...
     'badchs_opm_flat', ...
     'badchs_opm_neighbors', ...
-    'badchs_opm_zmax' ,"-v7.3"); 
+    'badchs_opm_zmax' , ...
+    'badchs_outlier',"-v7.3"); 
 
 save(fullfile(save_path, [params.sub '_opmeeg_badchs']), ...
     'badchs_opmeeg_flat', ...

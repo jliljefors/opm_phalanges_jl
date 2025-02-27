@@ -29,7 +29,7 @@ ft_default.showcallinfo = 'no';
 
 %% Overwrite
 overwrite = [];
-overwrite.preproc = false;
+overwrite.preproc = true;
 overwrite.coreg = true;
 overwrite.mri = false;
 overwrite.dip = true;
@@ -39,12 +39,12 @@ overwrite.mne = true;
 params = [];
 params.pre = 0.1; %sec
 params.post = 0.3; %sec
-params.pad = 0.2; %sec
+params.pad = 0.3; %sec
 params.filter = [];
 params.filter.hp_freq = 3;
 params.filter.lp_freq = 70;
 params.filter.bp_freq = [];
-params.filter.notch = sort([50:50:150 60:60:120]);
+params.filter.notch = [50 60]; %[50 60 100 120 150];
 params.n_comp = 40;
 params.ica_cor = 0.8; % cutoff for EOG/ECG coherence
 params.ica_coh = 0.9; % cutoff for EOG/ECG coherence

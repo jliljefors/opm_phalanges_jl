@@ -300,7 +300,52 @@ cfg.channel     = params.chs;
 cfg.updatesens  = 'no';
 data_ica = ft_rejectcomponent(cfg, comp, data);
 
-% Save
+%% Spectrum
+if strcmp(params.modality,'squid')
+    cfg = [];
+    cfg.channel = 'megmag';
+    cfg.output = 'pow';
+    cfg.method = 'mtmfft';
+    cfg.taper = 'hanning';
+    cfg.foi = 1:1:100;
+    freq = ft_freqanalysis(cfg, data_ica);
+    h = figure;
+    semilogy(freq.freq,freq.powspctrm)
+    xlabel('Frequency (Hz)')
+    ylabel('Power (T^2)')
+    title('squidmag spectrum - postICA')
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_squidmag_spectrum_2.jpg']))
+
+    cfg = [];
+    cfg.channel = 'meggrad';
+    cfg.output = 'pow';
+    cfg.method = 'mtmfft';
+    cfg.taper = 'hanning';
+    cfg.foi = 1:1:100;
+    freq = ft_freqanalysis(cfg, data_ica);
+    h = figure;
+    semilogy(freq.freq,freq.powspctrm)
+    xlabel('Frequency (Hz)')
+    ylabel('Power (T^2)')
+    title('squidgrad spectrum - postICA')
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_squidgrad_spectrum_2.jpg']))
+else
+    cfg = [];
+    cfg.channel = params.chs;
+    cfg.output = 'pow';
+    cfg.method = 'mtmfft';
+    cfg.taper = 'hanning';
+    cfg.foi = 1:1:100;
+    freq = ft_freqanalysis(cfg, data_ica);
+    h = figure;
+    semilogy(freq.freq,freq.powspctrm)
+    xlabel('Frequency (Hz)')
+    ylabel('Power (T^2)')
+    title([params.modality ' spectrum - postICA'])
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_spectrum_2.jpg']))
+end
+
+%% Save
 save(fullfile(save_path, [params.sub '_' params.modality '_ica_comp']), 'comp', 'ecg_comp_idx', 'eog1_comp_idx', 'eog2_comp_idx'); disp('done');
 %save(fullfile(save_path, [params.sub '_' params.modality '_ica']), 'data_ica',"-v7.3"); disp('done');
 

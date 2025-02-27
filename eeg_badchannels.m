@@ -47,8 +47,10 @@ badchs_neighbors = find(~any(trimmean(neighborscorr,0.1,3)>cfg.corr_threshold,2)
 badchs_zmax = find(sum(z_max>cfg.z_threshold,2)>(n_trls*cfg.njump_threshold));
 badchs = [badchs_flat; badchs_neighbors; badchs_zmax];
 
+
+
 % Bad trials (jumps)
-badtrls_zmax = find(sum(z_max(setdiff(1:end,badchs),:)>cfg.z_threshold,1)>0);
+badtrls_zmax = find(sum(z_max(setdiff(1:end,badchs),:)>cfg.z_threshold,1)>1);
 
 % Convert to channel labels
 badchs = data.label(chs(badchs));

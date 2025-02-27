@@ -4,6 +4,7 @@ function [timelocked] = timelock_MEG(data, save_path, params)
     
 timelocked = cell(length(params.trigger_code),1);
 M60 = cell(5,1);
+
 h = figure; 
 hold on
 leg = [];
