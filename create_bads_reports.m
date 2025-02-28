@@ -181,7 +181,7 @@ for subNumber = subs
     end
     add(rpt, chapter);
 
-    %% M100 chapter
+    %% M60 chapter
     chapter = Chapter('M60');
     chapter.Numbered = false; % Remove chapter numbering
     for i_section = 1:length(sections)
@@ -262,7 +262,7 @@ for subNumber = subs
             row = TableRow();
             for j = 1:2
                 imgIndex = (j-1)*2 + i;
-                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_evoked_peakchannel_ph' num2str(i_phalange) '.jpg']));
+                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_evoked_peakchannel_ph-' params.phalange_labels{i_phalange} '.jpg']));
                 img.Style = {Width('8cm'), ScaleToFit};
                 entry = TableEntry();
                 append(entry, img);

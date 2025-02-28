@@ -78,7 +78,11 @@ trial_std = zeros(n_chs,length(data_epo.trial));
 z_max = zeros(n_chs,length(data_epo.trial));
 for trial = 1:n_trls
     dat = data_epo.trial{trial}(chs,:);
-    dat = diff(movmean(dat,9*data_epo.fsample/1000,2),1,2);
+    %dat = diff(movmean(dat,9*data_epo.fsample/1000,2),1,2);
+    dat = movmean(dat,9*data_epo.fsample/1000,2);
+    for i_ch = 1:size(dat,1)
+        dat(i_ch,1:(end-5)) = conv(dat(i_ch,:),[1 0 0 0 0 -1],'valid');
+    end
     dat = dat(:,1:(end-5));
     trial_std(:,trial) = std(dat,0,2);
     trial_mean = repmat(mean(dat,2),[1 size(dat,2)]);

@@ -52,7 +52,7 @@ squid_raw = ft_redefinetrial(cfg,squid_raw);
 cfg = [];
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
-[badchs_opmeeg, badchs_squideeg_flat, badchs_squideeg_neighbors, badchs_squideeg_zmax, badtrl_squideeg_zmax] = eeg_badchannels(cfg,squid_raw);
+[badchs_opmeeg, badchs_squideeg_flat, badchs_squideeg_neighbors] = eeg_badchannels(cfg,squid_raw);
 clear squid_raw
 
 %% MEG 
@@ -94,9 +94,33 @@ cfg.channel = squid_epo.label(find(~contains(squid_epo.label,'MEG')));
 squideeg_cleaned = ft_selectdata(cfg, squid_epo);
 
 cfg = [];
-cfg.channel = setdiff(squideeg_cleaned.label,badchs_opmeeg);
-cfg.trials  = setdiff(1:length(squideeg_cleaned.trial),badtrl_squideeg_zmax); % remove bad trials
-squideeg_cleaned = ft_selectdata(cfg, squideeg_cleaned);
+cfg.channel = {'EOG', 'ECG'};
+exg = ft_selectdata(cfg, squideeg_cleaned);
+
+% Interpolate bad chs
+cfg = [];
+cfg.method = 'triangulation';
+cfg.senstype = 'EEG';
+neighbors = ft_prepare_neighbours(cfg,squideeg_cleaned);
+cfg = [];
+cfg.method = 'spline';
+cfg.neighbors = neighbors;
+cfg.badchannel = badchs_opmeeg;
+cfg.senstype = 'EEG';
+squideeg_cleaned = ft_channelrepair(cfg, squideeg_cleaned);
+
+% Re-reference
+% cfg = [];
+% cfg.refef = 'yes';
+% cfg.reffchannel = 'EEG023';
+% squideeg_cleaned = ft_preprocessing(cfg,squideeg_cleaned);
+
+cfg = [];
+squideeg_cleaned = ft_appenddata(cfg,squideeg_cleaned,exg);
+
+%cfg = [];
+%cfg.channel = setdiff(squideeg_cleaned.label,badchs_opmeeg);
+%squideeg_cleaned = ft_selectdata(cfg, squideeg_cleaned);
 
 % Reject jump trials
 cfg = [];
@@ -123,7 +147,7 @@ cfg.channel = 'EEG*';
 cfg.output = 'pow';
 cfg.method = 'mtmfft';
 cfg.taper = 'hanning';
-cfg.foi = 1:1:100;
+cfg.foilim = [1 100];
 freq = ft_freqanalysis(cfg, squideeg_cleaned);
 h = figure;
 semilogy(freq.freq,freq.powspctrm)
@@ -137,7 +161,7 @@ cfg.channel = 'megmag';
 cfg.output = 'pow';
 cfg.method = 'mtmfft';
 cfg.taper = 'hanning';
-cfg.foi = 1:1:100;
+cfg.foilim = [1 100];
 freq = ft_freqanalysis(cfg, squid_cleaned);
 h = figure;
 semilogy(freq.freq,freq.powspctrm)
@@ -151,7 +175,7 @@ cfg.channel = 'meggrad';
 cfg.output = 'pow';
 cfg.method = 'mtmfft';
 cfg.taper = 'hanning';
-cfg.foi = 1:1:100;
+cfg.foilim = [1 100];
 freq = ft_freqanalysis(cfg, squid_cleaned);
 h = figure;
 semilogy(freq.freq,freq.powspctrm)

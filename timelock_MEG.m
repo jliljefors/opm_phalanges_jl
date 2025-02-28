@@ -14,8 +14,8 @@ cfg.channel = params.chs;
 data = ft_selectdata(cfg, data);
 
 cfg = [];
-cfg.toilim = [-params.pre params.post];
-data = ft_redefinetrial(cfg,data);
+cfg.latency = [-params.pre params.post];
+data = ft_selectdata(cfg, data);
 
 cfg = [];
 cfg.demean = 'yes';
@@ -40,6 +40,9 @@ for i_phalange = 1:length(params.trigger_code)
     tmp = [];
 
     [~, i_peak_latency] = findpeaks(std(dat.avg(:,(interval_M60(1):interval_M60(2))),1),'SortStr','descend');
+    if isempty(i_peak_latency)
+        i_peak_latency = round((interval_M60(2)-interval_M60(1))/2);
+    end
     i_peak_latency = interval_M60(1)-1+i_peak_latency(1); % adjust for interval and pick first (=strongest) peak
     tmp.peak_latency = dat.time(i_peak_latency);
     disp(tmp.peak_latency);
@@ -50,23 +53,23 @@ for i_phalange = 1:length(params.trigger_code)
     if abs(tmp.max_amplitude) > abs(tmp.min_amplitude)
         tmp.peak_channel = tmp.max_channel;
         tmp.peak_amplitude = abs(tmp.max_amplitude);
-        i_peakch = i_maxch;
+        tmp.i_peakch = i_maxch;
     else
         tmp.peak_channel = tmp.min_channel;
         tmp.peak_amplitude = abs(tmp.min_amplitude);
-        i_peakch = i_minch;
+        tmp.i_peakch = i_minch;
     end
     %[~,i_peak_latency] = max(abs(dat.avg(i_maxch,interval_M100(1):interval_M100(2))));
     %tmp.peak_latency = dat.time(interval_M100(1)-1+i_peak_latency);
-    tmp.prestim_std = std(dat.avg(i_peakch,1:interval_M60(3)));
-    tmp.std_error = sqrt(dat.var(i_peakch,i_peak_latency));
+    tmp.prestim_std = std(dat.avg(tmp.i_peakch,1:interval_M60(3)));
+    tmp.std_error = sqrt(dat.var(tmp.i_peakch,i_peak_latency));
     %for i_trl = find(data.trialinfo==params.trigger_code(i_phalange))'
     %    tmp.std_error = tmp.std_error + abs(tmp.max_amplitude - data.trial{i_trl}(i_maxch,interval_M100(1)-1+i_peak_latency));
     %end
     %tmp.std_error = tmp.std_error/length(find(data.trialinfo==params.trigger_code(i_phalange)));
     M60{i_phalange} = tmp;
     
-    plot(dat.time*1e3, dat.avg(i_peakch,:)*params.amp_scaler)
+    plot(dat.time*1e3, dat.avg(tmp.i_peakch,:)*params.amp_scaler)
     leg = [leg; [num2str(i_phalange) ': ' strrep(tmp.peak_channel,'_','-')]];
 
 end
@@ -87,9 +90,9 @@ for i_phalange = 1:length(params.trigger_code)
     h = figure;
     hold on
     for i_trl = find(data.trialinfo==params.trigger_code(i_phalange))'
-        plot(data.time{i_trl}*1e3, data.trial{i_trl}(i_peakch,:)*params.amp_scaler,'Color',[211 211 211]/255)
+        plot(data.time{i_trl}*1e3, data.trial{i_trl}(M60{i_phalange}.i_peakch,:)*params.amp_scaler,'Color',[211 211 211]/255)
     end
-    plot(dat.time*1e3, dat.avg(i_peakch,:)*params.amp_scaler,'Color',[0 0 0]/255)
+    plot(dat.time*1e3, dat.avg(M60{i_phalange}.i_peakch,:)*params.amp_scaler,'Color',[0 0 0]/255)
     ylimits = ylim;
     latency = 1e3*M60{i_phalange}.peak_latency;
     plot([latency latency],ylimits,'r--')
@@ -98,7 +101,7 @@ for i_phalange = 1:length(params.trigger_code)
     ylabel(params.amp_label)
     xlabel('time [ms]')
     xlim([-params.pre params.post]*1e3);
-    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_evoked_peakchannel_ph' num2str(i_phalange) '.jpg']))
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_evoked_peakchannel_ph-' params.phalange_labels{i_phalange} '.jpg']))
 end
 
 %% Butterfly & topoplot

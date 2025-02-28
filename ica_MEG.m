@@ -307,7 +307,7 @@ if strcmp(params.modality,'squid')
     cfg.output = 'pow';
     cfg.method = 'mtmfft';
     cfg.taper = 'hanning';
-    cfg.foi = 1:1:100;
+    cfg.foilim = [1 100];
     freq = ft_freqanalysis(cfg, data_ica);
     h = figure;
     semilogy(freq.freq,freq.powspctrm)
@@ -321,7 +321,7 @@ if strcmp(params.modality,'squid')
     cfg.output = 'pow';
     cfg.method = 'mtmfft';
     cfg.taper = 'hanning';
-    cfg.foi = 1:1:100;
+    cfg.foilim = [1 100];
     freq = ft_freqanalysis(cfg, data_ica);
     h = figure;
     semilogy(freq.freq,freq.powspctrm)
@@ -335,7 +335,7 @@ else
     cfg.output = 'pow';
     cfg.method = 'mtmfft';
     cfg.taper = 'hanning';
-    cfg.foi = 1:1:100;
+    cfg.foilim = [1 100];
     freq = ft_freqanalysis(cfg, data_ica);
     h = figure;
     semilogy(freq.freq,freq.powspctrm)
@@ -362,14 +362,14 @@ end
 
 %%
 cfg = [];
-cfg.latency = [-0.03 0.3];
+cfg.latency = [-0.05 0.3];
 data_ica_ds = ft_selectdata(cfg, data_ica);
 cfg = [];
 cfg.demean = 'yes';
-cfg.baselinewindow = [-0.03 0];
+cfg.baselinewindow = [-0.05 0];
 data_ica_ds = ft_preprocessing(cfg,data_ica_ds);
 cfg = [];
-cfg.resamplefs = 512;
+cfg.resamplefs = 500;
 data_ica_ds = ft_resampledata(cfg, data_ica_ds);
 save(fullfile(save_path, [params.sub '_' params.modality '_ica_ds']), 'data_ica_ds',"-v7.3"); disp('done');
 

@@ -37,7 +37,7 @@ trl_aux(:,2) = find(trig)+(params.post+params.pad)*aux_raw.fsample;
 trl_aux(:,3) = -(params.pre+params.pad)*aux_raw.fsample;
 trl_aux(:,4) = aux_raw.trial{1}(aux_trig,trig);
 trl_aux(:,1:2) = trl_aux(:,1:2) + floor(0.041*aux_raw.fsample); % adjust for stim delay
-trl_aux = int32(trl_aux);
+trl_aux = round(trl_aux);
 
 % Check if uneven amount of trial. If so assume error in beginning.
 if size(trl_aux,1) > size(trl_opm,1)
@@ -118,7 +118,7 @@ opm_raw = ft_redefinetrial(cfg,opm_raw);
 cfg = [];
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
-[badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw);
+[badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badchs_outlier, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw);
 clear opm_raw
 
 %% --- Resample --- 
@@ -159,6 +159,20 @@ cfg.channel = setdiff(opm_cleaned.label,badchs_opm);
 cfg.trials  = setdiff(1:length(opm_cleaned.trial),badtrl_opm_zmax); % remove bad trials
 opm_cleaned = ft_selectdata(cfg, opm_cleaned);
 
+cfg = [];
+cfg.channel = '*bz';
+cfg.output = 'pow';
+cfg.method = 'mtmfft';
+cfg.taper = 'hanning';
+cfg.foilim = [1 100];
+freq = ft_freqanalysis(cfg, opm_cleaned);
+h = figure;
+semilogy(freq.freq,freq.powspctrm)
+xlabel('Frequency (Hz)')
+ylabel('Power (T^2)')
+title('OPM spectrum - preHFC')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_opm_spectrum0.jpg']))
+
 % HFC
 i_chs = find(contains(opm_cleaned.label,'bz'));
 chs = opm_cleaned.label(i_chs);
@@ -196,7 +210,32 @@ cfg.channel = comb.label(find(~contains(comb.label,'bz')));
 opmeeg_cleaned = ft_selectdata(cfg, comb);
 
 cfg = [];
-cfg.channel = setdiff(opmeeg_cleaned.label,badchs_opmeeg);
+cfg.channel = {'EOG', 'ECG'};
+exg = ft_selectdata(cfg, opmeeg_cleaned);
+
+% Interpolate bad chs
+cfg = [];
+cfg.method = 'triangulation';
+cfg.senstype = 'EEG';
+neighbors = ft_prepare_neighbours(cfg,opmeeg_cleaned);
+cfg = [];
+cfg.method = 'spline';
+cfg.neighbors = neighbors;
+cfg.badchannel = badchs_opmeeg;
+cfg.senstype = 'EEG';
+opmeeg_cleaned = ft_channelrepair(cfg, opmeeg_cleaned);
+
+% Rerefernce
+cfg = [];
+cfg.refef = 'yes';
+cfg.reffchannel = 'EEG023';
+opmeeg_cleaned = ft_preprocessing(cfg,opmeeg_cleaned);
+
+cfg = [];
+opmeeg_cleaned = ft_appenddata(cfg,opmeeg_cleaned,exg);
+
+cfg = [];
+%cfg.channel = setdiff(opmeeg_cleaned.label,badchs_opmeeg);
 cfg.trials  = setdiff(1:length(opmeeg_cleaned.trial),badtrl_opmeeg_zmax); % remove bad trials
 opmeeg_cleaned = ft_selectdata(cfg, opmeeg_cleaned);
 
@@ -219,12 +258,42 @@ cfg.threshold = params.eeg_std_threshold;
 [cfg, badtrl_opmeeg_std] = ft_badsegment(cfg, opmeeg_cleaned);
 opmeeg_cleaned = ft_rejectartifact(cfg,opmeeg_cleaned);
 
+%% Spectra
+cfg = [];
+cfg.channel = 'EEG*';
+cfg.output = 'pow';
+cfg.method = 'mtmfft';
+cfg.taper = 'hanning';
+cfg.foilim = [1 100];
+freq = ft_freqanalysis(cfg, opmeeg_cleaned);
+h = figure;
+semilogy(freq.freq,freq.powspctrm)
+xlabel('Frequency (Hz)')
+ylabel('Power (T^2)')
+title('OPM-EEG spectrum - preICA')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_opmeeg_spectrum1.jpg']))
+
+cfg = [];
+cfg.channel = '*bz';
+cfg.output = 'pow';
+cfg.method = 'mtmfft';
+cfg.taper = 'hanning';
+cfg.foilim = [1 100];
+freq = ft_freqanalysis(cfg, opm_cleaned);
+h = figure;
+semilogy(freq.freq,freq.powspctrm)
+xlabel('Frequency (Hz)')
+ylabel('Power (T^2)')
+title('OPM spectrum - preICA')
+saveas(h, fullfile(save_path, 'figs', [params.sub '_opm_spectrum1.jpg']))
+
 
 %% Save 
 save(fullfile(save_path, [params.sub '_opm_badchs']), ...
     'badchs_opm_flat', ...
     'badchs_opm_neighbors', ...
-    'badchs_opm_zmax' ,"-v7.3"); 
+    'badchs_opm_zmax' , ...
+    'badchs_outlier',"-v7.3"); 
 
 save(fullfile(save_path, [params.sub '_opmeeg_badchs']), ...
     'badchs_opmeeg_flat', ...
