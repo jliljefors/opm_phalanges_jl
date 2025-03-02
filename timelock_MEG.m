@@ -63,10 +63,6 @@ for i_phalange = 1:length(params.trigger_code)
     tmp.prestim_std = std(dat.avg(tmp.i_peakch,1:interval_M60(3)));
     tmp.std_error = sqrt(dat.var(tmp.i_peakch,i_peak_latency));
 
-    if tmp.nopeak == true
-        tmp.peak_amplitude = nan;
-    end
-
     M60{i_phalange} = tmp;
     
     plot(dat.time*1e3, dat.avg(tmp.i_peakch,:)*params.amp_scaler)

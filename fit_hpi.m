@@ -19,10 +19,8 @@ for i_file = 1:length(hpi_files)
     cfg.coilaccuracy    = 0;
     cfg.bpfilter        = 'yes';         
     cfg.bpfreq          = [params.hpi_freq-5 params.hpi_freq+5];
-    %cfg.hpfilter        = 'yes';         
-    %cfg.hpfreq          = params.hpi_freq-5;
     raw = ft_preprocessing(cfg);
-    
+    raw.grad = ft_convert_units(raw.grad,'cm');
     %% Epoch
     cfg = [];
     cfg.length = 0.25;
@@ -111,9 +109,12 @@ for i_file = 1:length(hpi_files)
             opm_chs = find(contains(timelocked.label,'bz'));
             [~, i_maxchan] = max(abs(timelocked.avg(opm_chs,:)));
             max_pos = timelocked.grad.chanpos(i_maxchan,:);
-            [X,Y,Z] = meshgrid(-0.03:0.002:0.03, ...
-                -0.03:0.002:0.03, ...
-                -0.015:0.002:0);
+            [X,Y,Z] = meshgrid(-3:0.2:3, ...
+                -3:0.2:0.3, ...
+                -1.5:0.2:0);
+            %[X,Y,Z] = meshgrid(-0.03:0.002:0.03, ...
+            %    -0.03:0.002:0.03, ...
+            %    -0.015:0.002:0);
             pos = [X(:) Y(:) Z(:)];
             
             T = transformToZAxis(timelocked.grad.chanpos(i_maxchan,:),timelocked.grad.chanori(i_maxchan,:));
@@ -176,8 +177,10 @@ for i_file = 1:length(hpi_files)
     hpi{i_file}.opm_trans = opm_trans;
     
     epoT = epo;
-    epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos*1e2)*1e-2;
-    epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos*1e2)*1e-2;
+    epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos);
+    epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos);
+    %epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos*1e2)*1e-2;
+    %epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos*1e2)*1e-2;
     
     %%
     colors = [[0.8500 0.3250 0.0980]; [0.9290 0.6940 0.1250]; [0.4940 0.1840 0.5560]; [0.4660 0.6740 0.1880]; [0.6350 0.0780 0.1840]];

@@ -116,6 +116,7 @@ for i_sub = 1:size(subses,1)
                 opm_cleaned.trial{i_trl}(chs,:) = -opm_cleaned.trial{i_trl}(chs,:);
             end
         end
+        opm_cleaned.grad = ft_convert_units(opm_cleaned.grad,'cm');
 
         % ICA
         params.modality = 'opm';
@@ -306,8 +307,10 @@ for i_sub = 2:size(subses,1)
         end
         headshape = ft_read_headshape(meg_file);
         for i = 1:5
-            opm_timelockedT{i}.grad.chanpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.chanpos*1e2)*1e-2;
-            opm_timelockedT{i}.grad.coilpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.coilpos*1e2)*1e-2;
+            opm_timelockedT{i}.grad.chanpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.chanpos);
+            opm_timelockedT{i}.grad.coilpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.coilpos);
+            %opm_timelockedT{i}.grad.chanpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.chanpos*1e2)*1e-2;
+            %opm_timelockedT{i}.grad.coilpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.coilpos*1e2)*1e-2;
             opmeeg_timelockedT{i}.elec.chanpos = squideeg_timelocked{i}.elec.chanpos;
             opmeeg_timelockedT{i}.elec.elecpos = squideeg_timelocked{i}.elec.elecpos;
         end
