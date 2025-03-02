@@ -42,6 +42,7 @@ for i_phalange = 1:length(params.trigger_code)
     [~, i_peak_latency] = findpeaks(std(dat.avg(:,(interval_M60(1):interval_M60(2))),1),'SortStr','descend');
     if isempty(i_peak_latency)
         i_peak_latency = round((interval_M60(2)-interval_M60(1))/2);
+        tmp.nopeak = true;
     end
     i_peak_latency = interval_M60(1)-1+i_peak_latency(1); % adjust for interval and pick first (=strongest) peak
     tmp.peak_latency = dat.time(i_peak_latency);
@@ -59,14 +60,13 @@ for i_phalange = 1:length(params.trigger_code)
         tmp.peak_amplitude = abs(tmp.min_amplitude);
         tmp.i_peakch = i_minch;
     end
-    %[~,i_peak_latency] = max(abs(dat.avg(i_maxch,interval_M100(1):interval_M100(2))));
-    %tmp.peak_latency = dat.time(interval_M100(1)-1+i_peak_latency);
     tmp.prestim_std = std(dat.avg(tmp.i_peakch,1:interval_M60(3)));
     tmp.std_error = sqrt(dat.var(tmp.i_peakch,i_peak_latency));
-    %for i_trl = find(data.trialinfo==params.trigger_code(i_phalange))'
-    %    tmp.std_error = tmp.std_error + abs(tmp.max_amplitude - data.trial{i_trl}(i_maxch,interval_M100(1)-1+i_peak_latency));
-    %end
-    %tmp.std_error = tmp.std_error/length(find(data.trialinfo==params.trigger_code(i_phalange)));
+
+    if tmp.nopeak == true
+        tmp.peak_amplitude = nan;
+    end
+
     M60{i_phalange} = tmp;
     
     plot(dat.time*1e3, dat.avg(tmp.i_peakch,:)*params.amp_scaler)

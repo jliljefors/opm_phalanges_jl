@@ -72,30 +72,30 @@ save(fullfile(base_save_path, 'group_sensor'),"peak_ratio","snr","latency","amp"
 
 %% Plot ratio
 h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),mean(peak_ratio.meg,1));
+bar(1:length(params.phalange_labels),mean(peak_ratio.meg,1,'omitnan'));
 hold on
-er = errorbar(1:5,mean(peak_ratio.meg,1), mean(peak_ratio.meg,1)-min(peak_ratio.meg,[],1), mean(peak_ratio.meg,1)-max(peak_ratio.meg,[],1));    
+er = errorbar(1:5,mean(peak_ratio.meg,1,'omitnan'), mean(peak_ratio.meg,1,'omitnan')-min(peak_ratio.meg,[],1,'omitnan'), mean(peak_ratio.meg,1,'omitnan')-max(peak_ratio.meg,[],1,'omitnan'));    
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['M100 peak amp ratio (mean = ' num2str(mean(mean(peak_ratio.meg)),'%.2f') ')'])
+title(['M100 peak amp ratio (mean = ' num2str(mean(mean(peak_ratio.meg,'omitnan'),'omitnan'),'%.2f') ')'])
 ylabel('OPM/SQUID')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
 saveas(h, fullfile(base_save_path, 'figs', 'Peak_amplitude_ratios_meg.jpg'))
 
 h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),mean(peak_ratio.eeg,1));
+bar(1:length(params.phalange_labels),mean(peak_ratio.eeg,1,'omitnan'));
 hold on
-er = errorbar(1:5,mean(peak_ratio.eeg,1), mean(peak_ratio.eeg,1)-min(peak_ratio.eeg,[],1), mean(peak_ratio.eeg,1)-max(peak_ratio.eeg,[],1));    
+er = errorbar(1:5,mean(peak_ratio.eeg,1,'omitnan'), mean(peak_ratio.eeg,1,'omitnan')-min(peak_ratio.eeg,[],1,'omitnan'), mean(peak_ratio.eeg,1,'omitnan')-max(peak_ratio.eeg,[],1,'omitnan'));    
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['M100 peak amp ratio (mean = ' num2str(mean(mean(peak_ratio.eeg)),'%.2f') ')'])
+title(['M100 peak amp ratio (mean = ' num2str(mean(mean(peak_ratio.eeg,'omitnan'),'omitnan'),'%.2f') ')'])
 ylabel('OPMEEG/SQUIDEEG')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -103,15 +103,15 @@ saveas(h, fullfile(base_save_path, 'figs', 'Peak_amplitude_ratios_eeg.jpg'))
 
 %% Plot SNR - error
 h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),mean(snr.ratio_error,1));
+bar(1:length(params.phalange_labels),mean(snr.ratio_error,1,'omitnan'));
 hold on
-er = errorbar(1:5,mean(snr.ratio_error,1), mean(snr.ratio_error,1)-min(snr.ratio_error,[],1), mean(snr.ratio_error,1)-max(snr.ratio_error,[],1));    
+er = errorbar(1:5,mean(snr.ratio_error,1,'omitnan'), mean(snr.ratio_error,1,'omitnan')-min(snr.ratio_error,[],1,'omitnan'), mean(snr.ratio_error,1,'omitnan')-max(snr.ratio_error,[],1,'omitnan'));    
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['M100 SNR_{stderror} ratio (mean = ' num2str(mean(mean(snr.ratio_error)),'%.2f') ')'])
+title(['M100 SNR_{stderror} ratio (mean = ' num2str(mean(mean(snr.ratio_error,'omitnan'),'omitnan'),'%.2f') ')'])
 ylabel('OPM/SQUID')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -119,15 +119,15 @@ saveas(h, fullfile(base_save_path, 'figs', 'SNR_ratios_error.jpg'))
 
 %% Plot SNR - prestim
 h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),mean(snr.ratio_prestim,1));
+bar(1:length(params.phalange_labels),mean(snr.ratio_prestim,1,'omitnan'));
 hold on
-er = errorbar(1:5,mean(snr.ratio_prestim,1), mean(snr.ratio_prestim,1)-min(snr.ratio_prestim,[],1), mean(snr.ratio_prestim,1)-max(snr.ratio_prestim,[],1));    
+er = errorbar(1:5,mean(snr.ratio_prestim,1,'omitnan'), mean(snr.ratio_prestim,1,'omitnan')-min(snr.ratio_prestim,[],1,'omitnan'), mean(snr.ratio_prestim,1,'omitnan')-max(snr.ratio_prestim,[],1,'omitnan'));    
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 er.LineWidth = 1;
 er.CapSize = 30;
 hold off
-title(['M100 SNR_{prestim} ratio (mean = ' num2str(mean(mean(snr.ratio_prestim)),'%.2f') ')'])
+title(['M100 SNR_{prestim} ratio (mean = ' num2str(mean(mean(snr.ratio_prestim,'omitnan'),'omitnan'),'%.2f') ')'])
 ylabel('OPM/SQUID')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
@@ -137,12 +137,12 @@ saveas(h, fullfile(base_save_path, 'figs', 'SNR_ratios_prestim.jpg'))
 % MEG
 data1 = 1e15*amp.squidmag;
 data2 = 1e15*amp.opm;
-mean1 = mean(data1,1);
-mean2 = mean(data2,1);
-min1 = min(data1,[],1);
-min2 = min(data2,[],1);
-max1 = max(data1,[],1);
-max2 = max(data2,[],1);
+mean1 = mean(data1,1,'omitnan');
+mean2 = mean(data2,1,'omitnan');
+min1 = min(data1,[],1,'omitnan');
+min2 = min(data2,[],1,'omitnan');
+max1 = max(data1,[],1,'omitnan');
+max2 = max(data2,[],1,'omitnan');
 err1 = [mean1-min1; max1-mean1];
 err2 = [mean2-min2; max2-mean2];
 
@@ -169,12 +169,12 @@ saveas(h, fullfile(base_save_path, 'figs', 'Amplitude_meg.jpg'))
 % EEG
 data1 = 1e6*amp.squideeg;
 data2 = 1e6*amp.opmeeg;
-mean1 = mean(data1,1);
-mean2 = mean(data2,1);
-min1 = min(data1,[],1);
-min2 = min(data2,[],1);
-max1 = max(data1,[],1);
-max2 = max(data2,[],1);
+mean1 = mean(data1,1,'omitnan');
+mean2 = mean(data2,1,'omitnan');
+min1 = min(data1,[],1,'omitnan');
+min2 = min(data2,[],1,'omitnan');
+max1 = max(data1,[],1,'omitnan');
+max2 = max(data2,[],1,'omitnan');
 err1 = [mean1-min1; max1-mean1];
 err2 = [mean2-min2; max2-mean2];
 
@@ -201,12 +201,12 @@ saveas(h, fullfile(base_save_path, 'figs', 'Amplitude_eeg.jpg'))
 %% Plot peak latency
 data1 = 1e3*latency.squidmag;
 data2 = 1e3*latency.opm;
-mean1 = mean(data1,1);
-mean2 = mean(data2,1);
-min1 = min(data1,[],1);
-min2 = min(data2,[],1);
-max1 = max(data1,[],1);
-max2 = max(data2,[],1);
+mean1 = mean(data1,1,'omitnan');
+mean2 = mean(data2,1,'omitnan');
+min1 = min(data1,[],1,'omitnan');
+min2 = min(data2,[],1,'omitnan');
+max1 = max(data1,[],1,'omitnan');
+max2 = max(data2,[],1,'omitnan');
 err1 = [mean1-min1; max1-mean1];
 err2 = [mean2-min2; max2-mean2];
 
@@ -233,12 +233,12 @@ saveas(h, fullfile(base_save_path, 'figs', 'Latency.jpg'))
 %% Plot SNR - error
 data1 = snr.error_squid;
 data2 = snr.error_opm;
-mean1 = mean(data1,1);
-mean2 = mean(data2,1);
-min1 = min(data1,[],1);
-min2 = min(data2,[],1);
-max1 = max(data1,[],1);
-max2 = max(data2,[],1);
+mean1 = mean(data1,1,'omitnan');
+mean2 = mean(data2,1,'omitnan');
+min1 = min(data1,[],1,'omitnan');
+min2 = min(data2,[],1,'omitnan');
+max1 = max(data1,[],1,'omitnan');
+max2 = max(data2,[],1,'omitnan');
 err1 = [mean1-min1; max1-mean1];
 err2 = [mean2-min2; max2-mean2];
 
@@ -265,12 +265,12 @@ saveas(h, fullfile(base_save_path, 'figs', 'SNR_error.jpg'))
 %% Plot SNR - prestim
 data1 = snr.prestim_squid;
 data2 = snr.prestim_opm;
-mean1 = mean(data1,1);
-mean2 = mean(data2,1);
-min1 = min(data1,[],1);
-min2 = min(data2,[],1);
-max1 = max(data1,[],1);
-max2 = max(data2,[],1);
+mean1 = mean(data1,1,'omitnan');
+mean2 = mean(data2,1,'omitnan');
+min1 = min(data1,[],1,'omitnan');
+min2 = min(data2,[],1,'omitnan');
+max1 = max(data1,[],1,'omitnan');
+max2 = max(data2,[],1,'omitnan');
 err1 = [mean1-min1; max1-mean1];
 err2 = [mean2-min2; max2-mean2];
 
