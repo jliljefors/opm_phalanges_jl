@@ -30,7 +30,7 @@ ft_default.showcallinfo = 'no';
 %% Overwrite
 overwrite = [];
 overwrite.preproc = true;
-overwrite.coreg = false;
+overwrite.coreg = true;
 overwrite.mri = false;
 overwrite.dip = true;
 overwrite.mne = true;
@@ -41,15 +41,15 @@ params.pre = 0.1; %sec
 params.post = 0.3; %sec
 params.pad = 0.2; %sec
 params.filter = [];
-params.filter.hp_freq = 3;
+params.filter.hp_freq = 1;
 params.filter.lp_freq = 70;
 params.filter.bp_freq = [];
-params.filter.notch = sort([50:50:150 60:60:120]);
+params.filter.notch = [50 60]; %[50 60 100 120 150];
 params.n_comp = 40;
 params.ica_cor = 0.8; % cutoff for EOG/ECG coherence
-params.ica_coh = 0.9; % cutoff for EOG/ECG coherence
+params.ica_coh = 0.95; % cutoff for EOG/ECG coherence
 params.z_threshold = 20;
-params.corr_threshold = 0.7; % correlation threshold for badchannel neighbors
+params.corr_threshold = 0.6; % correlation threshold for badchannel neighbors
 params.opm_std_threshold = 2.5e-12;
 params.eeg_std_threshold = 1e-4;
 params.squidmag_std_threshold = 5e-12;
@@ -255,7 +255,7 @@ for i_sub = 2:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
-    hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
+    hpi_path = fullfile(raw_path, 'osmeg'); %hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
 
     if exist(fullfile(save_path, 'opm_trans.mat'),'file') && overwrite.coreg==false
         disp(['Not overwriting OPM transform for ' params.sub]);
@@ -268,7 +268,7 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, [params.sub '_opm_ica_ds']));
         params.include_chs = data_ica_ds.label(find(contains(data_ica_ds.label,'bz')));
         params.include_chs = params.include_chs([1:75 77:end]);
-        [hpi_fit, opm_trans, hpi_fit_tf] = fit_hpi(hpi_file, meg_file, save_path, params);
+        fit_hpi(hpi_path, meg_file, save_path, params);
         close all
     end
 end

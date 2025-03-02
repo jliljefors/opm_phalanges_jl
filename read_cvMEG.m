@@ -188,8 +188,7 @@ saveas(h, fullfile(save_path, 'figs', [params.sub '_squidgrad_spectrum1.jpg']))
 %% Save 
 save(fullfile(save_path, [params.sub '_squideeg_badchs']), ...
     'badchs_squideeg_flat', ...
-    'badchs_squideeg_neighbors', ...
-    'badchs_squideeg_zmax' ,"-v7.3"); 
+    'badchs_squideeg_neighbors',"-v7.3"); 
 
 [~,idx]=ismember(squid_cleaned.sampleinfo,badtrl_squid_jump,'rows');
 badtrl_squid_jump = find(idx);
@@ -207,8 +206,7 @@ badtrl_squideeg_jump = find(idx);
 badtrl_squideeg_std = find(idx);
 save(fullfile(save_path, [params.sub '_squideeg_badtrls']), ...
     'badtrl_squideeg_jump', ...
-    'badtrl_squideeg_std', ...
-    'badtrl_squideeg_zmax',"-v7.3"); 
+    'badtrl_squideeg_std', "-v7.3"); 
 
 %save(fullfile(save_path, [params.sub '_squid_cleaned']), 'squid_cleaned',"-v7.3");
 %save(fullfile(save_path, [params.sub '_squideeg_cleaned']), 'squideeg_cleaned',"-v7.3"); disp('done');
