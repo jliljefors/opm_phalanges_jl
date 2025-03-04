@@ -9,16 +9,16 @@ for i_sub = subs
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
     save_path = fullfile(base_save_path,params.sub);
-    load(fullfile(save_path, [params.sub '_opm_M100'])); 
-    M100_opm{i_sub} = M100;
-    load(fullfile(save_path, [params.sub '_opmeeg_M100'])); 
-    M100_opmeeg{i_sub} = M100;
-    load(fullfile(save_path, [params.sub '_squidmag_M100'])); 
-    M100_squidmag{i_sub} = M100;
-    load(fullfile(save_path, [params.sub '_squidgrad_M100'])); 
-    M100_squidgrad{i_sub} = M100;
-    load(fullfile(save_path, [params.sub '_squideeg_M100']));
-    M100_squideeg{i_sub} = M100;
+    load(fullfile(save_path, [params.sub '_opm_M60'])); 
+    M100_opm{i_sub} = M60;
+    load(fullfile(save_path, [params.sub '_opmeeg_M60'])); 
+    M100_opmeeg{i_sub} = M60;
+    load(fullfile(save_path, [params.sub '_squidmag_M60'])); 
+    M100_squidmag{i_sub} = M60;
+    load(fullfile(save_path, [params.sub '_squidgrad_M60'])); 
+    M100_squidgrad{i_sub} = M60;
+    load(fullfile(save_path, [params.sub '_squideeg_M60']));
+    M100_squideeg{i_sub} = M60;
     
     load(fullfile(save_path, [params.sub '_squidmag_timelocked'])); 
     squidmag_timelocked = timelocked;
@@ -63,8 +63,8 @@ for i_sub = subs
         ylabel('B [fT]')
         title(['Evoked OPM MAG - phalange ' params.phalange_labels{i_phalange} ' (n_{trls}=' num2str(length(opm_timelocked{i_phalange}.cfg.trials)) ')'])
         saveas(h, fullfile(save_path, 'figs', [params.sub '_squidopm_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']))
+        close all
     end
-    close all
 end
 
 %% Save

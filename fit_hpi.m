@@ -21,6 +21,7 @@ for i_file = 1:length(hpi_files)
     cfg.bpfreq          = [params.hpi_freq-5 params.hpi_freq+5];
     raw = ft_preprocessing(cfg);
     raw.grad = ft_convert_units(raw.grad,'cm');
+
     %% Epoch
     cfg = [];
     cfg.length = 0.25;
@@ -108,41 +109,34 @@ for i_file = 1:length(hpi_files)
             
             opm_chs = find(contains(timelocked.label,'bz'));
             [~, i_maxchan] = max(abs(timelocked.avg(opm_chs,:)));
-            max_pos = timelocked.grad.chanpos(i_maxchan,:);
             [X,Y,Z] = meshgrid(-3:0.2:3, ...
                 -3:0.2:0.3, ...
                 -1.5:0.2:0);
-            %[X,Y,Z] = meshgrid(-0.03:0.002:0.03, ...
-            %    -0.03:0.002:0.03, ...
-            %    -0.015:0.002:0);
             pos = [X(:) Y(:) Z(:)];
             
             T = transformToZAxis(timelocked.grad.chanpos(i_maxchan,:),timelocked.grad.chanori(i_maxchan,:));
             posT = [pos, ones(size(pos, 1), 1)];
             posT = (T * posT')';
             posT = posT(:,1:3);
-            inside = true(size(posT,1),1);
+            
+            cfg = [];
+            cfg.method = 'basedonpos';
+            cfg.sourcemodel.pos = posT;
+            sourcemodel = ft_prepare_sourcemodel(cfg);
     
             cfg = [];
-            %cfg.frequency       = 33;
             cfg.numdipoles      = 1;
-            %cfg.unit            = 'cm';
             cfg.gridsearch      = 'yes';
             cfg.channel = params.include_chs;
-            cfg.sourcemodel     = [];
-            cfg.sourcemodel.pos = posT;
-            cfg.sourcemodel.inside = inside;
-            %cfg.xgrid           = (min(opm_fft{coil}.grad.chanpos(:,1))-0.01):0.01:(max(opm_fft{coil}.grad.chanpos(:,1))+0.01);
-            %cfg.ygrid           = (min(opm_fft{coil}.grad.chanpos(:,2))-0.01):0.01:(max(opm_fft{coil}.grad.chanpos(:,2))+0.01);
-            %cfg.zgrid           = (min(opm_fft{coil}.grad.chanpos(:,3))-0.01):0.01:(max(opm_fft{coil}.grad.chanpos(:,3))+0.01);
-            cfg.nonlinear       = 'no';
+            cfg.sourcemodel     = sourcemodel;
+            cfg.nonlinear       = 'yes';
             cfg.headmodel       = headmodel;
     
             hpi_fit{coil} = ft_dipolefitting(cfg,timelocked);
             hpi_fit{coil}.dip.ori = hpi_fit{coil}.dip.mom/norm(hpi_fit{coil}.dip.mom);
             hpi_fit{coil}.dip.gof = 1-hpi_fit{coil}.dip.rv;
         
-            hpi{i_file}.dip_pos(coil,:) = hpi_fit{coil}.dip.pos*1e2;
+            hpi{i_file}.dip_pos(coil,:) = hpi_fit{coil}.dip.pos;
             hpi{i_file}.dip_ori(coil,:) = hpi_fit{coil}.dip.ori;    
             hpi{i_file}.dip_gof(coil) = hpi_fit{coil}.dip.gof;
             if hpi{i_file}.dip_gof(coil) > params.hpi_gof
@@ -201,7 +195,7 @@ for i_file = 1:length(hpi_files)
         legend
         saveas(h, fullfile(save_path, 'figs', ['hpi_fits-' num2str(i_file) '.jpg']))
     catch
-        warning(['PCregister failed on hpi-file: ' hpi_files(i_file).name])
+        warning(['PCregister failed on hpi-file: ' hpi_files(i_file).name ])
         hpi{i}.dip_gof = 0;
     end
 end

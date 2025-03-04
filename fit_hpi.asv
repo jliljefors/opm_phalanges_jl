@@ -1,4 +1,4 @@
-function [hpi_fit, opm_trans, dip_pos_tf] = fit_hpi(hpi_path, aux_file, save_path, params)
+function fit_hpi(hpi_path, aux_file, save_path, params)
 %prprocess_osMEG Read on-scalp MEG data for benchmarking
 % recordings and combine with auxiliary TRIUX data/EEG. 
 % Requires the following arguments:
@@ -17,12 +17,11 @@ for i_file = 1:length(hpi_files)
     cfg.datafile        = fullfile(hpi_path,hpi_files(i_file).name);
     cfg.coordsys        = 'dewar';
     cfg.coilaccuracy    = 0;
-    cfg.lpfilter        = 'yes';         
-    cfg.lpfreq          = params.hpi_freq+10;
-    cfg.hpfilter        = 'yes';         
-    cfg.hpfreq          = params.hpi_freq-10;
+    cfg.bpfilter        = 'yes';         
+    cfg.bpfreq          = [params.hpi_freq-5 params.hpi_freq+5];
     raw = ft_preprocessing(cfg);
-    
+    raw.grad = ft_convert_units(raw.grad,'cm');
+
     %% Epoch
     cfg = [];
     cfg.length = 0.25;
@@ -111,9 +110,12 @@ for i_file = 1:length(hpi_files)
             opm_chs = find(contains(timelocked.label,'bz'));
             [~, i_maxchan] = max(abs(timelocked.avg(opm_chs,:)));
             max_pos = timelocked.grad.chanpos(i_maxchan,:);
-            [X,Y,Z] = meshgrid(-0.03:0.002:0.03, ...
-                -0.03:0.002:0.03, ...
-                -0.015:0.002:0);
+            [X,Y,Z] = meshgrid(-3:0.2:3, ...
+                -3:0.2:0.3, ...
+                -1.5:0.2:0);
+            %[X,Y,Z] = meshgrid(-0.03:0.002:0.03, ...
+            %    -0.03:0.002:0.03, ...
+            %    -0.015:0.002:0);
             pos = [X(:) Y(:) Z(:)];
             
             T = transformToZAxis(timelocked.grad.chanpos(i_maxchan,:),timelocked.grad.chanori(i_maxchan,:));
@@ -121,6 +123,11 @@ for i_file = 1:length(hpi_files)
             posT = (T * posT')';
             posT = posT(:,1:3);
             inside = true(size(posT,1),1);
+            
+            cfg = [];
+            cfg.method = 'basedonpos';
+            cfg.sourcemodel.pos = posT;
+            sourcemodel = ft_prepare_sourcemodel(cfg);
     
             cfg = [];
             %cfg.frequency       = 33;
@@ -128,13 +135,13 @@ for i_file = 1:length(hpi_files)
             %cfg.unit            = 'cm';
             cfg.gridsearch      = 'yes';
             cfg.channel = params.include_chs;
-            cfg.sourcemodel     = [];
-            cfg.sourcemodel.pos = posT;
-            cfg.sourcemodel.inside = inside;
+            cfg.sourcemodel     = sourcemodel;%[];
+            %cfg.sourcemodel.pos = posT;
+            %cfg.sourcemodel.inside = inside;
             %cfg.xgrid           = (min(opm_fft{coil}.grad.chanpos(:,1))-0.01):0.01:(max(opm_fft{coil}.grad.chanpos(:,1))+0.01);
             %cfg.ygrid           = (min(opm_fft{coil}.grad.chanpos(:,2))-0.01):0.01:(max(opm_fft{coil}.grad.chanpos(:,2))+0.01);
             %cfg.zgrid           = (min(opm_fft{coil}.grad.chanpos(:,3))-0.01):0.01:(max(opm_fft{coil}.grad.chanpos(:,3))+0.01);
-            cfg.nonlinear       = 'no';
+            cfg.nonlinear       = 'yes';
             cfg.headmodel       = headmodel;
     
             hpi_fit{coil} = ft_dipolefitting(cfg,timelocked);
@@ -170,37 +177,49 @@ for i_file = 1:length(hpi_files)
     hpi_polhemus = headshape.pos(find(contains(headshape.label,'hpi')),:);
     fixed = pointCloud(hpi_polhemus(hpi{i_file}.dip_include,:));
     moving = pointCloud(hpi{i_file}.dip_pos(hpi{i_file}.dip_include,:));
-    [opm_trans, temp, dist] = pcregistericp(moving, fixed, 'Tolerance',[0.0001 0.001], 'MaxIterations',500,'Verbose',true);
-    hpi{i_file}.dip_pos_tf(hpi{i_file}.dip_include,:) = temp.Location;
-    hpi{i_file}.dip_ori_tf = hpi{i_file}.dip_ori*opm_trans.Rotation;
-    hpi{i_file}.opm_trans = opm_trans;
-    
-    epoT = epo;
-    epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos*1e2)*1e-2;
-    epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos*1e2)*1e-2;
-    
-    %%
-    colors = [[0.8500 0.3250 0.0980]; [0.9290 0.6940 0.1250]; [0.4940 0.1840 0.5560]; [0.4660 0.6740 0.1880]; [0.6350 0.0780 0.1840]];
-    
-    h = figure;
-    ft_plot_sens(epoT.grad,'unit','cm','DisplayName','senspos'); 
-    hold on 
-    for coil = find(hpi{i_file}.dip_include)'
-        quiver3(hpi{i_file}.dip_pos_tf(coil,1),hpi{i_file}.dip_pos_tf(coil,2),hpi{i_file}.dip_pos_tf(coil,3),hpi{i_file}.dip_ori_tf(coil,1),hpi{i_file}.dip_ori_tf(coil,2),hpi{i_file}.dip_ori_tf(coil,3),'*','Color',colors(coil,:),'DisplayName',[hpi_labels{coil} ' (GOF=' num2str((hpi{i_file}.dip_gof(coil))*100,'%.2f') '%)'],'LineWidth',2);
+    try
+        [opm_trans, temp, dist] = pcregistericp(moving, fixed, 'Tolerance',[0.0001 0.001], 'MaxIterations',500,'Verbose',true);
+        hpi{i_file}.dip_pos_tf(hpi{i_file}.dip_include,:) = temp.Location;
+        hpi{i_file}.dip_ori_tf = hpi{i_file}.dip_ori*opm_trans.Rotation;
+        hpi{i_file}.opm_trans = opm_trans;
+        
+        epoT = epo;
+        epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos);
+        epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos);
+        %epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos*1e2)*1e-2;
+        %epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos*1e2)*1e-2;
+        
+        %%
+        colors = [[0.8500 0.3250 0.0980]; [0.9290 0.6940 0.1250]; [0.4940 0.1840 0.5560]; [0.4660 0.6740 0.1880]; [0.6350 0.0780 0.1840]];
+        
+        h = figure;
+        ft_plot_sens(epoT.grad,'unit','cm','DisplayName','senspos'); 
+        hold on 
+        for coil = find(hpi{i_file}.dip_include)'
+            quiver3(hpi{i_file}.dip_pos_tf(coil,1),hpi{i_file}.dip_pos_tf(coil,2),hpi{i_file}.dip_pos_tf(coil,3),hpi{i_file}.dip_ori_tf(coil,1),hpi{i_file}.dip_ori_tf(coil,2),hpi{i_file}.dip_ori_tf(coil,3),'*','Color',colors(coil,:),'DisplayName',[hpi_labels{coil} ' (GOF=' num2str((hpi{i_file}.dip_gof(coil))*100,'%.2f') '%)'],'LineWidth',2);
+        end
+        scatter3(hpi_polhemus(:,1),hpi_polhemus(:,2),hpi_polhemus(:,3),'r','DisplayName','polhemus'); 
+        scatter3(headshape.fid.pos(:,1),headshape.fid.pos(:,2),headshape.fid.pos(:,3),'g.','DisplayName','fiducials'); 
+        scatter3(headshape.pos(:,1),headshape.pos(:,2),headshape.pos(:,3),'k.','DisplayName','headshape'); 
+        scatter3(hpi_polhemus(hpi{i_file}.dip_include,1),hpi_polhemus(hpi{i_file}.dip_include,2),hpi_polhemus(hpi{i_file}.dip_include,3),'r*','DisplayName','polhemus'); 
+        hold off
+        title(['HPI fits (mean dist = ' num2str(dist*10) ' mm)'])
+        legend
+        saveas(h, fullfile(save_path, 'figs', ['hpi_fits-' num2str(i_file) '.jpg']))
+    catch
+        warning(['PCregister failed on hpi-file: ' hpi_files(i_file).name ])
+        hpi{i}.dip_gof = 0;
     end
-    scatter3(hpi_polhemus(:,1),hpi_polhemus(:,2),hpi_polhemus(:,3),'r','DisplayName','polhemus'); 
-    scatter3(headshape.fid.pos(:,1),headshape.fid.pos(:,2),headshape.fid.pos(:,3),'g.','DisplayName','fiducials'); 
-    scatter3(headshape.pos(:,1),headshape.pos(:,2),headshape.pos(:,3),'k.','DisplayName','headshape'); 
-    scatter3(hpi_polhemus(hpi{i_file}.dip_include,1),hpi_polhemus(hpi{i_file}.dip_include,2),hpi_polhemus(hpi{i_file}.dip_include,3),'r*','DisplayName','polhemus'); 
-    hold off
-    title(['HPI fits (mean dist = ' num2str(dist*10) ' mm)'])
-    legend
-    saveas(h, fullfile(save_path, 'figs', ['hpi_fits-' num2str(i_file) '.jpg']))
 end
 
 %% Save 
-
+for i = 1:length(hpi_files)
+    gofsum(i) = sum(hpi{i}.dip_gof);
+end
+[~,i_bestfit] = max(gofsum);
+hpi_fit = hpi{i_bestfit};
 save(fullfile(save_path, 'hpi_fit'), 'hpi_fit'); disp('done');
+opm_trans =  hpi{i_bestfit}.opm_trans;
 save(fullfile(save_path, 'opm_trans'), 'opm_trans'); disp('done');
 
 end
