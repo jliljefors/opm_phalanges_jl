@@ -123,101 +123,116 @@ end
 %% Plot FAHM squidmag vs opm
 data1 = fahm_squidmag;
 data2 = fahm_opm;
+data3 = fahm_squidgrad;
 mean1 = mean(data1,1,'omitnan');
 mean2 = mean(data2,1,'omitnan');
+mean3 = mean(data3,1,'omitnan');
 min1 = min(data1,[],1,'omitnan');
 min2 = min(data2,[],1,'omitnan');
+min3 = min(data3,[],1,'omitnan');
 max1 = max(data1,[],1,'omitnan');
 max2 = max(data2,[],1,'omitnan');
+max3 = max(data3,[],1,'omitnan');
 err1 = [mean1-min1; max1-mean1];
 err2 = [mean2-min2; max2-mean2];
+err3 = [mean3-min3; max3-mean3];
 
 h = figure('DefaultAxesFontSize',16);
 bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
 hold on
 for k=1:length(params.phalange_labels)
-    errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
-    errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+    errorbar(k-0.22,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+    errorbar(k,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+    errorbar(k+0.22,mean3(k),err3(1,k),err3(2,k),'k','linestyle','none');
 end
-p_values = zeros(1, 5);
+
+p_values = zeros(5, 3);
 for i = 1:5
-    [~, p_values(i)] = ttest(data1(:, i), data2(:, i));
+    [~, p_values(i, 1)] = ttest(data1(:,i), data2(:,i));
+    [~, p_values(i, 2)] = ttest(data2(:,i), data3(:,i));
+    [~, p_values(i, 3)] = ttest(data1(:,i), data3(:,i));
 end
-sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
+for i = 1:5
+    sigstar({[i-0.22, i]}, p_values(i, 1));
+    sigstar({[i, i+0.22]}, p_values(i, 2));
+    sigstar({[i-0.22, i+0.22]}, p_values(i, 3));
+end
+
 hold off
 title('MNE: Group level M100 FAHM')
 ylabel('M60 FAHM [cm^2]')
 xlabel('Phalange')
-legend({'squidmag','opm'});
+legend({'squidmag','opm','squidgrad'});
 xticklabels(params.phalange_labels)
-saveas(h, fullfile(base_save_path, 'figs', 'mne_fahm_squidmag_opm.jpg'))
+saveas(h, fullfile(base_save_path, 'figs', 'mne_fahm.jpg'))
 
 %% Plot FAHM squidgrad vs opm
-data1 = fahm_squidgrad;
-data2 = fahm_opm;
-mean1 = mean(data1,1,'omitnan');
-mean2 = mean(data2,1,'omitnan');
-min1 = min(data1,[],1,'omitnan');
-min2 = min(data2,[],1,'omitnan');
-max1 = max(data1,[],1,'omitnan');
-max2 = max(data2,[],1,'omitnan');
-err1 = [mean1-min1; max1-mean1];
-err2 = [mean2-min2; max2-mean2];
-
-h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
-hold on
-for k=1:length(params.phalange_labels)
-    errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
-    errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
-end
-p_values = zeros(1, 5);
-for i = 1:5
-    [~, p_values(i)] = ttest(data1(:, i), data2(:, i));
-end
-sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
-hold off
-title('MNE: Group level M100 FAHM')
-ylabel('M60 FAHM [cm^2]')
-xlabel('Phalange')
-legend({'squidgrad','opm'});
-xticklabels(params.phalange_labels)
-saveas(h, fullfile(base_save_path, 'figs', 'mne_fahm_squidgrad_opm.jpg'))
+% data1 = fahm_squidgrad;
+% data2 = fahm_opm;
+% mean1 = mean(data1,1,'omitnan');
+% mean2 = mean(data2,1,'omitnan');
+% min1 = min(data1,[],1,'omitnan');
+% min2 = min(data2,[],1,'omitnan');
+% max1 = max(data1,[],1,'omitnan');
+% max2 = max(data2,[],1,'omitnan');
+% err1 = [mean1-min1; max1-mean1];
+% err2 = [mean2-min2; max2-mean2];
+% 
+% h = figure('DefaultAxesFontSize',16);
+% bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
+% hold on
+% for k=1:length(params.phalange_labels)
+%     errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+%     errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+% end
+% p_values = zeros(1, 5);
+% for i = 1:5
+%     [~, p_values(i)] = ttest(data1(:, i), data2(:, i));
+% end
+% sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
+% hold off
+% title('MNE: Group level M100 FAHM')
+% ylabel('M60 FAHM [cm^2]')
+% xlabel('Phalange')
+% legend({'squidgrad','opm'});
+% xticklabels(params.phalange_labels)
+% saveas(h, fullfile(base_save_path, 'figs', 'mne_fahm_squidgrad_opm.jpg'))
 
 %% Plot FAHM squidgrad vs opm
-data1 = fahm_squidgrad;
-data2 = fahm_squidmag;
-mean1 = mean(data1,1,'omitnan');
-mean2 = mean(data2,1,'omitnan');
-min1 = min(data1,[],1,'omitnan');
-min2 = min(data2,[],1,'omitnan');
-max1 = max(data1,[],1,'omitnan');
-max2 = max(data2,[],1,'omitnan');
-err1 = [mean1-min1; max1-mean1];
-err2 = [mean2-min2; max2-mean2];
-
-h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
-hold on
-for k=1:length(params.phalange_labels)
-    errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
-    errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
-end
-p_values = zeros(1, 5);
-for i = 1:5
-    [~, p_values(i)] = ttest(data1(:, i), data2(:, i));
-end
-sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
-hold off
-title('MNE: Group level M100 FAHM')
-ylabel('M60 FAHM [cm^2]')
-xlabel('Phalange')
-legend({'squidgrad','squidmag'});
-xticklabels(params.phalange_labels)
-saveas(h, fullfile(base_save_path, 'figs', 'mne_fahm_squidgrad_squidmag.jpg'))
+% data1 = fahm_squidgrad;
+% data2 = fahm_squidmag;
+% mean1 = mean(data1,1,'omitnan');
+% mean2 = mean(data2,1,'omitnan');
+% min1 = min(data1,[],1,'omitnan');
+% min2 = min(data2,[],1,'omitnan');
+% max1 = max(data1,[],1,'omitnan');
+% max2 = max(data2,[],1,'omitnan');
+% err1 = [mean1-min1; max1-mean1];
+% err2 = [mean2-min2; max2-mean2];
+% 
+% h = figure('DefaultAxesFontSize',16);
+% bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
+% hold on
+% for k=1:length(params.phalange_labels)
+%     errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+%     errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+% end
+% p_values = zeros(1, 5);
+% for i = 1:5
+%     [~, p_values(i)] = ttest(data1(:, i), data2(:, i));
+% end
+% sigstar({[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]}, p_values);
+% hold off
+% title('MNE: Group level M100 FAHM')
+% ylabel('M60 FAHM [cm^2]')
+% xlabel('Phalange')
+% legend({'squidgrad','squidmag'});
+% xticklabels(params.phalange_labels)
+% saveas(h, fullfile(base_save_path, 'figs', 'mne_fahm_squidgrad_squidmag.jpg'))
 
 close all
 
+%% FAHM vs sub
 for i_ph = 1:5
     h = figure('DefaultAxesFontSize',16);
     plot(subs,fahm_squidmag(subs,i_ph));

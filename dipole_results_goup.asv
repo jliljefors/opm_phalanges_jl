@@ -93,93 +93,13 @@ for i_ph = 1:5
     plot(subs,dist_sqgrad_opm(subs,i_ph));
     plot(subs,dist_sqmag_sqgrad(subs,i_ph));
     hold off
-    title([params.phalange_labels{i_sub} ' - dipole distances over subjects'])
+    title([params.phalange_labels{i_ph} ' - dipole distances over subjects'])
     ylabel('Distance [mm]')
     xlabel('Subjects')
     legend(['SQMAG-OPM   '; 'SQGRAD-OPM  '; 'SQMAG-SQGRAD'])
-    saveas(h, fullfile(base_save_path, 'figs', ['dipole_dist_vs_sub-'  '.jpg']))
+    saveas(h, fullfile(base_save_path, 'figs', ['dipole_dist_vs_sub-' params.phalange_labels{i_ph} '.jpg']))
     close
 end
-
-%% Plot spread
-% h = figure('DefaultAxesFontSize',16);
-% bar(1,mean(spread_opm,1,'omitnan'));
-% hold on
-% er = errorbar(1:5,mean(spread_opm,1,'omitnan'), mean(spread_opm,1,'omitnan')-min(spread_opm,[],1,'omitnan'), mean(spread_opm,1,'omitnan')-max(spread_opm,[],1,'omitnan'));    
-% er.Color = [0 0 0];                            
-% er.LineStyle = 'none';  
-% er.LineWidth = 1;
-% er.CapSize = 30;
-% hold off
-% title(['OPM spread (mean = ' num2str(mean(mean(spread_opm,'omitnan'),'omitnan'),'%.1f') 'mm)'])
-% ylabel('Dipoles spread [mm]')
-% xlabel('Phalange')
-% xticklabels(params.phalange_labels)
-% saveas(h, fullfile(base_save_path, 'figs', 'dipole_opm_spread.jpg'))
-% 
-% h = figure('DefaultAxesFontSize',16);
-% bar(1:length(params.phalange_labels),mean(spread_squidmag,1,'omitnan'));
-% hold on
-% er = errorbar(1:5,mean(spread_squidmag,1,'omitnan'), mean(spread_squidmag,1,'omitnan')-min(spread_squidmag,[],1,'omitnan'), mean(spread_squidmag,1,'omitnan')-max(spread_squidmag,[],1,'omitnan'));    
-% er.Color = [0 0 0];                            
-% er.LineStyle = 'none';  
-% er.LineWidth = 1;
-% er.CapSize = 30;
-% hold off
-% title(['SQUID-MAG spread (mean = ' num2str(mean(mean(spread_squidmag,'omitnan'),'omitnan'),'%.1f') 'mm)'])
-% ylabel('Dipoles spread [mm]')
-% xlabel('Phalange')
-% xticklabels(params.phalange_labels)
-% saveas(h, fullfile(base_save_path, 'figs', 'dipole_squidmag_spread.jpg'))
-% close
-% 
-% h = figure('DefaultAxesFontSize',16);
-% bar(1:length(params.phalange_labels),mean(spread_squidgrad,1,'omitnan'));
-% hold on
-% er = errorbar(1:5,mean(spread_squidgrad,1,'omitnan'), mean(spread_squidgrad,1,'omitnan')-min(spread_squidgrad,[],1,'omitnan'), mean(spread_squidgrad,1,'omitnan')-max(spread_squidgrad,[],1,'omitnan'));    
-% er.Color = [0 0 0];                            
-% er.LineStyle = 'none';  
-% er.LineWidth = 1;
-% er.CapSize = 30;
-% hold off
-% title(['SQUID-GRAD spread (mean = ' num2str(mean(mean(spread_squidgrad,'omitnan'),'omitnan'),'%.1f') 'mm)'])
-% ylabel('Dipoles spread [mm]')
-% xlabel('Phalange')
-% xticklabels(params.phalange_labels)
-% saveas(h, fullfile(base_save_path, 'figs', 'dipole_squidgrad_spread.jpg'))
-% close
-% 
-% h = figure('DefaultAxesFontSize',16);
-% bar(1:length(params.phalange_labels),mean(spread_opmeeg,1,'omitnan'));
-% hold on
-% er = errorbar(1:5,mean(spread_opmeeg,1,'omitnan'), mean(spread_opmeeg,1,'omitnan')-min(spread_opmeeg,[],1,'omitnan'), mean(spread_opmeeg,1,'omitnan')-max(spread_opmeeg,[],1,'omitnan'));    
-% er.Color = [0 0 0];                            
-% er.LineStyle = 'none';  
-% er.LineWidth = 1;
-% er.CapSize = 30;
-% hold off
-% title(['OPM-EEG spread (mean = ' num2str(mean(mean(spread_opmeeg,'omitnan'),'omitnan'),'%.1f') 'mm)'])
-% ylabel('Dipoles spread [mm]')
-% xlabel('Phalange')
-% xticklabels(params.phalange_labels)
-% saveas(h, fullfile(base_save_path, 'figs', 'dipole_opmeeg_spread.jpg'))
-% close
-% 
-% h = figure('DefaultAxesFontSize',16);
-% bar(1:length(params.phalange_labels),mean(spread_squideeg,1,'omitnan'));
-% hold on
-% er = errorbar(1:5,mean(spread_squideeg,1,'omitnan'), mean(spread_squideeg,1,'omitnan')-min(spread_squideeg,[],1,'omitnan'), mean(spread_squideeg,1,'omitnan')-max(spread_squideeg,[],1,'omitnan'));    
-% er.Color = [0 0 0];                            
-% er.LineStyle = 'none';  
-% er.LineWidth = 1;
-% er.CapSize = 30;
-% hold off
-% title(['SQUID-EEG spread (mean = ' num2str(mean(mean(spread_squideeg,'omitnan'),'omitnan'),'%.1f') 'mm)'])
-% ylabel('Dipoles spread [mm]')
-% xlabel('Phalange')
-% xticklabels(params.phalange_labels)
-% saveas(h, fullfile(base_save_path, 'figs', 'dipole_squideeg_spread.jpg'))
-% close all
 
 %% Plot spread squidmag vs opm
 data1 = spread_squidmag;
@@ -199,83 +119,90 @@ err2 = [mean2-min2; max2-mean2];
 err3 = [mean3-min3; max3-mean3];
 
 h = figure('DefaultAxesFontSize',16);
-bar(1,[mean1; mean2; mean3]','grouped');
+bar(1,[mean1; mean2]','grouped');
 hold on
 k=1;
-errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
-errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
-%errorbar(k+0.15,mean3(k),err3(1,k),err3(2,k),'k','linestyle','none');
-[~, p_values12] = ttest(data1(:, 1), data2(:, 1));
-[~, p_values13] = ttest(data1(:, 1), data3(:, 1));
-[~, p_values23] = ttest(data2(:, 1), data3(:, 1));
+errorbar(k-0.22,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+errorbar(k0,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+errorbar(k+022,mean3(k),err3(1,k),err3(2,k),'k','linestyle','none');
 
-sigstar({[1, 1]}, [p_values12]);
-%sigstar({[1, 1]}, [p_values12, p_values13, p_values23]);
+p_values = zeros(5, 3);
+for i = 1:5
+    [~, p_values(i, 1)] = ttest(data1(:,i), data2(:,i));
+    [~, p_values(i, 2)] = ttest(data2(:,i), data3(:,i));
+    [~, p_values(i, 3)] = ttest(data1(:,i), data3(:,i));
+end
+for i = 1:5
+    sigstar({[i-0.22, i]}, p_values(i, 1));
+    sigstar({[i, i+0.22]}, p_values(i, 2));
+    sigstar({[i-0.22, i+0.22]}, p_values(i, 3));
+end
+
 hold off
 title('Group level M100 dipole spread')
 ylabel('Dipoles spread [mm]')
 %xlabel('Phalange')
 legend({'squidmag','opm'});
 xticklabels(params.phalange_labels)
-saveas(h, fullfile(base_save_path, 'figs', 'dipole_spread_squidmag_opm.jpg'))
+saveas(h, fullfile(base_save_path, 'figs', 'dipole_spread.jpg'))
 
 %% Plot spread squidgrad vs opm
-data1 = spread_squidgrad;
-data2 = spread_opm;
-mean1 = mean(data1,1,'omitnan');
-mean2 = mean(data2,1,'omitnan');
-min1 = min(data1,[],1,'omitnan');
-min2 = min(data2,[],1,'omitnan');
-max1 = max(data1,[],1,'omitnan');
-max2 = max(data2,[],1,'omitnan');
-err1 = [mean1-min1; max1-mean1];
-err2 = [mean2-min2; max2-mean2];
-
-h = figure('DefaultAxesFontSize',16);
-bar(1,[mean1; mean2]','grouped');
-hold on
-k=1;
-errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
-errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
-[~, p_values] = ttest(data1(:, 1), data2(:, 1));
-
-sigstar({[1, 1]}, p_values);
-hold off
-title('Group level M100 dipole spread')
-ylabel('Dipoles spread [mm]')
-%xlabel('Phalange')
-legend({'squidgrad','opm'});
-xticklabels(params.phalange_labels)
-saveas(h, fullfile(base_save_path, 'figs', 'dipole_spread_squidgrad_opm.jpg'))
-
+% data1 = spread_squidgrad;
+% data2 = spread_opm;
+% mean1 = mean(data1,1,'omitnan');
+% mean2 = mean(data2,1,'omitnan');
+% min1 = min(data1,[],1,'omitnan');
+% min2 = min(data2,[],1,'omitnan');
+% max1 = max(data1,[],1,'omitnan');
+% max2 = max(data2,[],1,'omitnan');
+% err1 = [mean1-min1; max1-mean1];
+% err2 = [mean2-min2; max2-mean2];
+% 
+% h = figure('DefaultAxesFontSize',16);
+% bar(1,[mean1; mean2]','grouped');
+% hold on
+% k=1;
+% errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+% errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+% [~, p_values] = ttest(data1(:, 1), data2(:, 1));
+% 
+% sigstar({[1, 1]}, p_values);
+% hold off
+% title('Group level M100 dipole spread')
+% ylabel('Dipoles spread [mm]')
+% %xlabel('Phalange')
+% legend({'squidgrad','opm'});
+% xticklabels(params.phalange_labels)
+% saveas(h, fullfile(base_save_path, 'figs', 'dipole_spread_squidgrad_opm.jpg'))
+% 
 %% Plot spread squidgrad vs squidmag
-data1 = spread_squidgrad;
-data2 = spread_squidmag;
-mean1 = mean(data1,1,'omitnan');
-mean2 = mean(data2,1,'omitnan');
-min1 = min(data1,[],1,'omitnan');
-min2 = min(data2,[],1,'omitnan');
-max1 = max(data1,[],1,'omitnan');
-max2 = max(data2,[],1,'omitnan');
-err1 = [mean1-min1; max1-mean1];
-err2 = [mean2-min2; max2-mean2];
-
-h = figure('DefaultAxesFontSize',16);
-bar(1,[mean1; mean2]','grouped');
-hold on
-k=1;
-errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
-errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
-[~, p_values] = ttest(data1(:, 1), data2(:, 1));
-
-sigstar({[1, 1]}, p_values);
-hold off
-title('Group level M100 dipole spread')
-ylabel('Dipoles spread [mm]')
-%xlabel('Phalange')
-legend({'squidgrad','squidmag'});
-xticklabels(params.phalange_labels)
-saveas(h, fullfile(base_save_path, 'figs', 'dipole_spread_squidgrad_squidmag.jpg'))
+% data1 = spread_squidgrad;
+% data2 = spread_squidmag;
+% mean1 = mean(data1,1,'omitnan');
+% mean2 = mean(data2,1,'omitnan');
+% min1 = min(data1,[],1,'omitnan');
+% min2 = min(data2,[],1,'omitnan');
+% max1 = max(data1,[],1,'omitnan');
+% max2 = max(data2,[],1,'omitnan');
+% err1 = [mean1-min1; max1-mean1];
+% err2 = [mean2-min2; max2-mean2];
+% 
+% h = figure('DefaultAxesFontSize',16);
+% bar(1,[mean1; mean2]','grouped');
+% hold on
+% k=1;
+% errorbar(k-0.15,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+% errorbar(k+0.15,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+% [~, p_values] = ttest(data1(:, 1), data2(:, 1));
+% 
+% sigstar({[1, 1]}, p_values);
+% hold off
+% title('Group level M100 dipole spread')
+% ylabel('Dipoles spread [mm]')
+% %xlabel('Phalange')
+% legend({'squidgrad','squidmag'});
+% xticklabels(params.phalange_labels)
+% saveas(h, fullfile(base_save_path, 'figs', 'dipole_spread_squidgrad_squidmag.jpg'))
 
 
 close all
