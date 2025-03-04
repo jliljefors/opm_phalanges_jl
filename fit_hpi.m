@@ -111,8 +111,9 @@ for i_file = 1:length(hpi_files)
             [~, i_maxchan] = max(abs(timelocked.avg(opm_chs,:)));
             [X,Y,Z] = meshgrid(-3:0.2:3, ...
                 -3:0.2:0.3, ...
-                -1.5:0.2:0);
+                -3:0.2:0);
             pos = [X(:) Y(:) Z(:)];
+            %inside = vecnorm(pos,2,2)<4; % only look at points within 4 cm of peak channel
             
             T = transformToZAxis(timelocked.grad.chanpos(i_maxchan,:),timelocked.grad.chanori(i_maxchan,:));
             posT = [pos, ones(size(pos, 1), 1)];
@@ -122,6 +123,7 @@ for i_file = 1:length(hpi_files)
             cfg = [];
             cfg.method = 'basedonpos';
             cfg.sourcemodel.pos = posT;
+            %cfg.sourcemodel.inside = inside;
             sourcemodel = ft_prepare_sourcemodel(cfg);
     
             cfg = [];
@@ -181,6 +183,7 @@ for i_file = 1:length(hpi_files)
         colors = [[0.8500 0.3250 0.0980]; [0.9290 0.6940 0.1250]; [0.4940 0.1840 0.5560]; [0.4660 0.6740 0.1880]; [0.6350 0.0780 0.1840]];
         
         h = figure;
+        h.Position(3) = round(h.position(3)*1.5);
         ft_plot_sens(epoT.grad,'unit','cm','DisplayName','senspos'); 
         hold on 
         for coil = find(hpi{i_file}.dip_include)'
