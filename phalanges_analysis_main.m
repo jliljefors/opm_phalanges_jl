@@ -29,7 +29,7 @@ ft_default.showcallinfo = 'no';
 
 %% Overwrite
 overwrite = [];
-overwrite.preproc = true;
+overwrite.preproc = false;
 overwrite.coreg = true;
 overwrite.mri = false;
 overwrite.dip = true;
@@ -37,14 +37,14 @@ overwrite.mne = true;
 
 %% Params
 params = [];
-params.pre = 0.1; %sec
+params.pre = 0.03; %sec
 params.post = 0.3; %sec
 params.pad = 0.2; %sec
 params.filter = [];
 params.filter.hp_freq = 1;
 params.filter.lp_freq = 70;
 params.filter.bp_freq = [];
-params.filter.notch = [50 60]; %[50 60 100 120 150];
+params.filter.notch = [50 60 80]; %[50 60 100 120 150];
 params.n_comp = 40;
 params.ica_cor = 0.8; % cutoff for EOG/ECG coherence
 params.ica_coh = 0.95; % cutoff for EOG/ECG coherence
@@ -56,7 +56,7 @@ params.squidmag_std_threshold = 5e-12;
 params.squidgrad_std_threshold = 5e-11;
 params.hpi_freq = 33;
 params.hpi_gof = 0.9;
-params.M60 = [0.04 0.08];
+params.M60 = [-0.02 0.02]+0.06;
 
 params.trigger_code = [2 4 8 16 32];
 params.phalange_labels = {'I3' 'I2' 'I1' 'T1' 'I2b'};

@@ -171,34 +171,39 @@ for i_file = 1:length(hpi_files)
     hpi_polhemus = headshape.pos(find(contains(headshape.label,'hpi')),:);
     fixed = pointCloud(hpi_polhemus(hpi{i_file}.dip_include,:));
     moving = pointCloud(hpi{i_file}.dip_pos(hpi{i_file}.dip_include,:));
-    [opm_trans, temp, dist] = pcregistericp(moving, fixed, 'Tolerance',[0.0001 0.001], 'MaxIterations',500,'Verbose',true);
-    hpi{i_file}.dip_pos_tf(hpi{i_file}.dip_include,:) = temp.Location;
-    hpi{i_file}.dip_ori_tf = hpi{i_file}.dip_ori*opm_trans.Rotation;
-    hpi{i_file}.opm_trans = opm_trans;
-    
-    epoT = epo;
-    epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos);
-    epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos);
-    %epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos*1e2)*1e-2;
-    %epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos*1e2)*1e-2;
-    
-    %%
-    colors = [[0.8500 0.3250 0.0980]; [0.9290 0.6940 0.1250]; [0.4940 0.1840 0.5560]; [0.4660 0.6740 0.1880]; [0.6350 0.0780 0.1840]];
-    
-    h = figure;
-    ft_plot_sens(epoT.grad,'unit','cm','DisplayName','senspos'); 
-    hold on 
-    for coil = find(hpi{i_file}.dip_include)'
-        quiver3(hpi{i_file}.dip_pos_tf(coil,1),hpi{i_file}.dip_pos_tf(coil,2),hpi{i_file}.dip_pos_tf(coil,3),hpi{i_file}.dip_ori_tf(coil,1),hpi{i_file}.dip_ori_tf(coil,2),hpi{i_file}.dip_ori_tf(coil,3),'*','Color',colors(coil,:),'DisplayName',[hpi_labels{coil} ' (GOF=' num2str((hpi{i_file}.dip_gof(coil))*100,'%.2f') '%)'],'LineWidth',2);
+    try
+        [opm_trans, temp, dist] = pcregistericp(moving, fixed, 'Tolerance',[0.0001 0.001], 'MaxIterations',500,'Verbose',true);
+        hpi{i_file}.dip_pos_tf(hpi{i_file}.dip_include,:) = temp.Location;
+        hpi{i_file}.dip_ori_tf = hpi{i_file}.dip_ori*opm_trans.Rotation;
+        hpi{i_file}.opm_trans = opm_trans;
+        
+        epoT = epo;
+        epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos);
+        epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos);
+        %epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos*1e2)*1e-2;
+        %epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos*1e2)*1e-2;
+        
+        %%
+        colors = [[0.8500 0.3250 0.0980]; [0.9290 0.6940 0.1250]; [0.4940 0.1840 0.5560]; [0.4660 0.6740 0.1880]; [0.6350 0.0780 0.1840]];
+        
+        h = figure;
+        ft_plot_sens(epoT.grad,'unit','cm','DisplayName','senspos'); 
+        hold on 
+        for coil = find(hpi{i_file}.dip_include)'
+            quiver3(hpi{i_file}.dip_pos_tf(coil,1),hpi{i_file}.dip_pos_tf(coil,2),hpi{i_file}.dip_pos_tf(coil,3),hpi{i_file}.dip_ori_tf(coil,1),hpi{i_file}.dip_ori_tf(coil,2),hpi{i_file}.dip_ori_tf(coil,3),'*','Color',colors(coil,:),'DisplayName',[hpi_labels{coil} ' (GOF=' num2str((hpi{i_file}.dip_gof(coil))*100,'%.2f') '%)'],'LineWidth',2);
+        end
+        scatter3(hpi_polhemus(:,1),hpi_polhemus(:,2),hpi_polhemus(:,3),'r','DisplayName','polhemus'); 
+        scatter3(headshape.fid.pos(:,1),headshape.fid.pos(:,2),headshape.fid.pos(:,3),'g.','DisplayName','fiducials'); 
+        scatter3(headshape.pos(:,1),headshape.pos(:,2),headshape.pos(:,3),'k.','DisplayName','headshape'); 
+        scatter3(hpi_polhemus(hpi{i_file}.dip_include,1),hpi_polhemus(hpi{i_file}.dip_include,2),hpi_polhemus(hpi{i_file}.dip_include,3),'r*','DisplayName','polhemus'); 
+        hold off
+        title(['HPI fits (mean dist = ' num2str(dist*10) ' mm)'])
+        legend
+        saveas(h, fullfile(save_path, 'figs', ['hpi_fits-' num2str(i_file) '.jpg']))
+    catch
+        warning(['PCregister failed on hpi-file: ' hpi_files(i_file).name])
+        hpi{i}.dip_gof = 0;
     end
-    scatter3(hpi_polhemus(:,1),hpi_polhemus(:,2),hpi_polhemus(:,3),'r','DisplayName','polhemus'); 
-    scatter3(headshape.fid.pos(:,1),headshape.fid.pos(:,2),headshape.fid.pos(:,3),'g.','DisplayName','fiducials'); 
-    scatter3(headshape.pos(:,1),headshape.pos(:,2),headshape.pos(:,3),'k.','DisplayName','headshape'); 
-    scatter3(hpi_polhemus(hpi{i_file}.dip_include,1),hpi_polhemus(hpi{i_file}.dip_include,2),hpi_polhemus(hpi{i_file}.dip_include,3),'r*','DisplayName','polhemus'); 
-    hold off
-    title(['HPI fits (mean dist = ' num2str(dist*10) ' mm)'])
-    legend
-    saveas(h, fullfile(save_path, 'figs', ['hpi_fits-' num2str(i_file) '.jpg']))
 end
 
 %% Save 

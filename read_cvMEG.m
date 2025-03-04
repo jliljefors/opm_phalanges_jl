@@ -46,10 +46,6 @@ squid_epo = ft_preprocessing(cfg,squid_epo);
 
 % Find bad channels
 cfg = [];
-cfg.trl = trl_squid;
-cfg.trl(:,2) = cfg.trl(:,2) + squid_raw.fsample; % use 1sec longer trials for better neighborscorr
-squid_raw = ft_redefinetrial(cfg,squid_raw);
-cfg = [];
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
 [badchs_opmeeg, badchs_squideeg_flat, badchs_squideeg_neighbors] = eeg_badchannels(cfg,squid_raw);

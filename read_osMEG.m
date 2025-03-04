@@ -76,9 +76,6 @@ aux_epo = ft_preprocessing(cfg,aux_epo);
 % Find bad channels
 cfg = [];
 cfg.trl = trl_aux;
-cfg.trl(:,2) = cfg.trl(:,2) + aux_raw.fsample; % use 1sec longer trials for better neighborscorr
-aux_raw = ft_redefinetrial(cfg,aux_raw);
-cfg = [];
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
 [badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors] = eeg_badchannels(cfg,aux_raw);

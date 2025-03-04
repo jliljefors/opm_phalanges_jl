@@ -227,7 +227,7 @@ title('Group level M100 latency')
 ylabel('Latency [ms]')
 xlabel('Phalange')
 xticklabels(params.phalange_labels)
-legend({'squidmag','opm'});
+legend({'squidmag','opm'},'Location','southeast');
 saveas(h, fullfile(base_save_path, 'figs', 'Latency.jpg'))
 
 %% Plot SNR - error

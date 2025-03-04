@@ -36,6 +36,7 @@ cfg = [];
 cfg.resamplefs = 200;
 cfg.lpfilter = 'yes';
 cfg.lpfreq = 30;
+cfg.lpinstabilityfix  = 'reduce';
 data_lp = ft_resampledata(cfg,data);
 
 cfg = [];

@@ -25,7 +25,7 @@ trl_std = zeros(n_chs,n_trls);
 for i_trl = 1:n_trls
     trl_std(:,i_trl) = std(data_seg.trial{i_trl},0,2);
 end
-badchs_flat = find(any(trl_std<1e-15,2));
+badchs_flat = find(any(trl_std<1e-9,2));
 
 %% Neighbors
 goodchs = setdiff(chs,badchs_flat);
@@ -34,6 +34,7 @@ cfg = [];
 cfg.resamplefs = 200;
 cfg.lpfilter = 'yes';
 cfg.lpfreq = 30;
+cfg.lpinstabilityfix  = 'reduce';
 data_lp = ft_resampledata(cfg,data);
 
 cfg = [];
