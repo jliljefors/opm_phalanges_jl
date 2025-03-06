@@ -1,4 +1,4 @@
-function [headmodels, meshes] = prepare_mri(mri_file,meg_file,save_path)
+function prepare_mri(mri_file,meg_file,save_path)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 

@@ -1,16 +1,17 @@
-function fit_mne(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelocked, headmodels, sourcemodel, M100_squidmag, M100_squidgrad, M100_opm, params)
+function fit_mne(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelocked, headmodels, sourcemodel, sourcemodel_inflated, M60_squidmag, M60_squidgrad, M60_opm, params)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
 %% Prepare leadfields
 headmodel = headmodels.headmodel_meg;
 %headmodel.order = 20;
+sourcemodel.mom = surface_normals(sourcemodel.pos, sourcemodel.tri, 'vertex')';
+
 cfg = [];
-cfg.grad             = squidmag_timelocked{1}.grad;              % sensor positions
+cfg.grad             = squidmag_timelocked{1}.grad; % sensor positions
 cfg.channel          = 'squidmag';                  % the used channels
 cfg.senstype         = 'meg';            % sensor type
-cfg.grid.pos         = sourcemodel.pos;           % source points
-cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
+cfg.sourcemodel      = sourcemodel;           % source points
 cfg.headmodel        = headmodel;          % volume conduction model
 leadfield_squidmag = ft_prepare_leadfield(cfg,squidmag_timelocked{1});
 
@@ -18,8 +19,7 @@ cfg = [];
 cfg.grad             = squidgrad_timelocked{1}.grad;              % sensor positions
 cfg.channel          = 'squidgrad';                  % the used channels
 cfg.senstype         = 'meg';            % sensor type
-cfg.grid.pos         = sourcemodel.pos;           % source points
-cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
+cfg.sourcemodel      = sourcemodel;           % source points
 cfg.headmodel        = headmodel;          % volume conduction model
 leadfield_squidgrad = ft_prepare_leadfield(cfg,squidgrad_timelocked{1});
 
@@ -27,8 +27,7 @@ cfg = [];
 cfg.grad             = opm_timelocked{1}.grad;              % sensor positions
 cfg.channel          = '*bz';                  % the used channels
 cfg.senstype         = 'meg';            % sensor type
-cfg.grid.pos         = sourcemodel.pos;           % source points
-cfg.grid.inside      = sourcemodel.inside; % all source points are inside of the brain
+cfg.sourcemodel      = sourcemodel;           % source points
 cfg.headmodel        = headmodel;          % volume conduction model
 leadfield_opm = ft_prepare_leadfield(cfg,opm_timelocked{1});
 
@@ -49,26 +48,31 @@ for i_phalange = 1:5
     cfg.channel             = 'megmag';         % which channels to use
     tmp = ft_sourceanalysis(cfg, squidmag_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
-    cfg = [];
-    cfg.projectmom = 'yes';
-    tmp = ft_sourcedescriptives(cfg,tmp);
+    %cfg = [];
+    %cfg.projectmom = 'yes';
+    %tmp = ft_sourcedescriptives(cfg,tmp);
     squidmag_mne.avg{i_phalange} = [];
     squidmag_mne.avg{i_phalange}.pow = tmp.avg.pow;
     squidmag_mne.avg{i_phalange}.mom = tmp.avg.mom;
-    squidmag_mne_M60{i_phalange} = [];
-    [squidmag_mne_M60{i_phalange}.fahm, squidmag_mne_M60{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,M100_squidmag{i_phalange}.peak_latency);
+    
+    squidmag_mne_M60{i_phalange} = FullAreaHalfMax(tmp,sourcemodel);
 
     cfg = [];
     cfg.method          = 'surface';
     cfg.funparameter    = 'pow';
     cfg.funcolormap     = 'jet';    
     cfg.colorbar        = 'no';
-    cfg.latency         = M100_squidmag{i_phalange}.peak_latency;
+    cfg.latency         = squidmag_mne_M60{i_phalange}.peak_latency;
+    %tmp.pos = sourcemodel_inflated.pos;
+    %tmp.tri = sourcemodel_inflated.tri;
     h = figure;
     ft_sourceplot(cfg, tmp)
+    lighting gouraud
+    material dull
     title(['SQUID-MAG (FAHM=' num2str(squidmag_mne_M60{i_phalange}.fahm,3) ')'])
     saveas(h, fullfile(save_path,'figs', [params.sub '_squidmag_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
+    %%
 end
 squidmag_mne.time = tmp.time;
 squidmag_mne.cfg = tmp.cfg;
@@ -96,23 +100,27 @@ for i_phalange = 1:5
     cfg.sourcemodel         = leadfield_squidgrad;
     tmp = ft_sourceanalysis(cfg, squidgrad_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
-    cfg = [];
-    cfg.projectmom = 'yes';
-    tmp = ft_sourcedescriptives(cfg,tmp);
+    %cfg = [];
+    %cfg.projectmom = 'yes';
+    %tmp = ft_sourcedescriptives(cfg,tmp);
     squidgrad_mne.avg{i_phalange} = [];
     squidgrad_mne.avg{i_phalange}.pow = tmp.avg.pow;
     squidgrad_mne.avg{i_phalange}.mom = tmp.avg.mom;
-    squidgrad_mne_M60{i_phalange} = [];
-    [squidgrad_mne_M60{i_phalange}.fahm, squidgrad_mne_M60{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,M100_squidgrad{i_phalange}.peak_latency);
+    
+    squidgrad_mne_M60{i_phalange} = FullAreaHalfMax(tmp,sourcemodel);
 
     cfg = [];
     cfg.method          = 'surface';
     cfg.funparameter    = 'pow';
     cfg.funcolormap     = 'jet';    
     cfg.colorbar        = 'no';
-    cfg.latency         = M100_squidgrad{i_phalange}.peak_latency;
+    cfg.latency         = squidgrad_mne_M60{i_phalange}.peak_latency;
+    %tmp.pos = sourcemodel_inflated.pos;
+    %tmp.tri = sourcemodel_inflated.tri;
     h = figure;
     ft_sourceplot(cfg, tmp)
+    lighting gouraud
+    material dull
     title(['SQUID-GRAD (FAHM=' num2str(squidgrad_mne_M60{i_phalange}.fahm,3) ')'])
     saveas(h, fullfile(save_path,'figs', [params.sub '_squidgrad_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
@@ -143,23 +151,27 @@ for i_phalange = 1:5
     cfg.channel             = '*bz';         % which channels to use
     tmp = ft_sourceanalysis(cfg, opm_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
-    cfg = [];
-    cfg.projectmom = 'yes';
-    tmp = ft_sourcedescriptives(cfg,tmp);
+    %cfg = [];
+    %cfg.projectmom = 'yes';
+    %tmp = ft_sourcedescriptives(cfg,tmp);
     opm_mne.avg{i_phalange} = [];
     opm_mne.avg{i_phalange}.pow = tmp.avg.pow;
     opm_mne.avg{i_phalange}.mom = tmp.avg.mom;
-    opm_mne_M60{i_phalange} = [];
-    [opm_mne_M60{i_phalange}.fahm, opm_mne_M60{i_phalange}.peakloc] = FullAreaHalfMax(tmp,sourcemodel,M100_opm{i_phalange}.peak_latency);
+
+    opm_mne_M60{i_phalange} = FullAreaHalfMax(tmp,sourcemodel);
 
     cfg = [];
     cfg.method          = 'surface';
     cfg.funparameter    = 'pow';
     cfg.funcolormap     = 'jet';    
     cfg.colorbar        = 'no';
-    cfg.latency         = M100_opm{i_phalange}.peak_latency;
+    cfg.latency         = opm_mne_M60{i_phalange}.peak_latency;
+    %tmp.pos = sourcemodel_inflated.pos;
+    %tmp.tri = sourcemodel_inflated.tri;
     h = figure;
     ft_sourceplot(cfg, tmp)
+    lighting gouraud
+    material dull
     title(['OPM (FAHM=' num2str(opm_mne_M60{i_phalange}.fahm,3) ')'])
     saveas(h, fullfile(save_path,'figs', [params.sub '_opm_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all

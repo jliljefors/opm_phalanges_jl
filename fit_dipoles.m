@@ -10,7 +10,7 @@ colors = [[0 0.4470 0.7410]; % blue
     [0.6350 0.0780 0.1840]]; % light blue
 
 cfg              = [];
-cfg.resolution   = 1;
+cfg.resolution   = 0.5;
 cfg.tight        = 'yes';
 cfg.inwardshift  = 0;
 cfg.headmodel    = headmodels.headmodel_meg;

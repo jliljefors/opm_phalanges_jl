@@ -111,7 +111,7 @@ for i_file = 1:length(hpi_files)
             [~, i_maxchan] = max(abs(timelocked.avg(opm_chs,:)));
             [X,Y,Z] = meshgrid(-3:0.2:3, ...
                 -3:0.2:0.3, ...
-                -3:0.2:0);
+                -4:0.2:0);
             pos = [X(:) Y(:) Z(:)];
             %inside = vecnorm(pos,2,2)<4; % only look at points within 4 cm of peak channel
             
@@ -176,6 +176,8 @@ for i_file = 1:length(hpi_files)
         epoT = epo;
         epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos);
         epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos);
+        epoT.grad.chanori = (opm_trans.Rotation'*epoT.grad.chanori')';
+        epoT.grad.coilori = (opm_trans.Rotation'*epoT.grad.coilori')';
         %epoT.grad.chanpos = opm_trans.transformPointsForward(epo.grad.chanpos*1e2)*1e-2;
         %epoT.grad.coilpos = opm_trans.transformPointsForward(epo.grad.coilpos*1e2)*1e-2;
         

@@ -13,6 +13,7 @@ for i_sub = subs
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
     save_path = fullfile(base_save_path,params.sub);
+    clear squidmag_dipole squidgrad_dipole opm_dipole
     load(fullfile(save_path, 'dipoles')); 
     dipole_squidmag{i_sub} = squidmag_dipole;
     dipole_squidgrad{i_sub} = squidgrad_dipole;
@@ -88,10 +89,10 @@ close
 
 for i_ph = 1:5
     h = figure('DefaultAxesFontSize',16);
-    plot(subs,dist_sqmag_opm(subs,i_ph));
+    plot(subs,dist_sqmag_opm(subs,i_ph),'+-');
     hold on
-    plot(subs,dist_sqgrad_opm(subs,i_ph));
-    plot(subs,dist_sqmag_sqgrad(subs,i_ph));
+    plot(subs,dist_sqgrad_opm(subs,i_ph),'x-');
+    plot(subs,dist_sqmag_sqgrad(subs,i_ph),'*-');
     hold off
     title([params.phalange_labels{i_ph} ' - dipole distances over subjects'])
     ylabel('Distance [mm]')
@@ -119,32 +120,23 @@ err2 = [mean2-min2; max2-mean2];
 err3 = [mean3-min3; max3-mean3];
 
 h = figure('DefaultAxesFontSize',16);
-bar(1,[mean1; mean2]','grouped');
+h.Position(3) = round(h.Position(3)*1.3);
+bar(1,[mean1; mean2; mean3]','grouped');
 hold on
-for k=1:length(params.phalange_labels)
-    errorbar(k-0.22,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
-    errorbar(k0,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
-    errorbar(k+022,mean3(k),err3(1,k),err3(2,k),'k','linestyle','none');
-end
-
-p_values = zeros(5, 3);
-for i = 1:5
-    [~, p_values(i, 1)] = ttest(data1(:,i), data2(:,i));
-    [~, p_values(i, 2)] = ttest(data2(:,i), data3(:,i));
-    [~, p_values(i, 3)] = ttest(data1(:,i), data3(:,i));
-end
-for i = 1:5
-    sigstar({[i-0.22, i]}, p_values(i, 1));
-    sigstar({[i, i+0.22]}, p_values(i, 2));
-    sigstar({[i-0.22, i+0.22]}, p_values(i, 3));
-end
-
+errorbar(1-0.22,mean1(1),err1(1,1),err1(2,1),'k','linestyle','none');
+errorbar(1,mean2(1),err2(1,1),err2(2,1),'k','linestyle','none');
+errorbar(1+0.22,mean3(1),err3(1,1),err3(2,1),'k','linestyle','none');
+p_values = zeros(1, 3);
+[~, p_values(1)] = ttest(data1, data2);
+[~, p_values(2)] = ttest(data2, data3);
+[~, p_values(3)] = ttest(data1, data3);
+sigstar({[1-0.22, 1]}, p_values(1));
+sigstar({[1, 1+0.22]}, p_values(2));
+sigstar({[1-0.22, 1+0.22]}, p_values(3));
 hold off
-title('Group level M100 dipole spread')
+title('Group level M60 dipole spread')
 ylabel('Dipoles spread [mm]')
-%xlabel('Phalange')
-legend({'squidmag','opm','squidgrad'});
-xticklabels(params.phalange_labels)
+legend({'squidmag','opm','squidgrad'},'Location','eastoutside');
 saveas(h, fullfile(base_save_path, 'figs', 'dipole_spread.jpg'))
 
 %% Plot spread squidgrad vs opm

@@ -89,22 +89,6 @@ xticklabels(params.phalange_labels)
 saveas(h, fullfile(base_save_path, 'figs', 'mne_squidmag_to_squidgrad_dist.jpg'))
 close
 
-h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),mean(dist_sqeeg_opmeeg,1,'omitnan'));
-hold on
-er = errorbar(1:5,mean(dist_sqeeg_opmeeg,1,'omitnan'), mean(dist_sqeeg_opmeeg,1,'omitnan')-min(dist_sqeeg_opmeeg,[],1,'omitnan'), mean(dist_sqeeg_opmeeg,1,'omitnan')-max(dist_sqeeg_opmeeg,[],1,'omitnan'));    
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-er.LineWidth = 1;
-er.CapSize = 30;
-hold off
-title(['Dist SQ-EEG to OPM-EEG (mean = ' num2str(mean(mean(dist_sqeeg_opmeeg,'omitnan'),'omitnan'),'%.1f') 'mm)'])
-ylabel('Distance [mm]')
-xlabel('Phalange')
-xticklabels(params.phalange_labels)
-saveas(h, fullfile(base_save_path, 'figs', 'mne_squideeg_to_opmeeg_dist.jpg'))
-close all
-
 for i_ph = 1:5
     h = figure('DefaultAxesFontSize',16);
     plot(subs,dist_sqmag_opm(subs,i_ph));
@@ -138,7 +122,8 @@ err2 = [mean2-min2; max2-mean2];
 err3 = [mean3-min3; max3-mean3];
 
 h = figure('DefaultAxesFontSize',16);
-bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
+h.Position(3) = round(h.Position(3)*1.2);
+bar(1:length(params.phalange_labels),[mean1; mean2; mean3]','grouped');
 hold on
 for k=1:length(params.phalange_labels)
     errorbar(k-0.22,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
@@ -162,7 +147,7 @@ hold off
 title('MNE: Group level M100 FAHM')
 ylabel('M60 FAHM [cm^2]')
 xlabel('Phalange')
-legend({'squidmag','opm','squidgrad'});
+legend({'squidmag','opm','squidgrad'},'Location','eastoutside');
 xticklabels(params.phalange_labels)
 saveas(h, fullfile(base_save_path, 'figs', 'mne_fahm.jpg'))
 

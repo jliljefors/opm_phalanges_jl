@@ -30,7 +30,7 @@ ft_default.showcallinfo = 'no';
 %% Overwrite
 overwrite = [];
 overwrite.preproc = false;
-overwrite.coreg = true;
+overwrite.coreg = false;
 overwrite.mri = false;
 overwrite.dip = true;
 overwrite.mne = true;
@@ -245,7 +245,7 @@ for i_sub = 2:size(subses,1)
             meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98.fif');
         end
         mri_file = fullfile(mri_path, 'orig','001.mgz');
-        [headmodels, meshes] = prepare_mri(mri_file,meg_file,save_path);
+        prepare_mri(mri_file,meg_file,save_path);
         close all
     end
 end
@@ -306,11 +306,12 @@ for i_sub = 2:size(subses,1)
             meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98.fif');
         end
         headshape = ft_read_headshape(meg_file);
+
         for i = 1:5
             opm_timelockedT{i}.grad.chanpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.chanpos);
             opm_timelockedT{i}.grad.coilpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.coilpos);
-            %opm_timelockedT{i}.grad.chanpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.chanpos*1e2)*1e-2;
-            %opm_timelockedT{i}.grad.coilpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.coilpos*1e2)*1e-2;
+            opm_timelockedT{i}.grad.chanori = (opm_trans.Rotation'*opm_timelocked{i}.grad.chanori')';
+            opm_timelockedT{i}.grad.coilori = (opm_trans.Rotation'*opm_timelocked{i}.grad.coilori')';
             opmeeg_timelockedT{i}.elec.chanpos = squideeg_timelocked{i}.elec.chanpos;
             opmeeg_timelockedT{i}.elec.elecpos = squideeg_timelocked{i}.elec.elecpos;
         end
@@ -415,11 +416,8 @@ for i_sub = 2:size(subses,1)
     end
 end
 
-% Dipole group analysis
-if ~exist(fullfile(base_save_path,'figs'), 'dir')
-       mkdir(fullfile(base_save_path,'figs'))
-end
-subs = 2:13;
+%% Dipole group analysis
+subs = [2:13];
 dipole_results_goup(base_save_path,subs, params)
 
 %% MNE
@@ -434,8 +432,9 @@ for i_sub = 2:size(subses,1)
     if exist(fullfile(save_path, 'mne_fits.mat'),'file') && overwrite.mne==false
         disp(['Not overwriting MNE source reconstruction for ' params.sub]);
     else
-        clear headmodels sourcemodel
+        clear headmodels sourcemodel sourcemodel_inflated
         load(fullfile(save_path, [params.sub '_sourcemodel']));
+        load(fullfile(save_path, [params.sub '_sourcemodel_inflated']));
         load(fullfile(save_path,'headmodels.mat'));
         clear megmag_timelocked magplanar_timelocked squideeg_timelocked
         clear opm_timelockedT opmeeg_timelockedT
@@ -455,12 +454,12 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, [params.sub '_squidgrad_M60'])); 
         M60_squidgrad = M60;
         clear M60
-        fit_mne(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelockedT, headmodels, sourcemodel, M60_squidmag, M60_squidgrad, M60_opm ,params);
+        fit_mne(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelockedT, headmodels, sourcemodel, sourcemodel_inflated, M60_squidmag, M60_squidgrad, M60_opm ,params);
     end
 end
 close all
 
-% MNE group analysis
-subs = 2:13;
+%% MNE group analysis
+subs = [2:10 12:13];
 mne_results_goup(base_save_path, subs, params);
 

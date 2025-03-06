@@ -250,7 +250,7 @@ for subNumber = subs
         add(chapter,section)
     end
 
-    % Max channel plots
+    %% Max channel plots
     for i_phalange = 1:length(params.phalange_labels)
         % Add rows and cells to the table and insert the images
         section = Section(['Phalange: ' params.phalange_labels(i_phalange)]);
@@ -263,6 +263,32 @@ for subNumber = subs
             for j = 1:2
                 imgIndex = (j-1)*2 + i;
                 img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_evoked_peakchannel_ph-' params.phalange_labels{i_phalange} '.jpg']));
+                img.Style = {Width('8cm'), ScaleToFit};
+                entry = TableEntry();
+                append(entry, img);
+                append(row, entry);
+            end
+            append(tbl, row);
+        end
+    
+        add(section, tbl);
+        add(chapter, section);
+        add(chapter, PageBreak());
+    end
+
+    %% Topo plots
+    for i_phalange = 1:length(params.phalange_labels)
+        % Add rows and cells to the table and insert the images
+        section = Section(['Phalange: ' params.phalange_labels(i_phalange)]);
+        section.Numbered = false; % Remove section numbering
+        
+        tbl = Table();
+        tbl.Style = {Border('solid'), Width('100%'), RowSep('solid'), ColSep('solid')};
+        for i = 1:2
+            row = TableRow();
+            for j = 1:2
+                imgIndex = (j-1)*2 + i;
+                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_M60_topo_ph-' params.phalange_labels{i_phalange} '.jpg']));
                 img.Style = {Width('8cm'), ScaleToFit};
                 entry = TableEntry();
                 append(entry, img);

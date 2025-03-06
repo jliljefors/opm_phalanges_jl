@@ -1,19 +1,31 @@
-function [FAHM, peak_loc] = FullAreaHalfMax(sourcedistribution,sourcemodel,latency)
+function [m60] = FullAreaHalfMax(sourcedistribution,sourcemodel)
 %UNTITLED Calculates the full area at half max amplitude
 %   Detailed explanation goes here
-[~,i_latency] = min(abs(sourcedistribution.time-latency));
+[~,i1] = min(abs(sourcedistribution.time-0.04));
+[~,i2] = min(abs(sourcedistribution.time-0.08));
+
+dat = sourcedistribution.avg.pow(:,i1:i2);
+[~,i_latency] = max(mean(dat,1)); % max of mean across sources
+latency = sourcedistribution.time(i_latency);
 
 % Half max level
-[half_max, i_max] = max(sourcedistribution.avg.pow(:,i_latency));
-half_max = half_max/2;
+[peak_pow, i_max] = max(sourcedistribution.avg.pow(:,i_latency));
+half_max = peak_pow/2;
 peak_loc = sourcemodel.pos(i_max,:);
 
 % Find triangles that have at least one point with amplitude >= half max
-i_vertices = find(sourcedistribution.avg.pow(:,i_latency)>=half_max);
-[triangles,~] = find(ismember(sourcemodel.tri,i_vertices)); 
+i_halfmax_vertices = find(sourcedistribution.avg.pow(:,i_latency)>=half_max);
+[triangles,~] = find(ismember(sourcemodel.tri,i_halfmax_vertices)); 
 triangles = sourcemodel.tri(triangles,:);
 
-% Sum area of triangles and divide by 3 (since its a triangle per point). 
-FAHM = sum(calculateTriangleAreas(sourcemodel.pos, triangles))/3;
+% Sum area of triangles and divide by 3 (since its a triangle per point).
+FAHM = sum(calculateTriangleAreas(sourcemodel.pos, triangles))/3;  
+
+m60 = []; 
+m60.FAHM = FAHM;
+m60.peak_loc = peak_loc;
+m60.peak_pow = peak_pow;
+m60.latency = latency;
+m60.halfmax_vertices = i_halfmax_vertices;
 
 end
