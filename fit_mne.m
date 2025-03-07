@@ -9,7 +9,7 @@ sourcemodel.mom = surface_normals(sourcemodel.pos, sourcemodel.tri, 'vertex')';
 
 cfg = [];
 cfg.grad             = squidmag_timelocked{1}.grad; % sensor positions
-cfg.channel          = 'squidmag';                  % the used channels
+cfg.channel          = 'megmag';                  % the used channels
 cfg.senstype         = 'meg';            % sensor type
 cfg.sourcemodel      = sourcemodel;           % source points
 cfg.headmodel        = headmodel;          % volume conduction model
@@ -17,7 +17,7 @@ leadfield_squidmag = ft_prepare_leadfield(cfg,squidmag_timelocked{1});
 
 cfg = [];
 cfg.grad             = squidgrad_timelocked{1}.grad;              % sensor positions
-cfg.channel          = 'squidgrad';                  % the used channels
+cfg.channel          = 'megplanar';                  % the used channels
 cfg.senstype         = 'meg';            % sensor type
 cfg.sourcemodel      = sourcemodel;           % source points
 cfg.headmodel        = headmodel;          % volume conduction model

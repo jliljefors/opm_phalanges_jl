@@ -6,7 +6,8 @@ function [m60] = FullAreaHalfMax(sourcedistribution,sourcemodel)
 
 dat = sourcedistribution.avg.pow(:,i1:i2);
 [~,i_latency] = max(mean(dat,1)); % max of mean across sources
-latency = sourcedistribution.time(i_latency);
+i_latency = i1-1+i_latency;
+peak_latency = sourcedistribution.time(i_latency);
 
 % Half max level
 [peak_pow, i_max] = max(sourcedistribution.avg.pow(:,i_latency));
@@ -19,13 +20,13 @@ i_halfmax_vertices = find(sourcedistribution.avg.pow(:,i_latency)>=half_max);
 triangles = sourcemodel.tri(triangles,:);
 
 % Sum area of triangles and divide by 3 (since its a triangle per point).
-FAHM = sum(calculateTriangleAreas(sourcemodel.pos, triangles))/3;  
+fahm = sum(calculateTriangleAreas(sourcemodel.pos, triangles))/3;  
 
 m60 = []; 
-m60.FAHM = FAHM;
+m60.peak_latency = peak_latency;
 m60.peak_loc = peak_loc;
 m60.peak_pow = peak_pow;
-m60.latency = latency;
-m60.halfmax_vertices = i_halfmax_vertices;
+m60.fahm = fahm;
+m60.peak_distribution = sourcedistribution.avg.pow(:,i_latency);
 
 end

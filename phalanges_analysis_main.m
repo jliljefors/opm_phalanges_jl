@@ -32,7 +32,7 @@ overwrite = [];
 overwrite.preproc = false;
 overwrite.coreg = false;
 overwrite.mri = false;
-overwrite.dip = true;
+overwrite.dip = false;
 overwrite.mne = true;
 
 %% Params
@@ -459,7 +459,7 @@ for i_sub = 2:size(subses,1)
 end
 close all
 
-%% MNE group analysis
+% MNE group analysis
 subs = [2:10 12:13];
 mne_results_goup(base_save_path, subs, params);
 

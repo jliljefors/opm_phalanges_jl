@@ -117,7 +117,7 @@ for i_phalange = 1:length(params.trigger_code)
     saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']))
 
     cfg = [];
-    cfg.xlim = [M60{i_phalange}.peak_latency-0.01 M60{i_phalange}.peak_latency+0.01];
+    cfg.xlim = [M60{i_phalange}.peak_latency-0.005 M60{i_phalange}.peak_latency+0.005];
     cfg.layout = params.layout; 
     cfg.parameter = 'avg';
     h = figure;
