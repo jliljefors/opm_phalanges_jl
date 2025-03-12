@@ -29,7 +29,7 @@ ft_default.showcallinfo = 'no';
 
 %% Overwrite
 overwrite = [];
-overwrite.preproc = false;
+overwrite.preproc = true;
 overwrite.coreg = false;
 overwrite.mri = false;
 overwrite.dip = false;
@@ -37,7 +37,7 @@ overwrite.mne = true;
 
 %% Params
 params = [];
-params.pre = 0.03; %sec
+params.pre = 0.05; %sec
 params.post = 0.3; %sec
 params.pad = 0.2; %sec
 params.filter = [];
@@ -168,13 +168,40 @@ for i_sub = 1:size(subses,1)
         % Read data
         [squid_cleaned, squideeg_cleaned] = read_cvMEG(meg_file, save_path, params); % Read data
         
-        % ICA
-        params.modality = 'squid';
+        % SQUID-MAG ICA
+        params.modality = 'squidmag';
         params.layout = 'neuromag306mag.lay';
-        params.chs = 'MEG*';
-        squid_ica = ica_MEG(squid_cleaned, save_path, params);
-        clear squid_cleaned
+        params.chs = 'megmag';
+        squidmag_ica = ica_MEG(squid_cleaned, save_path, params);      
 
+        % SQUID-MAG timelock
+        params.modality = 'squidmag';
+        params.layout = 'neuromag306mag.lay';
+        params.chs = 'megmag';
+        params.amp_scaler = 1e15;
+        params.amp_label = 'B [fT]';
+        squid_timelocked = timelock_MEG(squidmag_ica, save_path, params);
+        close all
+        clear squidmag_ica squid_timelocked
+
+        % SQUID-GRAD timelock
+        params.modality = 'squidgrad';
+        params.layout = 'neuromag306planar.lay';
+        params.chs = 'meggrad';
+        squidgrad_ica = ica_MEG(squid_cleaned, save_path, params);
+        clear squid_cleaned 
+
+        % SQUID-GRAD timelock
+        params.modality = 'squidgrad';
+        params.layout = 'neuromag306planar.lay';
+        params.chs = 'meggrad';
+        params.amp_scaler = 1e15/100;
+        params.amp_label = 'B [fT/cm]';
+        squidgrad_timelocked = timelock_MEG(squidgrad_ica, save_path, params);
+        close all
+        clear squidgrad_ica squidgrad_timelocked
+
+        % EEG ICA
         cfg = [];
         cfg.elec = squideeg_cleaned.elec;
         cfg.output = fullfile(save_path, [params.sub '_megeeg_layout.mat']);
@@ -186,24 +213,7 @@ for i_sub = 1:size(subses,1)
         close all
         clear squideeg_cleaned
 
-        % Average
-        params.modality = 'squidmag';
-        params.layout = 'neuromag306mag.lay';
-        params.chs = 'megmag';
-        params.amp_scaler = 1e15;
-        params.amp_label = 'B [fT]';
-        squid_timelocked = timelock_MEG(squid_ica, save_path, params);
-        close all
-
-        params.modality = 'squidgrad';
-        params.layout = 'neuromag306planar.lay';
-        params.chs = 'megplanar';
-        params.amp_scaler = 1e15/100;
-        params.amp_label = 'B [fT/cm]';
-        squidgrad_timelocked = timelock_MEG(squid_ica, save_path, params);
-        close all
-        clear squid_ica
-
+        % EEG timelock
         params.modality = 'squideeg';
         params.layout = megeeg_layout;
         params.chs = 'EEG*';
@@ -212,7 +222,7 @@ for i_sub = 1:size(subses,1)
         squideeg_timelocked = timelock_MEG(squideeg_ica, save_path, params);
         close all
         clear squideeg_íca
-        clear squid_timelocked squidgrad_timelocked squideeg_timelocked
+        clear squideeg_timelocked
 
         params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality    
     end
@@ -268,7 +278,6 @@ for i_sub = 2:size(subses,1)
         ft_hastoolbox('mne', 1);
         load(fullfile(save_path, [params.sub '_opm_ica_ds']));
         params.include_chs = data_ica_ds.label(find(contains(data_ica_ds.label,'bz')));
-        params.include_chs = params.include_chs([1:75 77:end]);
         fit_hpi(hpi_path, meg_file, save_path, params);
         close all
     end
@@ -289,13 +298,14 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, 'mri_resliced.mat'));
         load(fullfile(save_path, 'opm_trans.mat'));
         load(fullfile(save_path, [params.sub '_opm_timelocked.mat']))
-        opm_timelocked = timelocked;
-        opm_timelockedT = opm_timelocked;
+        opm_timelockedT = timelocked;
+        clear timelocked
         load(fullfile(save_path, [params.sub '_opmeeg_timelocked.mat']))
-        opmeeg_timelocked = timelocked;
-        opmeeg_timelockedT = opmeeg_timelocked;
+        opmeeg_timelockedT = timelocked;
+        clear timelocked
         load(fullfile(save_path, [params.sub '_squideeg_timelocked.mat']))
         squideeg_timelocked = timelocked;
+        clear timelocked
         load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat']))
         squidmag_timelocked = timelocked;
         clear timelocked;
@@ -308,12 +318,12 @@ for i_sub = 2:size(subses,1)
         headshape = ft_read_headshape(meg_file);
 
         for i = 1:5
-            opm_timelockedT{i}.grad.chanpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.chanpos);
-            opm_timelockedT{i}.grad.coilpos = opm_trans.transformPointsForward(opm_timelocked{i}.grad.coilpos);
-            opm_timelockedT{i}.grad.chanori = (opm_trans.Rotation'*opm_timelocked{i}.grad.chanori')';
-            opm_timelockedT{i}.grad.coilori = (opm_trans.Rotation'*opm_timelocked{i}.grad.coilori')';
-            opmeeg_timelockedT{i}.elec.chanpos = squideeg_timelocked{i}.elec.chanpos;
-            opmeeg_timelockedT{i}.elec.elecpos = squideeg_timelocked{i}.elec.elecpos;
+            opm_timelockedT{i}.grad.chanpos = opm_trans.transformPointsForward(opm_timelockedT{i}.grad.chanpos);
+            opm_timelockedT{i}.grad.coilpos = opm_trans.transformPointsForward(opm_timelockedT{i}.grad.coilpos);
+            opm_timelockedT{i}.grad.chanori = (opm_trans.Rotation'*opm_timelockedT{i}.grad.chanori')';
+            opm_timelockedT{i}.grad.coilori = (opm_trans.Rotation'*opm_timelockedT{i}.grad.coilori')';
+            opmeeg_timelockedT{i}.elec.chanpos = squideeg_timelockedT{i}.elec.chanpos;
+            opmeeg_timelockedT{i}.elec.elecpos = squideeg_timelockedT{i}.elec.elecpos;
         end
 
         % Read and transform cortical restrained source model
@@ -391,7 +401,7 @@ for i_sub = 2:size(subses,1)
     if exist(fullfile(save_path, 'dipoles.mat'),'file') && overwrite.dip==false
         disp(['Not overwriting dipole source reconstruction for ' params.sub]);
     else
-        clear headmodels mri_resliced
+        clear headmodels mri_resliced timelocked M60
         load(fullfile(save_path, 'headmodels.mat'));
         load(fullfile(save_path, 'mri_resliced.mat'));
         clear megmag_timelocked magplanar_timelocked squideeg_timelocked
@@ -399,10 +409,10 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, [params.sub '_opm_timelockedT.mat']));
         load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat']));
         squidmag_timelocked = timelocked;
+        clear timelocked
         load(fullfile(save_path, [params.sub '_squidgrad_timelocked.mat']));
         squidgrad_timelocked = timelocked;
         clear timelocked
-        clear M60
         load(fullfile(save_path, [params.sub '_opm_M60'])); 
         M60_opm = M60;
         clear M60
@@ -436,11 +446,12 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, [params.sub '_sourcemodel']));
         load(fullfile(save_path, [params.sub '_sourcemodel_inflated']));
         load(fullfile(save_path,'headmodels.mat'));
-        clear megmag_timelocked magplanar_timelocked squideeg_timelocked
-        clear opm_timelockedT opmeeg_timelockedT
+        clear squidmag_timelocked squidgrad_timelocked OPM_timelockedT
+        clear timelocked
         load(fullfile(save_path, [params.sub '_opm_timelockedT.mat']));
         load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat']));
         squidmag_timelocked = timelocked;
+        clear timelocked
         load(fullfile(save_path, [params.sub '_squidgrad_timelocked.mat']));
         squidgrad_timelocked = timelocked;
         clear timelocked
@@ -454,12 +465,12 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, [params.sub '_squidgrad_M60'])); 
         M60_squidgrad = M60;
         clear M60
-        fit_mne(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelockedT, headmodels, sourcemodel, sourcemodel_inflated, M60_squidmag, M60_squidgrad, M60_opm ,params);
+        fit_mne(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelockedT, headmodels, sourcemodel, sourcemodel_inflated, params);
     end
 end
 close all
 
-% MNE group analysis
+%% MNE group analysis
 subs = [2:10 12:13];
 mne_results_goup(base_save_path, subs, params);
 

@@ -7,18 +7,19 @@ function [data_ica] = ica_MEG(data,save_path,params)
 % applied if the frequency is defined), n_comp and coh_cutoff (for 
 % automated ICA), and ds_freq (downsampling frequency).
 
-
 %% Downsample
 cfg             = [];
 cfg.resamplefs  = 200;
 cfg.detrend     = 'no';
+cfg.channel     = {'EOG', 'ECG', params.chs};
 data_ds = ft_resampledata(cfg, data);
 
 %% Calculate ICA
-n_comp = min([params.n_comp sum(contains(data_ds.label,erase(params.chs,'*')))-1]);
+chs = find(contains(data_ds.label,'MEG'));
+
 cfg            = [];
 cfg.method     = 'runica';
-cfg.numcomponent = n_comp;
+cfg.numcomponent = rank(data_ds.trial{1}*data_ds.trial{1}');
 cfg.channel    = params.chs;                     
 comp           = ft_componentanalysis(cfg, data_ds);
 
@@ -301,15 +302,41 @@ cfg.updatesens  = 'no';
 data_ica = ft_rejectcomponent(cfg, comp, data);
 
 %% Spectrum
-if params.modality == 'squid'
+if strcmp(params.modality,'squid')
+    cfg = [];
+    cfg.channel = 'megmag';
+    cfg.output = 'pow';
+    cfg.method = 'mtmfft';
+    cfg.taper = 'hanning';
+    cfg.foilim = [1 100];
+    freq = ft_freqanalysis(cfg, data_ica);
+    h = figure;
+    semilogy(freq.freq,freq.powspctrm)
+    xlabel('Frequency (Hz)')
+    ylabel('Power (T^2)')
+    title('squidmag spectrum - postICA')
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_squidmag_spectrum_2.jpg']))
 
+    cfg = [];
+    cfg.channel = 'meggrad';
+    cfg.output = 'pow';
+    cfg.method = 'mtmfft';
+    cfg.taper = 'hanning';
+    cfg.foilim = [1 100];
+    freq = ft_freqanalysis(cfg, data_ica);
+    h = figure;
+    semilogy(freq.freq,freq.powspctrm)
+    xlabel('Frequency (Hz)')
+    ylabel('Power (T^2)')
+    title('squidgrad spectrum - postICA')
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_squidgrad_spectrum_2.jpg']))
 else
     cfg = [];
     cfg.channel = params.chs;
     cfg.output = 'pow';
     cfg.method = 'mtmfft';
     cfg.taper = 'hanning';
-    cfg.foi = 1:1:100;
+    cfg.foilim = [1 100];
     freq = ft_freqanalysis(cfg, data_ica);
     h = figure;
     semilogy(freq.freq,freq.powspctrm)
@@ -336,14 +363,14 @@ end
 
 %%
 cfg = [];
-cfg.latency = [-0.03 0.3];
+cfg.latency = [-0.05 0.3];
 data_ica_ds = ft_selectdata(cfg, data_ica);
 cfg = [];
 cfg.demean = 'yes';
-cfg.baselinewindow = [-0.03 0];
+cfg.baselinewindow = [-0.05 0];
 data_ica_ds = ft_preprocessing(cfg,data_ica_ds);
 cfg = [];
-cfg.resamplefs = 512;
+cfg.resamplefs = 500;
 data_ica_ds = ft_resampledata(cfg, data_ica_ds);
 save(fullfile(save_path, [params.sub '_' params.modality '_ica_ds']), 'data_ica_ds',"-v7.3"); disp('done');
 

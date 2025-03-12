@@ -19,12 +19,8 @@ data = ft_selectdata(cfg, data);
 
 cfg = [];
 cfg.demean = 'yes';
-cfg.baselinewindow = [-params.pre 0];
+cfg.baselinewindow = [-prams.pre 0];
 data = ft_preprocessing(cfg,data);
-
-%cfg = [];
-%cfg.toilim = [-params.pre params.post];
-%data = ft_redefinetrial(cfg, data);
 
 for i_phalange = 1:length(params.trigger_code)
     cfg = [];

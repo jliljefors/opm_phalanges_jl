@@ -7,15 +7,21 @@ function [data_ica] = ica_MEG(data,save_path,params)
 % applied if the frequency is defined), n_comp and coh_cutoff (for 
 % automated ICA), and ds_freq (downsampling frequency).
 
-
 %% Downsample
 cfg             = [];
 cfg.resamplefs  = 200;
 cfg.detrend     = 'no';
+cfg.channel     = {'EOG', 'ECG', params.chs};
 data_ds = ft_resampledata(cfg, data);
 
 %% Calculate ICA
-n_comp = min([params.n_comp sum(contains(data_ds.label,erase(params.chs,'*')))-1]);
+cfg             = [];
+cfg.channel  = params.chs;
+cfg.trials     = 1;
+tmp = ft_selectdata(cfg,data);
+n_comp  = rank(tmp.trial{1}*tmp.trial{1}');
+clear tmp
+
 cfg            = [];
 cfg.method     = 'runica';
 cfg.numcomponent = n_comp;

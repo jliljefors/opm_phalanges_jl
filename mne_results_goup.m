@@ -27,9 +27,9 @@ for i_sub = subs
     pos_squidgrad = zeros(n_ph,3);
     pos_opm = zeros(n_ph,3);
     for i_phalange = 1:n_ph
-        pos_squidmag(i_phalange,:) = mne_squidmag{i_sub}{i_phalange}.peakloc;
-        pos_squidgrad(i_phalange,:) = mne_squidgrad{i_sub}{i_phalange}.peakloc;
-        pos_opm(i_phalange,:) = mne_opm{i_sub}{i_phalange}.peakloc;
+        pos_squidmag(i_phalange,:) = mne_squidmag{i_sub}{i_phalange}.peak_loc;
+        pos_squidgrad(i_phalange,:) = mne_squidgrad{i_sub}{i_phalange}.peak_loc;
+        pos_opm(i_phalange,:) = mne_opm{i_sub}{i_phalange}.peak_loc;
 
         dist_sqmag_opm(i_sub,i_phalange) = 1e1*norm(pos_squidmag(i_phalange,:)-pos_opm(i_phalange,:));
         dist_sqgrad_opm(i_sub,i_phalange) = 1e1*norm(pos_squidgrad(i_phalange,:)-pos_opm(i_phalange,:));
