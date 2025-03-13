@@ -23,9 +23,7 @@ for i_sub = subs
     % Metrics: 
     % - distance between mnes for same phalange different systems
     % - over phalanges: average distance from mean location within distance
-    pos_squidmag = zeros(n_ph,3);
-    pos_squidgrad = zeros(n_ph,3);
-    pos_opm = zeros(n_ph,3);
+    
     for i_phalange = 1:n_ph
         pos_squidmag(i_phalange,:) = mne_squidmag{i_sub}{i_phalange}.peak_loc;
         pos_squidgrad(i_phalange,:) = mne_squidgrad{i_sub}{i_phalange}.peak_loc;
@@ -35,9 +33,24 @@ for i_sub = subs
         dist_sqgrad_opm(i_sub,i_phalange) = 1e1*norm(pos_squidgrad(i_phalange,:)-pos_opm(i_phalange,:));
         dist_sqmag_sqgrad(i_sub,i_phalange) = 1e1*norm(pos_squidmag(i_phalange,:)-pos_squidgrad(i_phalange,:));
 
+        pow_squidmag(i_sub,i_phalange) = mne_squidmag{i_sub}{i_phalange}.peak_pow;
+        pow_squidgrad(i_sub,i_phalange) = mne_squidgrad{i_sub}{i_phalange}.peak_pow;
+        pow_opm(i_sub,i_phalange) = mne_opm{i_sub}{i_phalange}.peak_pow;
+
+        lat_squidmag(i_sub,i_phalange) = mne_squidmag{i_sub}{i_phalange}.peak_latency;
+        lat_squidgrad(i_sub,i_phalange) = mne_squidgrad{i_sub}{i_phalange}.peak_latency;
+        lat_opm(i_sub,i_phalange) = mne_opm{i_sub}{i_phalange}.peak_latency;
+
         fahm_opm(i_sub,i_phalange) = mne_opm{i_sub}{i_phalange}.fahm; % mean distance from center of phalanges
         fahm_squidmag(i_sub,i_phalange) = mne_squidmag{i_sub}{i_phalange}.fahm; % mean distance from center of phalanges
         fahm_squidgrad(i_sub,i_phalange) = mne_squidgrad{i_sub}{i_phalange}.fahm; % mean distance from center of phalanges
+
+        overlap_opm_squidmag(i_sub,i_phalange) = opm_mne_M60{i_phalange}.overlap_squidmag/mne_opm{i_sub}{i_phalange}.fahm;
+        overlap_opm_squidgrad(i_sub,i_phalange) = opm_mne_M60{i_phalange}.overlap_squidgrad/mne_opm{i_sub}{i_phalange}.fahm;
+        overlap_squidmag_squidgrad(i_sub,i_phalange) = squidmag_mne_M60{i_phalange}.overlap_squidgrad/mne_squidmag{i_sub}{i_phalange}.fahm;
+        overlap_squidmag_opm(i_sub,i_phalange) = squidmag_mne_M60{i_phalange}.overlap_opm/mne_squidmag{i_sub}{i_phalange}.fahm;
+        overlap_squidgrad_squidmag(i_sub,i_phalange) = squidgrad_mne_M60{i_phalange}.overlap_squidmag/mne_squidgrad{i_sub}{i_phalange}.fahm;
+        overlap_squidgrad_opm(i_sub,i_phalange) = squidgrad_mne_M60{i_phalange}.overlap_opm/mne_squidgrad{i_sub}{i_phalange}.fahm;
     end
 end
 
@@ -104,7 +117,7 @@ for i_ph = 1:5
     close
 end
 
-%% Plot FAHM squidmag vs opm
+%% Plot FAHM
 data1 = fahm_squidmag;
 data2 = fahm_opm;
 data3 = fahm_squidgrad;
@@ -144,12 +157,107 @@ for i = 1:5
 end
 
 hold off
-title('MNE: Group level M100 FAHM')
+title('MNE: Group level M60 FAHM')
 ylabel('M60 FAHM [cm^2]')
 xlabel('Phalange')
 legend({'squidmag','opm','squidgrad'},'Location','eastoutside');
 xticklabels(params.phalange_labels)
 saveas(h, fullfile(base_save_path, 'figs', 'mne_fahm.jpg'))
+
+%% Plot peak powers
+data1 = pow_squidmag;
+data2 = pow_opm;
+data3 = pow_squidgrad;
+mean1 = mean(data1,1,'omitnan');
+mean2 = mean(data2,1,'omitnan');
+mean3 = mean(data3,1,'omitnan');
+min1 = min(data1,[],1,'omitnan');
+min2 = min(data2,[],1,'omitnan');
+min3 = min(data3,[],1,'omitnan');
+max1 = max(data1,[],1,'omitnan');
+max2 = max(data2,[],1,'omitnan');
+max3 = max(data3,[],1,'omitnan');
+err1 = [mean1-min1; max1-mean1];
+err2 = [mean2-min2; max2-mean2];
+err3 = [mean3-min3; max3-mean3];
+
+h = figure('DefaultAxesFontSize',16);
+h.Position(3) = round(h.Position(3)*1.2);
+bar(1:length(params.phalange_labels),[mean1; mean2; mean3]','grouped');
+hold on
+for k=1:length(params.phalange_labels)
+    errorbar(k-0.22,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+    errorbar(k,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+    errorbar(k+0.22,mean3(k),err3(1,k),err3(2,k),'k','linestyle','none');
+end
+
+p_values = zeros(5, 3);
+for i = 1:5
+    [~, p_values(i, 1)] = ttest(data1(:,i), data2(:,i));
+    [~, p_values(i, 2)] = ttest(data2(:,i), data3(:,i));
+    [~, p_values(i, 3)] = ttest(data1(:,i), data3(:,i));
+end
+for i = 1:5
+    sigstar({[i-0.22, i]}, p_values(i, 1));
+    sigstar({[i, i+0.22]}, p_values(i, 2));
+    sigstar({[i-0.22, i+0.22]}, p_values(i, 3));
+end
+
+hold off
+title('MNE: Group level M60 peak power')
+ylabel('M60 pow')
+xlabel('Phalange')
+legend({'squidmag','opm','squidgrad'},'Location','eastoutside');
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(base_save_path, 'figs', 'mne_pow.jpg'))
+
+
+%% Plot peak latencies
+data1 = lat_squidmag*1e3;
+data2 = lat_opm*1e3;
+data3 = lat_squidgrad*1e3;
+mean1 = mean(data1,1,'omitnan');
+mean2 = mean(data2,1,'omitnan');
+mean3 = mean(data3,1,'omitnan');
+min1 = min(data1,[],1,'omitnan');
+min2 = min(data2,[],1,'omitnan');
+min3 = min(data3,[],1,'omitnan');
+max1 = max(data1,[],1,'omitnan');
+max2 = max(data2,[],1,'omitnan');
+max3 = max(data3,[],1,'omitnan');
+err1 = [mean1-min1; max1-mean1];
+err2 = [mean2-min2; max2-mean2];
+err3 = [mean3-min3; max3-mean3];
+
+h = figure('DefaultAxesFontSize',16);
+h.Position(3) = round(h.Position(3)*1.2);
+bar(1:length(params.phalange_labels),[mean1; mean2; mean3]','grouped');
+hold on
+for k=1:length(params.phalange_labels)
+    errorbar(k-0.22,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+    errorbar(k,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+    errorbar(k+0.22,mean3(k),err3(1,k),err3(2,k),'k','linestyle','none');
+end
+
+p_values = zeros(5, 3);
+for i = 1:5
+    [~, p_values(i, 1)] = ttest(data1(:,i), data2(:,i));
+    [~, p_values(i, 2)] = ttest(data2(:,i), data3(:,i));
+    [~, p_values(i, 3)] = ttest(data1(:,i), data3(:,i));
+end
+for i = 1:5
+    sigstar({[i-0.22, i]}, p_values(i, 1));
+    sigstar({[i, i+0.22]}, p_values(i, 2));
+    sigstar({[i-0.22, i+0.22]}, p_values(i, 3));
+end
+
+hold off
+title('MNE: Group level M60 peak latency')
+ylabel('M60 peak latency [ms]')
+xlabel('Phalange')
+legend({'squidmag','opm','squidgrad'},'Location','eastoutside');
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(base_save_path, 'figs', 'mne_latency.jpg'))
 
 %% Plot FAHM squidgrad vs opm
 % data1 = fahm_squidgrad;
@@ -232,5 +340,5 @@ for i_ph = 1:5
     saveas(h, fullfile(base_save_path, 'figs', ['mne_fahm_vs_sub-' params.phalange_labels{i_ph} '.jpg']))
     close
 end
-
+disp('done')
 end

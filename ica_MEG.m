@@ -124,6 +124,7 @@ cfg = [];
 cfg.channelcmb = {'all' 'ECG'};
 cfg.method     = 'coh';
 fdcomp = ft_connectivityanalysis(cfg, freq);
+clear freq
 
 % Pick ECG components
 maxcoh = max(fdcomp.cohspctrm, [], 2);
@@ -235,6 +236,7 @@ cfg.channelcmb = {'comp*' 'EOG001'};
 fdcomp_eog1 = ft_connectivityanalysis(cfg, freq);
 cfg.channelcmb = {'comp*' 'EOG002'};
 fdcomp_eog2 = ft_connectivityanalysis(cfg, freq);
+clear freq
 
 % Find EOG components
 maxcoh = max(fdcomp_eog1.cohspctrm, [], 2);
@@ -321,6 +323,7 @@ if strcmp(params.modality,'squid')
     ylabel('Power (T^2)')
     title('squidmag spectrum - postICA')
     saveas(h, fullfile(save_path, 'figs', [params.sub '_squidmag_spectrum_2.jpg']))
+    clear freq
 
     cfg = [];
     cfg.channel = 'meggrad';
@@ -335,6 +338,7 @@ if strcmp(params.modality,'squid')
     ylabel('Power (T^2)')
     title('squidgrad spectrum - postICA')
     saveas(h, fullfile(save_path, 'figs', [params.sub '_squidgrad_spectrum_2.jpg']))
+    clear freq
 else
     cfg = [];
     cfg.channel = params.chs;
@@ -349,6 +353,7 @@ else
     ylabel('Power (T^2)')
     title([params.modality ' spectrum - postICA'])
     saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_spectrum_2.jpg']))
+    clear freq
 end
 
 %% Save
@@ -378,6 +383,7 @@ cfg = [];
 cfg.resamplefs = 500;
 data_ica_ds = ft_resampledata(cfg, data_ica_ds);
 save(fullfile(save_path, [params.sub '_' params.modality '_ica_ds']), 'data_ica_ds',"-v7.3"); disp('done');
+clear data_ica_ds
 
 close all
 end

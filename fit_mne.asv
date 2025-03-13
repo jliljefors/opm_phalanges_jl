@@ -13,6 +13,16 @@ squidgrad_mne_M60 = cell(5,1);
 opm_mne_M60 = cell(5,1);
 
 for i_phalange = 1:5
+    params.i_phalange = i_phalange;
+
+    if isfield(params,'use_cov_all') 
+        if params.use_cov_all
+            squidmag_timelocked{i_phalange}.cov = squidmag_timelocked{i_phalange}.cov_all;
+            squidgrad_timelocked{i_phalange}.cov = squidgrad_timelocked{i_phalange}.cov_all;
+            opm_timelocked{i_phalange}.cov = opm_timelocked{i_phalange}.cov_all;
+        end
+    end
+    
     %% MEG-MAG
     cfg = [];
     cfg.grad             = squidmag_timelocked{i_phalange}.grad; % sensor positions
@@ -32,7 +42,8 @@ for i_phalange = 1:5
     tmp = ft_sourceanalysis(cfg, squidmag_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
 
-    squidmag_mne_M60{i_phalange} = FullAreaHalfMax(tmp,sourcemodel);
+    params.modality = 'squidmag';
+    squidmag_mne_M60{i_phalange} = FullAreaHalfMax(tmp,sourcemodel,params, save_path);
 
     cfg = [];
     cfg.method          = 'surface';
@@ -50,6 +61,9 @@ for i_phalange = 1:5
     title(['SQUID-MAG (FAHM=' num2str(squidmag_mne_M60{i_phalange}.fahm,3) 'cm^2; t=' num2str(round(squidmag_mne_M60{i_phalange}.peak_latency*1e3)) 'ms)'])
     saveas(h, fullfile(save_path,'figs', [params.sub '_squidmag_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
+    
+    tmp = [];
+    clear tmp
 
     %% MEG-GRAD
     cfg = [];
@@ -70,7 +84,8 @@ for i_phalange = 1:5
     tmp = ft_sourceanalysis(cfg, squidgrad_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
     
-    squidgrad_mne_M60{i_phalange} = FullAreaHalfMax(tmp,sourcemodel);
+    params.modality = 'squidgrad';
+    squidgrad_mne_M60{i_phalange} = FullAreaHalfMax(tmp,sourcemodel,params, save_path);
 
     cfg = [];
     cfg.method          = 'surface';
@@ -87,6 +102,9 @@ for i_phalange = 1:5
     title(['SQUID-GRAD (FAHM=' num2str(squidgrad_mne_M60{i_phalange}.fahm,3) 'cm^2; t=' num2str(round(squidgrad_mne_M60{i_phalange}.peak_latency*1e3)) 'ms)'])
     saveas(h, fullfile(save_path,'figs', [params.sub '_squidgrad_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
+
+    tmp = [];
+    clear tmp
 
     %% OPM
     cfg = [];
@@ -107,7 +125,8 @@ for i_phalange = 1:5
     tmp = ft_sourceanalysis(cfg, opm_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
     
-    opm_mne_M60{i_phalange} = FullAreaHalfMax(tmp,sourcemodel);
+    params.modality = 'opm';
+    opm_mne_M60{i_phalange} = FullAreaHalfMax(tmp,sourcemodel,params, save_path);
 
     cfg = [];
     cfg.method          = 'surface';
@@ -125,19 +144,31 @@ for i_phalange = 1:5
     saveas(h, fullfile(save_path,'figs', [params.sub '_opm_mne_ph' params.phalange_labels{i_phalange} '.jpg']))
     close all
 
-    %% Overlaps
-    i_vertices = opm_mne_M60{i_phalange}.h
-    [triangles,~] = find(ismember(sourcemodel.tri,i_halfmax_vertices)); 
-    triangles = sourcemodel.tri(triangles,:);
+    tmp = [];
+    clear tmp
 
-    % Sum area of triangles and divide by 3 (since its a triangle per point).
-    fahm = sum(calculateTriangleAreas(sourcemodel.pos, triangles))/3;
+    %% Overlaps
+    i_vertices = opm_mne_M60{i_phalange}.halfmax_distribution & squidmag_mne_M60{i_phalange}.halfmax_distribution;
+    [triangles,~] = find(ismember(sourcemodel.tri,i_vertices)); 
+    triangles = sourcemodel.tri(triangles,:);
+    opm_mne_M60{i_phalange}.overlap_squidmag = sum(calculateTriangleAreas(sourcemodel.pos, triangles))/3;
+    squidmag_mne_M60{i_phalange}.overlap_opm = opm_mne_M60{i_phalange}.overlap_squidmag;
+
+    i_vertices = opm_mne_M60{i_phalange}.halfmax_distribution & squidgrad_mne_M60{i_phalange}.halfmax_distribution;
+    [triangles,~] = find(ismember(sourcemodel.tri,i_vertices)); 
+    triangles = sourcemodel.tri(triangles,:);
+    opm_mne_M60{i_phalange}.overlap_squidgrad = sum(calculateTriangleAreas(sourcemodel.pos, triangles))/3;
+    squidgrad_mne_M60{i_phalange}.overlap_opm = opm_mne_M60{i_phalange}.overlap_squidgrad;
+
+    i_vertices = squidmag_mne_M60{i_phalange}.halfmax_distribution & squidgrad_mne_M60{i_phalange}.halfmax_distribution;
+    [triangles,~] = find(ismember(sourcemodel.tri,i_vertices)); 
+    triangles = sourcemodel.tri(triangles,:);
+    squidmag_mne_M60{i_phalange}.overlap_squidgrad = sum(calculateTriangleAreas(sourcemodel.pos, triangles))/3;
+    squidgrad_mne_M60{i_phalange}.overlap_squidmag = squidmag_mne_M60{i_phalange}.overlap_squidgrad;
 
 end
-
 save(fullfile(save_path, 'squidmag_mne_M60'), 'squidmag_mne_M60'); 
 save(fullfile(save_path, 'squidgrad_mne_M60'), 'squidgrad_mne_M60'); 
 save(fullfile(save_path, 'opm_mne_M60'), 'opm_mne_M60'); 
-clear tmp opm_mne leadfield_opm
 
 end

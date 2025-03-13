@@ -109,11 +109,11 @@ for subNumber = subs
     %% ICA chapter
     chapter = Chapter('ICA');
     chapter.Numbered = false; % Remove chapter numbering
-    for i_section = 1:length(sections2)
-        filePath = fullfile(subjectFolderPath,['sub_' subStr '_' sections2{i_section} '_ica_comp.mat']);
+    for i_section = 1:length(sections)
+        filePath = fullfile(subjectFolderPath,['sub_' subStr '_' sections{i_section} '_ica_comp.mat']);
         if isfile(filePath)
             data = load(filePath);
-            section = Section(sections2(i_section));
+            section = Section(sections(i_section));
             section.Numbered = false; % Remove section numbering
             fields = {'ecg_comp_idx', 'eog1_comp_idx', 'eog2_comp_idx'};
             totalLength = 0;

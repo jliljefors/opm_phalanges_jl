@@ -1,4 +1,4 @@
-function [m60] = FullAreaHalfMax(sourcedistribution,sourcemodel,params,save_path)
+function [m60] = FullAreaHalfMax(sourcedistribution,sourcemodel,params)
 %UNTITLED Calculates the full area at half max amplitude
 %   Detailed explanation goes here
 [~,i1] = min(abs(sourcedistribution.time-0.04));
@@ -31,16 +31,16 @@ m60.fahm = fahm;
 m60.halfmax_distribution = halfmax_distribution;
 
 h = figure;
-plot(sourcedistribution.time*1e3,sum(abs(sourcedistribution.avg.pow)))
+plot(sourcedistribution.time*1e3,mean(abs(sourcedistribution.avg.pow)))
 hold on
 ylimits = ylim;
 latency = 1e3*peak_latency;
 plot([latency latency],ylimits,'k--')
 hold off
 xlabel('t [msec]')
-ylabel('total power')
+ylabel(params.amp_label)
 xlim([-params.pre params.post]*1e3);
-title(['Summed source power ' params.modality ' - phalange ' params.phalange_labels{params.i_phalange}])
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_mne_sourcepow_ph-' params.phalange_labels{params.i_phalange} '.jpg']))
+title(['Mean source power ' params.modality ' - phalange ' params.phalange_labels{i_phalange}])
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']))
 
 end

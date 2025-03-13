@@ -9,47 +9,43 @@ for i_sub = subs
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
     save_path = fullfile(base_save_path,params.sub);
-    load(fullfile(save_path, [params.sub '_opm_M60'])); 
-    M100_opm{i_sub} = M60;
-    load(fullfile(save_path, [params.sub '_opmeeg_M60'])); 
-    M100_opmeeg{i_sub} = M60;
-    load(fullfile(save_path, [params.sub '_squidmag_M60'])); 
-    M100_squidmag{i_sub} = M60;
-    load(fullfile(save_path, [params.sub '_squidgrad_M60'])); 
-    M100_squidgrad{i_sub} = M60;
-    load(fullfile(save_path, [params.sub '_squideeg_M60']));
-    M100_squideeg{i_sub} = M60;
-    
-    load(fullfile(save_path, [params.sub '_squidmag_timelocked'])); 
-    squidmag_timelocked = timelocked;
-    load(fullfile(save_path, [params.sub '_opm_timelocked'])); 
+    clear M60_opm M60_opmeeg
+    clear M60_squidmag M60_squidgrad M60_squideeg
+    M60_opm = load(fullfile(save_path, [params.sub '_opm_M60.mat'])).M60; 
+    M60_opmeeg = load(fullfile(save_path, [params.sub '_opmeeg_M60.mat'])).M60; 
+    M60_squidmag = load(fullfile(save_path, [params.sub '_squidmag_M60.mat'])).M60; 
+    M60_squidgrad = load(fullfile(save_path, [params.sub '_squidgrad_M60.mat'])).M60; 
+    M60_squideeg = load(fullfile(save_path, [params.sub '_squideeg_M60.mat'])).M60;
+
+    clear squidmag_timelocked opm_timelocked
+    squidmag_timelocked = load(fullfile(save_path, [params.sub '_squidmag_timelocked'])).timelocked; 
+    opm_timelocked = load(fullfile(save_path, [params.sub '_opm_timelocked'])).timelocked; 
     meg_chs = find(contains(squidmag_timelocked{1}.label,'MEG'));
-    opm_timelocked = timelocked;
     opm_chs = find(contains(opm_timelocked{1}.label,'bz'));
 
     for i_phalange = 1:length(params.phalange_labels)
-        peak_ratio.meg(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude/M100_squidmag{i_sub}{i_phalange}.peak_amplitude;
-        peak_ratio.eeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude/M100_squideeg{i_sub}{i_phalange}.peak_amplitude;
-        snr.error_opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude/M100_opm{i_sub}{i_phalange}.std_error;
-        snr.error_squid(i_sub,i_phalange) = M100_squidmag{i_sub}{i_phalange}.peak_amplitude/M100_squidmag{i_sub}{i_phalange}.std_error;
-        snr.error_squideeg(i_sub,i_phalange) = M100_squideeg{i_sub}{i_phalange}.peak_amplitude/M100_squideeg{i_sub}{i_phalange}.std_error;
-        snr.error_opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude/M100_opmeeg{i_sub}{i_phalange}.std_error;
-        snr.prestim_opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude/M100_opm{i_sub}{i_phalange}.prestim_std;
-        snr.prestim_squid(i_sub,i_phalange) = M100_squidmag{i_sub}{i_phalange}.peak_amplitude/M100_squidmag{i_sub}{i_phalange}.prestim_std;
-        snr.prestim_opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude/M100_opmeeg{i_sub}{i_phalange}.prestim_std;
-        snr.prestim_squideeg(i_sub,i_phalange) = M100_squideeg{i_sub}{i_phalange}.peak_amplitude/M100_squideeg{i_sub}{i_phalange}.prestim_std;
+        peak_ratio.meg(i_sub,i_phalange) = M60_opm{i_phalange}.peak_amplitude/M60_squidmag{i_phalange}.peak_amplitude;
+        peak_ratio.eeg(i_sub,i_phalange) = M60_opmeeg{i_phalange}.peak_amplitude/M60_squideeg{i_phalange}.peak_amplitude;
+        snr.error_opm(i_sub,i_phalange) = M60_opm{i_phalange}.peak_amplitude/M60_opm{i_phalange}.std_error;
+        snr.error_squid(i_sub,i_phalange) = M60_squidmag{i_phalange}.peak_amplitude/M60_squidmag{i_phalange}.std_error;
+        snr.error_squideeg(i_sub,i_phalange) = M60_squideeg{i_phalange}.peak_amplitude/M60_squideeg{i_phalange}.std_error;
+        snr.error_opmeeg(i_sub,i_phalange) = M60_opmeeg{i_phalange}.peak_amplitude/M60_opmeeg{i_phalange}.std_error;
+        snr.prestim_opm(i_sub,i_phalange) = M60_opm{i_phalange}.peak_amplitude/M60_opm{i_phalange}.prestim_std;
+        snr.prestim_squid(i_sub,i_phalange) = M60_squidmag{i_phalange}.peak_amplitude/M60_squidmag{i_phalange}.prestim_std;
+        snr.prestim_opmeeg(i_sub,i_phalange) = M60_opmeeg{i_phalange}.peak_amplitude/M60_opmeeg{i_phalange}.prestim_std;
+        snr.prestim_squideeg(i_sub,i_phalange) = M60_squideeg{i_phalange}.peak_amplitude/M60_squideeg{i_phalange}.prestim_std;
         snr.ratio_error(i_sub,i_phalange) = snr.error_opm(i_sub,i_phalange)/snr.error_squid(i_sub,i_phalange);
         snr.ratio_prestim(i_sub,i_phalange) = snr.prestim_opm(i_sub,i_phalange)/snr.prestim_squid(i_sub,i_phalange);
-        latency.opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_latency;
-        latency.squidmag(i_sub,i_phalange) = M100_squidmag{i_sub}{i_phalange}.peak_latency;
-        latency.squidgrad(i_sub,i_phalange) = M100_squidgrad{i_sub}{i_phalange}.peak_latency;
-        latency.opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_latency;
-        latency.squideeg(i_sub,i_phalange) = M100_squideeg{i_sub}{i_phalange}.peak_latency;
-        amp.opm(i_sub,i_phalange) = M100_opm{i_sub}{i_phalange}.peak_amplitude;
-        amp.squidmag(i_sub,i_phalange) = M100_squidmag{i_sub}{i_phalange}.peak_amplitude;
-        amp.squidgrad(i_sub,i_phalange) = M100_squidgrad{i_sub}{i_phalange}.peak_amplitude;
-        amp.opmeeg(i_sub,i_phalange) = M100_opmeeg{i_sub}{i_phalange}.peak_amplitude;
-        amp.squideeg(i_sub,i_phalange) = M100_squideeg{i_sub}{i_phalange}.peak_amplitude;
+        latency.opm(i_sub,i_phalange) = M60_opm{i_phalange}.peak_latency;
+        latency.squidmag(i_sub,i_phalange) = M60_squidmag{i_phalange}.peak_latency;
+        latency.squidgrad(i_sub,i_phalange) = M60_squidgrad{i_phalange}.peak_latency;
+        latency.opmeeg(i_sub,i_phalange) = M60_opmeeg{i_phalange}.peak_latency;
+        latency.squideeg(i_sub,i_phalange) = M60_squideeg{i_phalange}.peak_latency;
+        amp.opm(i_sub,i_phalange) = M60_opm{i_phalange}.peak_amplitude;
+        amp.squidmag(i_sub,i_phalange) = M60_squidmag{i_phalange}.peak_amplitude;
+        amp.squidgrad(i_sub,i_phalange) = M60_squidgrad{i_phalange}.peak_amplitude;
+        amp.opmeeg(i_sub,i_phalange) = M60_opmeeg{i_phalange}.peak_amplitude;
+        amp.squideeg(i_sub,i_phalange) = M60_squideeg{i_phalange}.peak_amplitude;
 
         h = figure;
         subplot(2,1,1)
