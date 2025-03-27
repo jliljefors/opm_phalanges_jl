@@ -39,6 +39,7 @@ for i_phalange = 1:5
     cfg.headmodel           = headmodel;    % supply the headmodel
     cfg.sourcemodel         = leadfield;
     cfg.senstype            = 'meg';            % sensor type
+    cfg.keepfilter          = 'yes';
     tmp = ft_sourceanalysis(cfg, squidmag_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
 
@@ -80,6 +81,7 @@ for i_phalange = 1:5
     cfg.headmodel           = headmodel;    % supply the headmodel
     cfg.senstype            = 'meg';
     cfg.sourcemodel         = leadfield;
+    cfg.keepfilter          = 'yes';
     tmp = ft_sourceanalysis(cfg, squidgrad_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
     
@@ -120,6 +122,7 @@ for i_phalange = 1:5
     cfg.headmodel           = headmodel;    % supply the headmodel
     cfg.sourcemodel         = leadfield;
     cfg.senstype            = 'meg';            % sensor type
+    cfg.keepfilter          = 'yes';
     tmp = ft_sourceanalysis(cfg, opm_timelocked{i_phalange});
     tmp.tri = sourcemodel.tri;
     

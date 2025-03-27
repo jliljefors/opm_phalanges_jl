@@ -41,7 +41,7 @@ params.pre = 0.05; %sec
 params.post = 0.3; %sec
 params.pad = 0.2; %sec
 params.filter = [];
-params.filter.hp_freq = 0.1;
+params.filter.hp_freq = 1;
 params.filter.lp_freq = 70;
 params.filter.bp_freq = [];
 params.filter.notch = [50 60 80]; %[50 60 100 120 150];
@@ -318,6 +318,21 @@ for i_sub = 2:size(subses,1)
             end
         end
         sourcemodel = ft_read_headshape({filename, strrep(filename, '.L.', '.R.')});
+
+        aparc_L = ft_read_atlas({filename2,filename});
+        aparc_R = ft_read_atlas({strrep(filename2,'.L.','.R.'),strrep(filename,'.L.','.R.')});
+        tmp = ft_read_atlas(strrep(filename2, '.L.', '.R.'),'format','caret_label');
+        n_labels = length(aparc_L.parcellationlabel);
+        atlas = [];
+        atlas.parcellationlabel = [aparc_L.parcellationlabel; aparc_R.parcellationlabel];
+        atlas.parcellation = [aparc_L.parcellation; aparc_R.parcellation + n_labels];
+        atlas.rgba = [aparc_L.rgba; aparc_R.rgba; [0 0 0 1]];
+        n_labels = length(atlas.parcellationlabel);
+        atlas.parcellation(isnan(atlas.parcellation))=n_labels+1;
+        sourcemodel.brainstructure = atlas.parcellation;
+        sourcemodel.brainstructurelabel = atlas.parcellationlabel;
+        sourcemodel.brainstructurecolor = atlas.rgba;
+
         T = mri_resliced.transform/mri_resliced.hdr.vox2ras;
         sourcemodel = ft_transform_geometry(T, sourcemodel);
         sourcemodel.inside = true(size(sourcemodel.pos,1),1);
