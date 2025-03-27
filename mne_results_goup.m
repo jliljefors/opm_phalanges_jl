@@ -9,6 +9,12 @@ dist_sqmag_sqgrad = nan(n_subs,n_ph);
 fahm_opm = nan(n_subs,n_ph);
 fahm_squidmag = nan(n_subs,n_ph);
 fahm_squidgrad = nan(n_subs,n_ph);
+lat_opm = nan(n_subs,n_ph);
+lat_squidmag = nan(n_subs,n_ph);
+lat_squidgrad = nan(n_subs,n_ph);
+pow_opm = nan(n_subs,n_ph);
+pow_squidmag = nan(n_subs,n_ph);
+pow_squidgrad = nan(n_subs,n_ph);
 for i_sub = subs
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
@@ -17,7 +23,7 @@ for i_sub = subs
     mne_squidmag{i_sub} = squidmag_mne_M60;
     load(fullfile(save_path, 'squidgrad_mne_M60'));
     mne_squidgrad{i_sub} = squidgrad_mne_M60;
-    load(fullfile(save_path, 'opm_mne_M60'));
+    opm_mne_M60 = load(fullfile(save_path, 'opm_mne_M60')).opm_mne_M60;
     mne_opm{i_sub} = opm_mne_M60;
   
     % Metrics: 
@@ -45,8 +51,8 @@ for i_sub = subs
         fahm_squidmag(i_sub,i_phalange) = mne_squidmag{i_sub}{i_phalange}.fahm; % mean distance from center of phalanges
         fahm_squidgrad(i_sub,i_phalange) = mne_squidgrad{i_sub}{i_phalange}.fahm; % mean distance from center of phalanges
 
-        overlap_opm_squidmag(i_sub,i_phalange) = opm_mne_M60{i_phalange}.overlap_squidmag/mne_opm{i_sub}{i_phalange}.fahm;
-        overlap_opm_squidgrad(i_sub,i_phalange) = opm_mne_M60{i_phalange}.overlap_squidgrad/mne_opm{i_sub}{i_phalange}.fahm;
+        overlap_opm_squidmag(i_sub,i_phalange) = opm_mne_M60{i_phalange}.overlap_squidmag/opm_mne_M60{i_phalange}.fahm;
+        overlap_opm_squidgrad(i_sub,i_phalange) = opm_mne_M60{i_phalange}.overlap_squidgrad/opm_mne_M60{i_phalange}.fahm;
         overlap_squidmag_squidgrad(i_sub,i_phalange) = squidmag_mne_M60{i_phalange}.overlap_squidgrad/mne_squidmag{i_sub}{i_phalange}.fahm;
         overlap_squidmag_opm(i_sub,i_phalange) = squidmag_mne_M60{i_phalange}.overlap_opm/mne_squidmag{i_sub}{i_phalange}.fahm;
         overlap_squidgrad_squidmag(i_sub,i_phalange) = squidgrad_mne_M60{i_phalange}.overlap_squidmag/mne_squidgrad{i_sub}{i_phalange}.fahm;

@@ -30,18 +30,18 @@ ft_default.showcallinfo = 'no';
 %% Overwrite
 overwrite = [];
 overwrite.preproc = true;
-overwrite.coreg = false;
+overwrite.coreg = true;
 overwrite.mri = false;
 overwrite.dip = false;
 overwrite.mne = true;
 
 %% Params
 params = [];
-params.pre = 0.03; %sec
+params.pre = 0.05; %sec
 params.post = 0.3; %sec
 params.pad = 0.2; %sec
 params.filter = [];
-params.filter.hp_freq = 1;
+params.filter.hp_freq = 0.1;
 params.filter.lp_freq = 70;
 params.filter.bp_freq = [];
 params.filter.notch = [50 60 80]; %[50 60 100 120 150];
@@ -278,14 +278,14 @@ for i_sub = 2:size(subses,1)
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
     if exist(fullfile(save_path, 'headmodels.mat'),'file') && exist(fullfile(save_path, 'opm_trans.mat'),'file') && or(overwrite.preproc,or(overwrite.coreg,overwrite.mri))
         clear headmodels meshes filename headshape 
-        headmodels = load(fullfile(save_path,'headmodels.mat')).headmnodels;
+        headmodels = load(fullfile(save_path,'headmodels.mat')).headmodels;
         meshes = load(fullfile(save_path,'meshes.mat')).meshes;    
         mri_resliced = load(fullfile(save_path, 'mri_resliced.mat')).mri_resliced;
         opm_trans = load(fullfile(save_path, 'opm_trans.mat')).opm_trans;
         
         clear opm_timelockedT opmeeg_timelcokedT 
         clear squideeg_timelocked squidmag_timelocked
-        opm_timelockedT = load(fullfile(save_path, [params.sub '_opm_timelocked.mat'])).timelcoked;
+        opm_timelockedT = load(fullfile(save_path, [params.sub '_opm_timelocked.mat'])).timelocked;
         opmeeg_timelockedT = load(fullfile(save_path, [params.sub '_opmeeg_timelocked.mat'])).timelocked;
         squideeg_timelocked = load(fullfile(save_path, [params.sub '_squideeg_timelocked.mat'])).timelocked;
         squidmag_timelocked = load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat'])).timelocked;
@@ -302,8 +302,8 @@ for i_sub = 2:size(subses,1)
             opm_timelockedT{i}.grad.coilpos = opm_trans.transformPointsForward(opm_timelockedT{i}.grad.coilpos);
             opm_timelockedT{i}.grad.chanori = (opm_trans.Rotation'*opm_timelockedT{i}.grad.chanori')';
             opm_timelockedT{i}.grad.coilori = (opm_trans.Rotation'*opm_timelockedT{i}.grad.coilori')';
-            opmeeg_timelockedT{i}.elec.chanpos = squideeg_timelockedT{i}.elec.chanpos;
-            opmeeg_timelockedT{i}.elec.elecpos = squideeg_timelockedT{i}.elec.elecpos;
+            opmeeg_timelockedT{i}.elec.chanpos = squideeg_timelocked{i}.elec.chanpos;
+            opmeeg_timelockedT{i}.elec.elecpos = squideeg_timelocked{i}.elec.elecpos;
         end
 
         % Read and transform cortical restrained source model
@@ -313,7 +313,7 @@ for i_sub = 2:size(subses,1)
             files = dir(fullfile(save_path,'wb'));
         end
         for i = 1:length(files)
-            if endsWith(files(i).name,'.L.midthickness.4k_fs_LR.surf.gii')
+            if endsWith(files(i).name,'.L.midthickness.8k_fs_LR.surf.gii')
                 filename = fullfile(mri_path,'workbench',files(i).name);
             end
         end
@@ -323,7 +323,7 @@ for i_sub = 2:size(subses,1)
         sourcemodel.inside = true(size(sourcemodel.pos,1),1);
 
         for i = 1:length(files)
-            if endsWith(files(i).name,'.L.inflated.4k_fs_LR.surf.gii')
+            if endsWith(files(i).name,'.L.inflated.8k_fs_LR.surf.gii')
                 filename = fullfile(mri_path,'workbench',files(i).name);
             end
         end
@@ -416,7 +416,7 @@ for i_sub = 2:size(subses,1)
     else
         clear headmodels sourcemodel sourcemodel_inflated
         sourcemodel = load(fullfile(save_path, [params.sub '_sourcemodel'])).sourcemodel;
-        sourcemode_inflated = load(fullfile(save_path, [params.sub '_sourcemodel_inflated'])).sourcemodel_inflated;
+        sourcemodel_inflated = load(fullfile(save_path, [params.sub '_sourcemodel_inflated'])).sourcemodel_inflated;
         headmodels = load(fullfile(save_path,'headmodels.mat')).headmodels;
         
         clear squimdag_timelocked squidgrad_timelocked opm_timelockedT

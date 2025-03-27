@@ -15,8 +15,12 @@ cfg.latency = [-params.pre params.post];
 data = ft_selectdata(cfg, data);
 
 cfg = [];
+cfg.demean = 'yes'; %% demean entire trial for whole trial cov
+data2 = ft_preprocessing(cfg,data);
+
+cfg = [];
 cfg.demean = 'yes';
-cfg.baselinewindow = [-prams.pre 0];
+cfg.baselinewindow = [-params.pre 0];
 data = ft_preprocessing(cfg,data);
 
 for i_phalange = 1:length(params.trigger_code)
@@ -26,11 +30,12 @@ for i_phalange = 1:length(params.trigger_code)
     cfg.trials = find(data.trialinfo==params.trigger_code(i_phalange));
     timelocked{i_phalange} = ft_timelockanalysis(cfg, data);
     
+
     cfg = [];
     cfg.covariance          = 'yes';
     cfg.covariancewindow    = 'all';
-    cfg.trials = find(data.trialinfo==params.trigger_code(i_phalange));
-    tmp = ft_timelockanalysis(cfg, data);
+    cfg.trials = find(data2.trialinfo==params.trigger_code(i_phalange));
+    tmp = ft_timelockanalysis(cfg, data2);
     timelocked{i_phalange}.cov_all = tmp.cov;
     clear tmp
 
