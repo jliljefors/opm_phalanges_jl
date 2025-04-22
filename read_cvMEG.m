@@ -107,11 +107,14 @@ cfg.senstype = 'EEG';
 squideeg_cleaned = ft_channelrepair(cfg, squideeg_cleaned);
 
 % Re-reference
-% cfg = [];
-% cfg.refef = 'yes';
-% cfg.reffchannel = 'EEG023';
-% squideeg_cleaned = ft_preprocessing(cfg,squideeg_cleaned);
+cfg = [];
+cfg.channel = 'all';
+cfg.refef = 'yes';
+cfg.refmethod = 'avg';
+cfg.reffchannel = 'all';
+squideeg_cleaned = ft_preprocessing(cfg,squideeg_cleaned);
 
+% Append ECG/EOG channels
 cfg = [];
 squideeg_cleaned = ft_appenddata(cfg,squideeg_cleaned,exg);
 

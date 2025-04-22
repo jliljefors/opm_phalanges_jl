@@ -217,6 +217,42 @@ legend({'squidmag','opm','squidgrad'},'Location','eastoutside');
 xticklabels(params.phalange_labels)
 saveas(h, fullfile(base_save_path, 'figs', 'mne_pow.jpg'))
 
+%% Plot peak powers
+data1 = pow_squidmag;
+data2 = pow_opm;
+mean1 = mean(data1,1,'omitnan');
+mean2 = mean(data2,1,'omitnan');
+min1 = min(data1,[],1,'omitnan');
+min2 = min(data2,[],1,'omitnan');
+max1 = max(data1,[],1,'omitnan');
+max2 = max(data2,[],1,'omitnan');
+err1 = [mean1-min1; max1-mean1];
+err2 = [mean2-min2; max2-mean2];
+
+h = figure('DefaultAxesFontSize',16);
+h.Position(3) = round(h.Position(3)*1.2);
+bar(1:length(params.phalange_labels),[mean1; mean2]','grouped');
+hold on
+for k=1:length(params.phalange_labels)
+    errorbar(k-0.22,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+    errorbar(k,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+end
+
+p_values = zeros(5, 3);
+for i = 1:5
+    [~, p_values(i, 1)] = ttest(data1(:,i), data2(:,i));
+end
+for i = 1:5
+    sigstar({[i-0.11, i+0.11]}, p_values(i, 1));
+end
+
+hold off
+title('MNE: Group level M60 peak power')
+ylabel('M60 pow')
+xlabel('Phalange')
+legend({'squidmag','opm'},'Location','eastoutside');
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(base_save_path, 'figs', 'mne_pow2.jpg'))
 
 %% Plot peak latencies
 data1 = lat_squidmag*1e3;

@@ -33,7 +33,7 @@ for i_phalange = 1:5
 
     cfg = [];
     cfg.method              = 'mne';
-    %cfg.mne.prewhiten       = 'yes';
+    cfg.mne.prewhiten       = 'yes';
     cfg.mne.lambda          = 3;
     cfg.mne.scalesourcecov  = 'yes';
     cfg.headmodel           = headmodel;    % supply the headmodel
@@ -75,7 +75,7 @@ for i_phalange = 1:5
 
     cfg = [];
     cfg.method              = 'mne';
-    %cfg.mne.prewhiten       = 'yes';
+    cfg.mne.prewhiten       = 'yes';
     cfg.mne.lambda          = 3;
     cfg.mne.scalesourcecov  = 'yes';
     cfg.headmodel           = headmodel;    % supply the headmodel

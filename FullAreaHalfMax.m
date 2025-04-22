@@ -31,16 +31,16 @@ m60.fahm = fahm;
 m60.halfmax_distribution = halfmax_distribution;
 
 h = figure;
-plot(sourcedistribution.time*1e3,sum(abs(sourcedistribution.avg.pow)))
+plot(sourcedistribution.time*1e3,std(sourcedistribution.avg.pow,0,1))
 hold on
 ylimits = ylim;
 latency = 1e3*peak_latency;
 plot([latency latency],ylimits,'k--')
 hold off
 xlabel('t [msec]')
-ylabel('total power')
+ylabel('Global field power')
 xlim([-params.pre params.post]*1e3);
-title(['Summed source power ' params.modality ' - phalange ' params.phalange_labels{params.i_phalange}])
+title(['Source pow ' params.modality ' - ' params.phalange_labels{params.i_phalange}])
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_mne_sourcepow_ph-' params.phalange_labels{params.i_phalange} '.jpg']))
 
 end

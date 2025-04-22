@@ -315,6 +315,8 @@ for i_sub = 2:size(subses,1)
         for i = 1:length(files)
             if endsWith(files(i).name,'.L.midthickness.8k_fs_LR.surf.gii')
                 filename = fullfile(mri_path,'workbench',files(i).name);
+            elseif endsWith(files(i).name,'.L.aparc.8k_fs_LR.label.gii')
+                filename2 = fullfile(mri_path,'workbench',files(i).name);
             end
         end
         sourcemodel = ft_read_headshape({filename, strrep(filename, '.L.', '.R.')});
@@ -345,7 +347,10 @@ for i_sub = 2:size(subses,1)
         sourcemodel_inflated = ft_read_headshape({filename, strrep(filename, '.L.', '.R.')});
         sourcemodel_inflated = ft_transform_geometry(T, sourcemodel_inflated);
         sourcemodel_inflated.inside = true(size(sourcemodel_inflated.pos,1),1);
-        
+        sourcemodel_inflated.brainstructure = sourcemodel.brainstructure;
+        sourcemodel_inflated.brainstructurelabel = sourcemodel.brainstructurelabel;
+        sourcemodel_inflated.brainstructurecolor = sourcemodel.brainstructurecolor;
+
         % Plot source and head models
         h=figure; 
         ft_plot_mesh(sourcemodel, 'maskstyle', 'opacity', 'facecolor', 'black', 'facealpha', 0.25, 'edgecolor', 'red',   'edgeopacity', 0.5,'unit','cm');
@@ -439,7 +444,7 @@ for i_sub = 2:size(subses,1)
         squidmag_timelocked = load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat'])).timelocked;
         squidgrad_timelocked = load(fullfile(save_path, [params.sub '_squidgrad_timelocked.mat'])).timelocked;
 
-        params.use_cov_all = true;
+        %params.use_cov_all = true;
 
         fit_mne(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelockedT, headmodels, sourcemodel, sourcemodel_inflated, params);
     end

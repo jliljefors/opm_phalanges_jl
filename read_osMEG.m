@@ -180,6 +180,7 @@ opm_cleaned.grad.M = eye(size(ori,1)) - ori*pinv(ori);
 for i = 1:length(opm_cleaned.trial)
     opm_cleaned.trial{i}(i_chs,:) = opm_cleaned.grad.M*opm_cleaned.trial{i}(i_chs,:);
 end
+opm_cleaned.grad.tra = opm_cleaned.grad.M * opm_cleaned.grad.tra; % update grad
 
 % Reject jump trials
 cfg = [];
@@ -222,11 +223,14 @@ cfg.senstype = 'EEG';
 opmeeg_cleaned = ft_channelrepair(cfg, opmeeg_cleaned);
 
 % Re-reference
-% cfg = [];
-% cfg.refef = 'yes';
-% cfg.reffchannel = 'EEG023';
-% opmeeg_cleaned = ft_preprocessing(cfg,opmeeg_cleaned);
+cfg = [];
+cfg.channel = 'all';
+cfg.refef = 'yes';
+cfg.refmethod = 'avg';
+cfg.reffchannel = 'all';
+opmeeg_cleaned = ft_preprocessing(cfg,opmeeg_cleaned);
 
+% Append ECG/EOG channels
 cfg = [];
 opmeeg_cleaned = ft_appenddata(cfg,opmeeg_cleaned,exg);
 
