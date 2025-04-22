@@ -33,6 +33,7 @@ overwrite.preproc = true;
 overwrite.coreg = true;
 overwrite.mri = false;
 overwrite.dip = false;
+overwrite.empty_room = true;
 overwrite.mne = true;
 
 %% Params
