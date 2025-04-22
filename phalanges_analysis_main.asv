@@ -420,7 +420,7 @@ end
 subs = [2:13];
 dipole_results_goup(base_save_path,subs, params)
 
-%% Empty room & resting state for noise covariances
+%% Empty room
 for i_sub = 2:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     save_path = fullfile(base_save_path,params.sub);
@@ -429,31 +429,34 @@ for i_sub = 2:size(subses,1)
     else
         params.sign = 1;
     end
-    if exist(fullfile(save_path, 'opm_RS_ica.mat'),'file') && overwrite.empty_room == false
-        disp(['Not overwriting MNE source reconstruction for ' params.sub]);
-    else
-        data_ica = load(fullfile(save_path, [params.sub '_' params.paradigm '_opm_icaT.mat'])).data_ica;
-        opm_chs = data_ica.label(contains(data_ica.label,'bz'));
-        clear data_ica
-        data_ica = load(fullfile(save_path, [params.sub '_' params.paradigm '_squid_ica.mat'])).data_ica;
-        squid_chs = data_ica.label(contains(data_ica.label,'MEG'));
-        clear data_ica
     
-        % Empty room
-        opm_file = fullfile(raw_path, 'osmeg', 'EmptyRoomOPM_raw.fif');
-        squid_file = fullfile(raw_path, 'meg', 'EmptyRoomMEG_tsss.fif');
-        if exist(opm_file,'file') && exist(squid_file,'file')
-            read_empty_rooms(opm_file, squid_file, opm_chs, squid_chs, save_path, params);
-        end
-    
-        % RESO
-        opm_file = fullfile(raw_path, 'osmeg', 'RSEOOPM_raw.fif');
-        aux_file = fullfile(raw_path, 'meg', 'RSEOEEG.fif');
-        read_osMEG_RS(opm_file, aux_file, opm_chs, save_path, params)
-        squid_file = fullfile(raw_path, 'meg', 'RSEOMEG_tsss.fif');
-        read_cvMEG_RS(squid_file, squid_chs, save_path, params)
+    opm_file = fullfile(raw_path, 'osmeg', 'EmptyRoomOPM_raw.fif');
+    squid_file = fullfile(raw_path, 'meg', 'EmptyRoomMEG_tsss.fif');
+    if exist(opm_file,'file') && exist(squid_file,'file')
+        read_empty_rooms(opm_file, squid_file, opm_chs, squid_chs, save_path, params);
     end
 end
+
+%% RSEO
+for i_sub = 2:size(subses,1)
+    params.sub = ['sub_' num2str(i_sub,'%02d')];
+    save_path = fullfile(base_save_path,params.sub);
+    if i_sub <=3 % Flip amplitudes in old recordings
+        params.flip = true;
+    else
+        params.flip = false;
+    end
+    opm_file = fullfile(raw_path, 'osmeg', 'EmptyRoomOPM_raw.fif');
+    squid_file = fullfile(raw_path, 'meg', 'EmptyRoomMEG_tsss.fif');
+    data_ica = load(fullfile(save_path, [params.sub '_' params.paradigm '_opm_icaT.mat'])).data_ica;
+    opm_chs = data_ica.label(contains(data_ica.label,'bz'));
+    clear data_ica
+    data_ica = load(fullfile(save_path, [params.sub '_' params.paradigm '_squid_ica.mat'])).data_ica;
+    squid_chs = data_ica.label(contains(data_ica.label,'MEG'));
+    clear data_ica
+    read_empty_rooms(opm_file, squid_file, opm_chs, squid_chs, save_path, params);
+end
+
 
 %% MNE
 for i_sub = 2:size(subses,1)

@@ -1,4 +1,4 @@
-function [data_ica] = ica_MEG(data,save_path,params)
+function [data_ica] = ica_MEG(data,save_path,params,save)
 %prprocess_osMEG Preprocessing on-scalp MEG data for benchmarking
 % recordings. Requires arguments:
 % Path: containing save_path and meg_file
@@ -6,6 +6,7 @@ function [data_ica] = ica_MEG(data,save_path,params)
 % bp_freq and notch filter frequencies (corresponding filters are only
 % applied if the frequency is defined), n_comp and coh_cutoff (for 
 % automated ICA), and ds_freq (downsampling frequency).
+
 
 %% Downsample
 cfg             = [];
@@ -130,35 +131,37 @@ clear freq
 maxcoh = max(fdcomp.cohspctrm, [], 2);
 ecg_comp_idx = unique([find(abs(R) > params.ica_cor); find(maxcoh > params.ica_coh)]);
 
-% Plot correlations
-if length(ecg_comp_idx)>=1
-    h = figure;
-    for i = 1:length(ecg_comp_idx)
-        subplot(length(ecg_comp_idx),1,i)
-        yyaxis left
-        plot(timelock.time, timelock.avg(1,:));
-        yyaxis right
-        plot(timelock.time, timelock.avg(ecg_comp_idx(i)+1,:));  
-        title(['Comp: ' num2str(ecg_comp_idx(i)) '; R_{ecg} = ' num2str(R(ecg_comp_idx(i),1))])
+if save
+    % Plot correlations
+    if length(ecg_comp_idx)>=1
+        h = figure;
+        for i = 1:length(ecg_comp_idx)
+            subplot(length(ecg_comp_idx),1,i)
+            yyaxis left
+            plot(timelock.time, timelock.avg(1,:));
+            yyaxis right
+            plot(timelock.time, timelock.avg(ecg_comp_idx(i)+1,:));  
+            title(['Comp: ' num2str(ecg_comp_idx(i)) '; R_{ecg} = ' num2str(R(ecg_comp_idx(i),1))])
+        end
+        saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_ecg_cor.jpg'])) 
     end
-    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_ecg_cor.jpg'])) 
+    
+    % Plot coherence spectrum between all components and the ECG
+    h = figure;
+    subplot(3,1,1); plot(fdcomp.freq, abs(fdcomp.cohspctrm)); hold on
+    plot([min(fdcomp.freq),max(fdcomp.freq)],[params.ica_coh, params.ica_coh], 'k--')
+    title('ECG'); xlabel('freq'); ylabel('coh');
+    subplot(3,1,2); imagesc(abs(fdcomp.cohspctrm));
+    xlabel('freq'); ylabel('comp');
+    subplot(3,1,3);
+    maxcoh = max(fdcomp.cohspctrm, [], 2);
+    foo = find(~(maxcoh > params.ica_coh));
+    bp = bar(1:length(maxcoh), diag(maxcoh), 'stacked');
+    set(bp(foo),'facecolor','w'); set(bp(ecg_comp_idx),'facecolor','r')
+    axis([0.5, length(maxcoh)+0.5, 0, 1]); xlabel('comp'); ylabel('coh');
+    
+    saveas(h, fullfile(save_path, 'figs',[params.sub '_' params.modality '_ica_ecg_coh.jpg'])) 
 end
-
-% Plot coherence spectrum between all components and the ECG
-h = figure;
-subplot(3,1,1); plot(fdcomp.freq, abs(fdcomp.cohspctrm)); hold on
-plot([min(fdcomp.freq),max(fdcomp.freq)],[params.ica_coh, params.ica_coh], 'k--')
-title('ECG'); xlabel('freq'); ylabel('coh');
-subplot(3,1,2); imagesc(abs(fdcomp.cohspctrm));
-xlabel('freq'); ylabel('comp');
-subplot(3,1,3);
-maxcoh = max(fdcomp.cohspctrm, [], 2);
-foo = find(~(maxcoh > params.ica_coh));
-bp = bar(1:length(maxcoh), diag(maxcoh), 'stacked');
-set(bp(foo),'facecolor','w'); set(bp(ecg_comp_idx),'facecolor','r')
-axis([0.5, length(maxcoh)+0.5, 0, 1]); xlabel('comp'); ylabel('coh');
-
-saveas(h, fullfile(save_path, 'figs',[params.sub '_' params.modality '_ica_ecg_coh.jpg'])) 
 close all
 
 %% --- EOG ---
@@ -244,57 +247,60 @@ eog1_comp_idx = unique([find(abs(R(:,1)) > params.ica_cor); find(maxcoh > params
 maxcoh = max(fdcomp_eog2.cohspctrm, [], 2);
 eog2_comp_idx = unique([find(abs(R(:,2)) > params.ica_cor); find(maxcoh > params.ica_coh)]);
 
-if length(eog1_comp_idx)>=1
-    h = figure;
-    for i = 1:length(eog1_comp_idx)
-        subplot(length(eog1_comp_idx),1,i)
-        yyaxis left
-        plot(timelock.time, timelock.avg(1,:));
-        yyaxis right
-        plot(timelock.time, timelock.avg(eog1_comp_idx(i)+2,:));  
-        title(['Comp: ' num2str(eog1_comp_idx(i)) '; R_{eog1} = ' num2str(R(eog1_comp_idx(i),1))])
+if save
+    if length(eog1_comp_idx)>=1
+        h = figure;
+        for i = 1:length(eog1_comp_idx)
+            subplot(length(eog1_comp_idx),1,i)
+            yyaxis left
+            plot(timelock.time, timelock.avg(1,:));
+            yyaxis right
+            plot(timelock.time, timelock.avg(eog1_comp_idx(i)+2,:));  
+            title(['Comp: ' num2str(eog1_comp_idx(i)) '; R_{eog1} = ' num2str(R(eog1_comp_idx(i),1))])
+        end
+        saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog1_cor.jpg'])) 
     end
-    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog1_cor.jpg'])) 
+    
+    if length(eog2_comp_idx)>=1
+        h = figure;
+        for i = 1:length(eog2_comp_idx)
+            subplot(length(eog2_comp_idx),1,i)
+            yyaxis left
+            plot(timelock.time, timelock.avg(2,:));
+            yyaxis right
+            plot(timelock.time, timelock.avg(eog2_comp_idx(i)+2,:));  
+            title(['Comp: ' num2str(eog2_comp_idx(i)) '; R_{eog2} = ' num2str(R(eog2_comp_idx(i),2))])
+        end
+        saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog2_cor.jpg'])) 
+    end
+    % Plot coherence spectrum between all components and the EOG
+    h = figure;
+    subplot(3,2,1); title('EOG001'); xlabel('freq'); ylabel('coh');
+    plot(fdcomp_eog1.freq, abs(fdcomp_eog1.cohspctrm)); hold on
+    plot([min(fdcomp_eog1.freq),max(fdcomp_eog1.freq)],[params.ica_coh, params.ica_coh], 'k--');
+    subplot(3,2,2); title('EOG002'); xlabel('freq'); ylabel('coh');
+    plot(fdcomp_eog2.freq, abs(fdcomp_eog2.cohspctrm)); hold on
+    plot([min(fdcomp_eog2.freq),max(fdcomp_eog2.freq)],[params.ica_coh, params.ica_coh], 'k--');
+    subplot(3,2,3); xlabel('freq'); ylabel('comp');
+    imagesc(abs(fdcomp_eog1.cohspctrm));
+    subplot(3,2,4); xlabel('freq'); ylabel('comp');
+    imagesc(abs(fdcomp_eog2.cohspctrm));
+    subplot(3,2,5); xlabel('comp'); ylabel('coh');
+    maxcoh = max(fdcomp_eog1.cohspctrm, [], 2);
+    foo = find(~(maxcoh > params.ica_coh));
+    bp = bar(1:length(maxcoh), diag(maxcoh), 'stacked');
+    set(bp(foo),'facecolor','w'); set(bp(eog1_comp_idx),'facecolor','r');
+    axis([0.5, length(maxcoh)+0.5, 0, 1]);
+    subplot(3,2,6); xlabel('comp'); ylabel('coh');
+    maxcoh = max(fdcomp_eog2.cohspctrm, [], 2);
+    foo = find(~(maxcoh > params.ica_coh));
+    bp = bar(1:length(maxcoh), diag(maxcoh), 'stacked');
+    set(bp(foo),'facecolor','w'); set(bp(eog2_comp_idx),'facecolor','r'); 
+    axis([0.5, length(maxcoh)+0.5, 0, 1]);
+    
+    saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog_coh.jpg'])) 
 end
 
-if length(eog2_comp_idx)>=1
-    h = figure;
-    for i = 1:length(eog2_comp_idx)
-        subplot(length(eog2_comp_idx),1,i)
-        yyaxis left
-        plot(timelock.time, timelock.avg(2,:));
-        yyaxis right
-        plot(timelock.time, timelock.avg(eog2_comp_idx(i)+2,:));  
-        title(['Comp: ' num2str(eog2_comp_idx(i)) '; R_{eog2} = ' num2str(R(eog2_comp_idx(i),2))])
-    end
-    saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog2_cor.jpg'])) 
-end
-% Plot coherence spectrum between all components and the EOG
-h = figure;
-subplot(3,2,1); title('EOG001'); xlabel('freq'); ylabel('coh');
-plot(fdcomp_eog1.freq, abs(fdcomp_eog1.cohspctrm)); hold on
-plot([min(fdcomp_eog1.freq),max(fdcomp_eog1.freq)],[params.ica_coh, params.ica_coh], 'k--');
-subplot(3,2,2); title('EOG002'); xlabel('freq'); ylabel('coh');
-plot(fdcomp_eog2.freq, abs(fdcomp_eog2.cohspctrm)); hold on
-plot([min(fdcomp_eog2.freq),max(fdcomp_eog2.freq)],[params.ica_coh, params.ica_coh], 'k--');
-subplot(3,2,3); xlabel('freq'); ylabel('comp');
-imagesc(abs(fdcomp_eog1.cohspctrm));
-subplot(3,2,4); xlabel('freq'); ylabel('comp');
-imagesc(abs(fdcomp_eog2.cohspctrm));
-subplot(3,2,5); xlabel('comp'); ylabel('coh');
-maxcoh = max(fdcomp_eog1.cohspctrm, [], 2);
-foo = find(~(maxcoh > params.ica_coh));
-bp = bar(1:length(maxcoh), diag(maxcoh), 'stacked');
-set(bp(foo),'facecolor','w'); set(bp(eog1_comp_idx),'facecolor','r');
-axis([0.5, length(maxcoh)+0.5, 0, 1]);
-subplot(3,2,6); xlabel('comp'); ylabel('coh');
-maxcoh = max(fdcomp_eog2.cohspctrm, [], 2);
-foo = find(~(maxcoh > params.ica_coh));
-bp = bar(1:length(maxcoh), diag(maxcoh), 'stacked');
-set(bp(foo),'facecolor','w'); set(bp(eog2_comp_idx),'facecolor','r'); 
-axis([0.5, length(maxcoh)+0.5, 0, 1]);
-
-saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog_coh.jpg'])) 
 close all
 
 %% Remove components
@@ -309,81 +315,82 @@ cfg.updatesens  = 'no';
 data_ica = ft_rejectcomponent(cfg, comp, data);
 
 %% Spectrum
-if strcmp(params.modality,'squid')
-    cfg = [];
-    cfg.channel = 'megmag';
-    cfg.output = 'pow';
-    cfg.method = 'mtmfft';
-    cfg.taper = 'hanning';
-    cfg.foilim = [1 100];
-    freq = ft_freqanalysis(cfg, data_ica);
-    h = figure;
-    semilogy(freq.freq,freq.powspctrm)
-    xlabel('Frequency (Hz)')
-    ylabel('Power (T^2)')
-    title('squidmag spectrum - postICA')
-    saveas(h, fullfile(save_path, 'figs', [params.sub '_squidmag_spectrum_2.jpg']))
-    clear freq
+if save
+    if strcmp(params.modality,'squid')
+        cfg = [];
+        cfg.channel = 'megmag';
+        cfg.output = 'pow';
+        cfg.method = 'mtmfft';
+        cfg.taper = 'hanning';
+        cfg.foilim = [1 100];
+        freq = ft_freqanalysis(cfg, data_ica);
+        h = figure;
+        semilogy(freq.freq,freq.powspctrm)
+        xlabel('Frequency (Hz)')
+        ylabel('Power (T^2)')
+        title('squidmag spectrum - postICA')
+        saveas(h, fullfile(save_path, 'figs', [params.sub '_squidmag_spectrum_2.jpg']))
+        clear freq
+    
+        cfg = [];
+        cfg.channel = 'meggrad';
+        cfg.output = 'pow';
+        cfg.method = 'mtmfft';
+        cfg.taper = 'hanning';
+        cfg.foilim = [1 100];
+        freq = ft_freqanalysis(cfg, data_ica);
+        h = figure;
+        semilogy(freq.freq,freq.powspctrm)
+        xlabel('Frequency (Hz)')
+        ylabel('Power (T^2)')
+        title('squidgrad spectrum - postICA')
+        saveas(h, fullfile(save_path, 'figs', [params.sub '_squidgrad_spectrum_2.jpg']))
+        clear freq
+    else
+        cfg = [];
+        cfg.channel = params.chs;
+        cfg.output = 'pow';
+        cfg.method = 'mtmfft';
+        cfg.taper = 'hanning';
+        cfg.foilim = [1 100];
+        freq = ft_freqanalysis(cfg, data_ica);
+        h = figure;
+        semilogy(freq.freq,freq.powspctrm)
+        xlabel('Frequency (Hz)')
+        ylabel('Power (T^2)')
+        title([params.modality ' spectrum - postICA'])
+        saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_spectrum_2.jpg']))
+        clear freq
+    end
 
+    save(fullfile(save_path, [params.sub '_' params.modality '_ica_comp']), 'comp', 'ecg_comp_idx', 'eog1_comp_idx', 'eog2_comp_idx'); disp('done');
+    %save(fullfile(save_path, [params.sub '_' params.modality '_ica']), 'data_ica',"-v7.3"); disp('done');
+    
+    cfg           = [];
+    cfg.component = reject_comp;       
+    cfg.layout    = params.layout; 
+    cfg.comment   = 'no';
+    
+    if length(reject_comp)>=1
+        h = figure;
+        ft_topoplotIC(cfg, comp);   
+        saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_rejected_comps' num2str(i) '.jpg'])) 
+    end
+
+    % Downsample for MVPA
     cfg = [];
-    cfg.channel = 'meggrad';
-    cfg.output = 'pow';
-    cfg.method = 'mtmfft';
-    cfg.taper = 'hanning';
-    cfg.foilim = [1 100];
-    freq = ft_freqanalysis(cfg, data_ica);
-    h = figure;
-    semilogy(freq.freq,freq.powspctrm)
-    xlabel('Frequency (Hz)')
-    ylabel('Power (T^2)')
-    title('squidgrad spectrum - postICA')
-    saveas(h, fullfile(save_path, 'figs', [params.sub '_squidgrad_spectrum_2.jpg']))
-    clear freq
-else
+    cfg.latency = [-0.05 0.3];
+    data_ica_ds = ft_selectdata(cfg, data_ica);
     cfg = [];
-    cfg.channel = params.chs;
-    cfg.output = 'pow';
-    cfg.method = 'mtmfft';
-    cfg.taper = 'hanning';
-    cfg.foilim = [1 100];
-    freq = ft_freqanalysis(cfg, data_ica);
-    h = figure;
-    semilogy(freq.freq,freq.powspctrm)
-    xlabel('Frequency (Hz)')
-    ylabel('Power (T^2)')
-    title([params.modality ' spectrum - postICA'])
-    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_spectrum_2.jpg']))
-    clear freq
+    cfg.demean = 'yes';
+    cfg.baselinewindow = [-0.05 0];
+    data_ica_ds = ft_preprocessing(cfg,data_ica_ds);
+    cfg = [];
+    cfg.resamplefs = 500;
+    data_ica_ds = ft_resampledata(cfg, data_ica_ds);
+    save(fullfile(save_path, [params.sub '_' params.modality '_ica_ds']), 'data_ica_ds',"-v7.3"); disp('done');
+    clear data_ica_ds
 end
-
-%% Save
-save(fullfile(save_path, [params.sub '_' params.modality '_ica_comp']), 'comp', 'ecg_comp_idx', 'eog1_comp_idx', 'eog2_comp_idx'); disp('done');
-%save(fullfile(save_path, [params.sub '_' params.modality '_ica']), 'data_ica',"-v7.3"); disp('done');
-
-cfg           = [];
-cfg.component = reject_comp;       
-cfg.layout    = params.layout; 
-cfg.comment   = 'no';
-
-if length(reject_comp)>=1
-    h = figure;
-    ft_topoplotIC(cfg, comp);   
-    saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_rejected_comps' num2str(i) '.jpg'])) 
-end
-
-%%
-cfg = [];
-cfg.latency = [-0.05 0.3];
-data_ica_ds = ft_selectdata(cfg, data_ica);
-cfg = [];
-cfg.demean = 'yes';
-cfg.baselinewindow = [-0.05 0];
-data_ica_ds = ft_preprocessing(cfg,data_ica_ds);
-cfg = [];
-cfg.resamplefs = 500;
-data_ica_ds = ft_resampledata(cfg, data_ica_ds);
-save(fullfile(save_path, [params.sub '_' params.modality '_ica_ds']), 'data_ica_ds',"-v7.3"); disp('done');
-clear data_ica_ds
 
 close all
 end

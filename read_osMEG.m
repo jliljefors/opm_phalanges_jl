@@ -177,7 +177,7 @@ for i = 1:length(chs)
 end
 opm_cleaned.grad.M = eye(size(ori,1)) - ori*pinv(ori);
 for i = 1:length(opm_cleaned.trial)
-    opm_cleaned.trial{i}(i_chs,:) = opm_cleaned.grad.M*opm_cleaned.trial{i}(i_chs,:);
+    opm_cleaned.trial{i}(i_chs,:) = params.sign * opm_cleaned.grad.M*opm_cleaned.trial{i}(i_chs,:);
 end
 i_chs = find(contains(opm_cleaned.grad.label,'bz'));
 opm_cleaned.grad.tra(i_chs_grad,i_chs_grad) = opm_cleaned.grad.M * opm_cleaned.grad.tra(i_chs_grad,i_chs_grad); % update grad
