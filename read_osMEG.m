@@ -56,7 +56,6 @@ cfg = [];
 cfg.lpfilter        = 'yes';         
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes'; 
-cfg.hpfiltertype    = 'firws';
 cfg.hpfreq          = params.filter.hp_freq;
 cfg.hpinstabilityfix  = 'reduce';
 %cfg.padding         = params.pre + params.post + 1;
@@ -91,7 +90,6 @@ cfg = [];
 cfg.lpfilter        = 'yes';         
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
-cfg.hpfiltertype    = 'firws';
 cfg.hpfreq          = params.filter.hp_freq;
 cfg.hpinstabilityfix  = 'reduce';
 %cfg.padding         = params.pre + params.post + 3;
@@ -175,12 +173,14 @@ chs = opm_cleaned.label(i_chs);
 ori = zeros(length(chs),3);
 for i = 1:length(chs)
     ori(i,:) = opm_cleaned.grad.chanori(find(strcmp(opm_cleaned.grad.label,chs{i})),:);
+    i_chs_grad(i) = find(strcmp(opm_cleaned.grad.label,chs{i}));
 end
 opm_cleaned.grad.M = eye(size(ori,1)) - ori*pinv(ori);
 for i = 1:length(opm_cleaned.trial)
     opm_cleaned.trial{i}(i_chs,:) = opm_cleaned.grad.M*opm_cleaned.trial{i}(i_chs,:);
 end
-opm_cleaned.grad.tra = opm_cleaned.grad.M * opm_cleaned.grad.tra; % update grad
+i_chs = find(contains(opm_cleaned.grad.label,'bz'));
+opm_cleaned.grad.tra(i_chs_grad,i_chs_grad) = opm_cleaned.grad.M * opm_cleaned.grad.tra(i_chs_grad,i_chs_grad); % update grad
 
 % Reject jump trials
 cfg = [];

@@ -1,6 +1,6 @@
 function [badchs, badchs_flat, badchs_std, badchs_neighbors, badchs_zmax, badchs_outlier, badtrls_zmax] = opm_badchannels(cfg, data)
 %opm_badchannels Detects channels that are flat, have low correlation with
-%their neighbors or show a lot of jumping artifacts.
+%thei_chs_gradeighbors or show a lot of jumping artifacts.
 %   cfg.z_threshold
 %   cfg.corr_threshold
 %   cfg.n_neighbors

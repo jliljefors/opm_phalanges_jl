@@ -27,7 +27,6 @@ cfg = [];
 cfg.lpfilter        = 'yes';         
 cfg.lpfreq          = params.filter.lp_freq;
 cfg.hpfilter        = 'yes';         
-cfg.hpfiltertype    = 'firws';
 cfg.hpfreq          = params.filter.hp_freq;
 cfg.hpinstabilityfix  = 'reduce';
 %cfg.padding         = params.pre + params.post + 3;
