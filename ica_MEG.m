@@ -1,4 +1,4 @@
-function [data_ica] = ica_MEG(data,save_path,params,save)
+function [data_ica] = ica_MEG(data,save_path,params,save_results)
 %prprocess_osMEG Preprocessing on-scalp MEG data for benchmarking
 % recordings. Requires arguments:
 % Path: containing save_path and meg_file
@@ -131,7 +131,7 @@ clear freq
 maxcoh = max(fdcomp.cohspctrm, [], 2);
 ecg_comp_idx = unique([find(abs(R) > params.ica_cor); find(maxcoh > params.ica_coh)]);
 
-if save
+if save_results
     % Plot correlations
     if length(ecg_comp_idx)>=1
         h = figure;
@@ -247,7 +247,7 @@ eog1_comp_idx = unique([find(abs(R(:,1)) > params.ica_cor); find(maxcoh > params
 maxcoh = max(fdcomp_eog2.cohspctrm, [], 2);
 eog2_comp_idx = unique([find(abs(R(:,2)) > params.ica_cor); find(maxcoh > params.ica_coh)]);
 
-if save
+if save_results
     if length(eog1_comp_idx)>=1
         h = figure;
         for i = 1:length(eog1_comp_idx)
@@ -315,7 +315,7 @@ cfg.updatesens  = 'no';
 data_ica = ft_rejectcomponent(cfg, comp, data);
 
 %% Spectrum
-if save
+if save_results
     if strcmp(params.modality,'squid')
         cfg = [];
         cfg.channel = 'megmag';
@@ -362,7 +362,10 @@ if save
         saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_spectrum_2.jpg']))
         clear freq
     end
+end
 
+%% Save components
+if save_results
     save(fullfile(save_path, [params.sub '_' params.modality '_ica_comp']), 'comp', 'ecg_comp_idx', 'eog1_comp_idx', 'eog2_comp_idx'); disp('done');
     %save(fullfile(save_path, [params.sub '_' params.modality '_ica']), 'data_ica',"-v7.3"); disp('done');
     
