@@ -15,6 +15,9 @@ lat_squidgrad = nan(n_subs,n_ph);
 pow_opm = nan(n_subs,n_ph);
 pow_squidmag = nan(n_subs,n_ph);
 pow_squidgrad = nan(n_subs,n_ph);
+mom_opm = nan(n_subs,n_ph);
+mom_squidmag = nan(n_subs,n_ph);
+mom_squidgrad = nan(n_subs,n_ph);
 for i_sub = subs
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     ft_hastoolbox('mne', 1);
@@ -42,6 +45,10 @@ for i_sub = subs
         pow_squidmag(i_sub,i_phalange) = mne_squidmag{i_sub}{i_phalange}.peak_pow;
         pow_squidgrad(i_sub,i_phalange) = mne_squidgrad{i_sub}{i_phalange}.peak_pow;
         pow_opm(i_sub,i_phalange) = mne_opm{i_sub}{i_phalange}.peak_pow;
+
+        mom_squidmag(i_sub,i_phalange) = mne_squidmag{i_sub}{i_phalange}.peak_mom;
+        mom_squidgrad(i_sub,i_phalange) = mne_squidgrad{i_sub}{i_phalange}.peak_mom;
+        mom_opm(i_sub,i_phalange) = mne_opm{i_sub}{i_phalange}.peak_mom;
 
         lat_squidmag(i_sub,i_phalange) = mne_squidmag{i_sub}{i_phalange}.peak_latency;
         lat_squidgrad(i_sub,i_phalange) = mne_squidgrad{i_sub}{i_phalange}.peak_latency;
@@ -217,7 +224,56 @@ legend({'squidmag','opm','squidgrad'},'Location','eastoutside');
 xticklabels(params.phalange_labels)
 saveas(h, fullfile(base_save_path, 'figs', 'mne_pow.jpg'))
 
-%% Plot peak powers
+%% Plot peak mom
+data1 = mom_squidmag;
+data2 = mom_opm;
+data3 = mom_squidgrad;
+mean1 = mean(data1,1,'omitnan');
+mean2 = mean(data2,1,'omitnan');
+mean3 = mean(data3,1,'omitnan');
+min1 = min(data1,[],1,'omitnan');
+min2 = min(data2,[],1,'omitnan');
+min3 = min(data3,[],1,'omitnan');
+max1 = max(data1,[],1,'omitnan');
+max2 = max(data2,[],1,'omitnan');
+max3 = max(data3,[],1,'omitnan');
+err1 = [mean1-min1; max1-mean1];
+err2 = [mean2-min2; max2-mean2];
+err3 = [mean3-min3; max3-mean3];
+
+h = figure('DefaultAxesFontSize',16);
+h.Position(3) = round(h.Position(3)*1.2);
+bar(1:length(params.phalange_labels),[mean1; mean2; mean3]','grouped');
+hold on
+for k=1:length(params.phalange_labels)
+    errorbar(k-0.22,mean1(k),err1(1,k),err1(2,k),'k','linestyle','none');
+    errorbar(k,mean2(k),err2(1,k),err2(2,k),'k','linestyle','none');
+    errorbar(k+0.22,mean3(k),err3(1,k),err3(2,k),'k','linestyle','none');
+end
+
+p_values = zeros(5, 3);
+for i = 1:5
+    [~, p_values(i, 1)] = ttest(data1(:,i), data2(:,i));
+    [~, p_values(i, 2)] = ttest(data2(:,i), data3(:,i));
+    [~, p_values(i, 3)] = ttest(data1(:,i), data3(:,i));
+end
+for i = 1:5
+    sigstar({[i-0.22, i]}, p_values(i, 1));
+    sigstar({[i, i+0.22]}, p_values(i, 2));
+    sigstar({[i-0.22, i+0.22]}, p_values(i, 3));
+end
+
+hold off
+title('MNE: Group level M60 peak moment')
+ylabel('M60 mom')
+xlabel('Phalange')
+legend({'squidmag','opm','squidgrad'},'Location','eastoutside');
+xticklabels(params.phalange_labels)
+saveas(h, fullfile(base_save_path, 'figs', 'mne_mom.jpg'))
+
+
+
+%% Plot peak powers - opm and squidmag only
 data1 = pow_squidmag;
 data2 = pow_opm;
 mean1 = mean(data1,1,'omitnan');

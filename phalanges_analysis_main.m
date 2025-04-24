@@ -422,7 +422,7 @@ subs = [2:13];
 dipole_results_goup(base_save_path,subs, params)
 
 %% Empty room & resting state for noise covariances
-for i_sub = 2:size(subses,1)
+for i_sub = 2%2:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     save_path = fullfile(base_save_path,params.sub);
     if i_sub <=3 % Flip amplitudes in old recordings
@@ -430,15 +430,19 @@ for i_sub = 2:size(subses,1)
     else
         params.sign = 1;
     end
-    if exist(fullfile(save_path, 'opm_RS_ica.mat'),'file') && overwrite.empty_room == false
+    if exist(fullfile(save_path, 'opm_resting_state_ica.mat'),'file') && overwrite.empty_room == false
         disp(['Not overwriting MNE source reconstruction for ' params.sub]);
     else
-        data_ica = load(fullfile(save_path, [params.sub '_' params.paradigm '_opm_icaT.mat'])).data_ica;
+        data_ica = load(fullfile(save_path, [params.sub '_opm_timelockedT.mat'])).opm_timelockedT{1};
         opm_chs = data_ica.label(contains(data_ica.label,'bz'));
         clear data_ica
-        data_ica = load(fullfile(save_path, [params.sub '_' params.paradigm '_squid_ica.mat'])).data_ica;
-        squid_chs = data_ica.label(contains(data_ica.label,'MEG'));
+        data_ica = load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat'])).timelocked{1};
+        squidmag_chs = data_ica.label(contains(data_ica.label,'MEG'));
         clear data_ica
+        data_ica = load(fullfile(save_path, [params.sub '_squidgrad_timelocked.mat'])).timelocked{1};
+        squidgrad_chs = data_ica.label(contains(data_ica.label,'MEG'));
+        clear data_ica
+        squid_chs = [squidmag_chs; squidgrad_chs];
     
         % Empty room
         opm_file = fullfile(raw_path, 'osmeg', 'EmptyRoomOPM_raw.fif');

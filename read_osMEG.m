@@ -166,6 +166,7 @@ xlabel('Frequency (Hz)')
 ylabel('Power (T^2)')
 title('OPM spectrum - preHFC')
 saveas(h, fullfile(save_path, 'figs', [params.sub '_opm_spectrum0.jpg']))
+close all
 
 % HFC
 i_chs = find(contains(opm_cleaned.label,'bz'));
@@ -271,6 +272,7 @@ xlabel('Frequency (Hz)')
 ylabel('Power (T^2)')
 title('OPM-EEG spectrum - preICA')
 saveas(h, fullfile(save_path, 'figs', [params.sub '_opmeeg_spectrum1.jpg']))
+close all
 
 cfg = [];
 cfg.channel = '*bz';
@@ -285,7 +287,7 @@ xlabel('Frequency (Hz)')
 ylabel('Power (T^2)')
 title('OPM spectrum - preICA')
 saveas(h, fullfile(save_path, 'figs', [params.sub '_opm_spectrum1.jpg']))
-
+close all
 
 %% Save 
 save(fullfile(save_path, [params.sub '_opm_badchs']), ...

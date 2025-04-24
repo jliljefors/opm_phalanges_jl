@@ -184,6 +184,6 @@ cfg.channel = '*bz';
 opm_RS_ica = ft_selectdata(cfg,opm_RS_ica);
 
 %% Save
-save(fullfile(save_path, 'opm_RS_ica'), 'opm_RS_ica',"-v7.3");
+save(fullfile(save_path, [params.sub '_resting_state_opm_ica']), 'opm_RS_ica',"-v7.3");
 
 end

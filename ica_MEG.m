@@ -145,6 +145,7 @@ if save_results
         end
         saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_ecg_cor.jpg'])) 
     end
+    close all
     
     % Plot coherence spectrum between all components and the ECG
     h = figure;
@@ -158,11 +159,10 @@ if save_results
     foo = find(~(maxcoh > params.ica_coh));
     bp = bar(1:length(maxcoh), diag(maxcoh), 'stacked');
     set(bp(foo),'facecolor','w'); set(bp(ecg_comp_idx),'facecolor','r')
-    axis([0.5, length(maxcoh)+0.5, 0, 1]); xlabel('comp'); ylabel('coh');
-    
+    axis([0.5, length(maxcoh)+0.5, 0, 1]); xlabel('comp'); ylabel('coh');    
     saveas(h, fullfile(save_path, 'figs',[params.sub '_' params.modality '_ica_ecg_coh.jpg'])) 
+    close all
 end
-close all
 
 %% --- EOG ---
 % Find EOG artifacts
@@ -260,7 +260,8 @@ if save_results
         end
         saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog1_cor.jpg'])) 
     end
-    
+    close all
+
     if length(eog2_comp_idx)>=1
         h = figure;
         for i = 1:length(eog2_comp_idx)
@@ -273,6 +274,8 @@ if save_results
         end
         saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog2_cor.jpg'])) 
     end
+    close all
+
     % Plot coherence spectrum between all components and the EOG
     h = figure;
     subplot(3,2,1); title('EOG001'); xlabel('freq'); ylabel('coh');
@@ -299,9 +302,8 @@ if save_results
     axis([0.5, length(maxcoh)+0.5, 0, 1]);
     
     saveas(h,fullfile(save_path, 'figs', [params.sub '_' params.modality '_ica_eog_coh.jpg'])) 
+    close all
 end
-
-close all
 
 %% Remove components
 % Make a list of all "bad" components
@@ -362,6 +364,7 @@ if save_results
         saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_spectrum_2.jpg']))
         clear freq
     end
+    close all
 end
 
 %% Save components

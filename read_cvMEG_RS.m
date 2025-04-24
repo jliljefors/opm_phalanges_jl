@@ -86,6 +86,6 @@ cfg.channel = 'meg';
 squid_RS_ica = ft_selectdata(cfg,squid_RS_ica);
 
 %% Save 
-save(fullfile(save_path, 'squid_RS_ica'), 'squid_RS_ica',"-v7.3");
+save(fullfile(save_path, [params.sub '_resting_state_squid_ica']), 'squid_RS_ica',"-v7.3");
 
 end
