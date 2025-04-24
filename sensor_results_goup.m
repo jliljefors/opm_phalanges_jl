@@ -67,26 +67,30 @@ end
 save(fullfile(base_save_path, 'group_sensor'),"peak_ratio","snr","latency","amp","-v7.3");
 
 %% Plot SNR vs subs
-h = figure('DefaultAxesFontSize',16);
-plot(subs,snr.error_opm)
-hold on
-plot(subs,snr.error_squidmag,':')
-hold off
-title("SNR_{error} over subjects (:=squidmag)")
-ylabel("SNR")
-xlabel("sub")
-saveas(h, fullfile(base_save_path, 'figs', 'Peak_SNR_vs_subs.jpg'))
-       
+for i_ph = 1:5
+    h = figure('DefaultAxesFontSize',16);
+    plot(subs,snr.error_opm(:,i_ph))
+    hold on
+    plot(subs,snr.error_squidmag(:,i_ph),':')
+    hold off
+    title("SNR_{error} over subjects (:=squidmag)")
+    ylabel("SNR")
+    xlabel("sub")
+    saveas(h, fullfile(base_save_path, 'figs', ['Peak_SNR_vs_subs' params.phalange_labels{i_ph} '.jpg']))
+end
+
 %% Plot amp vs subs
-h = figure('DefaultAxesFontSize',16);
-plot(subs,amp.opm*1e15)
-hold on
-plot(subs,amp.squidmag*1e15,':')
-hold off
-title("M60 amp over subjects (:=squidmag)")
-ylabel("fT")
-xlabel("sub")
-saveas(h, fullfile(base_save_path, 'figs', 'Peak_amp_vs_subs.jpg'))
+for i_ph = 1:5
+    h = figure('DefaultAxesFontSize',16);
+    plot(subs,amp.opm(:,i_ph)*1e15)
+    hold on
+    plot(subs,amp.squidmag(:,i_ph)*1e15,':')
+    hold off
+    title("M60 amp over subjects (:=squidmag)")
+    ylabel("fT")
+    xlabel("sub")
+    saveas(h, fullfile(base_save_path, 'figs', ['Peak_amp_vs_subs' params.phalange_labels{i_ph} '.jpg']))
+end
 
 %% Plot ratio
 h = figure('DefaultAxesFontSize',16);
