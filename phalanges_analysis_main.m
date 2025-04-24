@@ -29,8 +29,8 @@ ft_default.showcallinfo = 'no';
 
 %% Overwrite
 overwrite = [];
-overwrite.preproc = true;
-overwrite.coreg = true;
+overwrite.preproc = false;
+overwrite.coreg = false;
 overwrite.mri = false;
 overwrite.dip = false;
 overwrite.empty_room = true;

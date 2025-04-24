@@ -29,7 +29,6 @@ cfg = [];
 cfg.datafile        = opm_file;
 cfg.coordsys        = 'dewar';
 cfg.coilaccuracy    = 0;
-cfg.channel         = opm_chs;
 opm_raw = ft_preprocessing(cfg);
 opm_trig = contains(opm_raw.label,'di');
 trig = opm_raw.trial{1}(opm_trig,:)>0.5;
@@ -99,17 +98,22 @@ opm_epo = ft_preprocessing(cfg,opm_epo);
 cfg            = [];
 cfg.time = aux_epo.time;
 cfg.detrend    = 'no';
-opm_epo_ds = ft_resampledata(cfg, opm_epo);
+opm_epo = ft_resampledata(cfg, opm_epo);
+
+%% Select opm channels
+cfg = [];
+cfg.channel = opm_chs;
+opm_epo = ft_selectdata(cfg, opm_epo);
 
 %% Combine data
 EOG_channels = find(contains(aux_epo.label,'EOG'));
 ECG_channels = find(contains(aux_epo.label,'ECG'));
-EEG_channels = find(contains(aux_epo.label,'EEG'));
-MISC_channels = find(contains(aux_epo.label,'MISC'));
-TRIG_channels = find(contains(aux_epo.label,'STI101'));
-include_channels = [EOG_channels; ECG_channels; EEG_channels; MISC_channels; TRIG_channels];
+% EEG_channels = find(contains(aux_epo.label,'EEG'));
+% MISC_channels = find(contains(aux_epo.label,'MISC'));
+% TRIG_channels = find(contains(aux_epo.label,'STI101'));
+include_channels = [EOG_channels; ECG_channels]; %; EEG_channels; MISC_channels; TRIG_channels];
 
-comb = opm_epo_ds; 
+comb = opm_epo; 
 comb.elec = aux_epo.elec;
 comb.time = aux_epo.time;
 comb.label = [comb.label; aux_epo.label(include_channels)];
