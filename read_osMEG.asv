@@ -15,7 +15,7 @@ cfg.coordsys        = 'dewar';
 cfg.coilaccuracy    = 0;
 opm_raw = ft_preprocessing(cfg);
 opm_trig = find(contains(opm_raw.label,'di'));
-trig = opm_raw.trial{1}(opm_trig,:)>0.5;
+trig = opm_raw.trial{1}(opm_trig,:)==1;
 trig = [false trig(2:end)&~trig(1:end-1)];
 trl_opm(:,1) = find(trig)-(params.pre+params.pad)*opm_raw.fsample;
 trl_opm(:,2) = find(trig)+(params.post+params.pad)*opm_raw.fsample;
@@ -30,7 +30,7 @@ cfg = [];
 cfg.datafile        = aux_file;
 aux_raw = ft_preprocessing(cfg);
 aux_trig = find(contains(aux_raw.label,'STI101'));
-trig = aux_raw.trial{1}(aux_trig,:)>0.5;
+trig = aux_raw.trial{1}(aux_trig,:)==1;
 trig = [false trig(2:end)&~trig(1:end-1)];
 trl_aux(:,1) = find(trig)-(params.pre+params.pad)*aux_raw.fsample;
 trl_aux(:,2) = find(trig)+(params.post+params.pad)*aux_raw.fsample;
@@ -153,11 +153,9 @@ for i = 1:length(comb.trial)
 end
 
 %% Downsample
-if isfield(params,'ds_freq')
-    cfg = [];
-    cfg.resamplefs = params.ds_freq;
-    comb = ft_resampledata(cfg,comb);
-end
+cfg = [];
+cfg.resamplefs = params.ds_freq;
+comb = ft_resampledata(cfg,comb);
 
 %% OPM 
 cfg = [];
