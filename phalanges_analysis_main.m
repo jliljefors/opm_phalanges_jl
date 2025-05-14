@@ -493,3 +493,7 @@ close all
 subs = [2:10 12:13];
 mne_results_goup(base_save_path, subs, params);
 
+%%
+close all
+clear all
+exit
